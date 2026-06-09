@@ -117,38 +117,38 @@ p {
 
 @font-face {
   font-family: 'Dongle';
-  src: url('./assets/Dongle-Light.ttf') format('truetype');
+  src: url('./assets/Dongle-Light.woff2') format('woff2');
   font-weight: light;
   font-style: normal;
 }
 @font-face {
   font-family: 'Dongle';
-  src: url('./assets/Dongle-Regular.ttf') format('truetype');
+  src: url('./assets/Dongle-Regular.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
 }
 @font-face {
   font-family: 'Dongle';
-  src: url('./assets/Dongle-Bold.ttf') format('truetype');
+  src: url('./assets/Dongle-Bold.woff2') format('woff2');
   font-weight: bold;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'Gaegu';
-  src: url('./assets/Gaegu-Light.ttf') format('truetype');
+  src: url('./assets/Gaegu-Light.woff2') format('woff2');
   font-weight: light;
   font-style: normal;
 }
 @font-face {
   font-family: 'Gaegu';
-  src: url('./assets/Gaegu-Regular.ttf') format('truetype');
+  src: url('./assets/Gaegu-Regular.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
 }
 @font-face {
   font-family: 'Gaegu';
-  src: url('./assets/Gaegu-Bold.ttf') format('truetype');
+  src: url('./assets/Gaegu-Bold.woff2') format('woff2');
   font-weight: bold;
   font-style: normal;
 }
