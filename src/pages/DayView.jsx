@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import useDate from '@/hooks/useDate';
+import useCurrentDate from '@/hooks/useCurrentDate';
 import { getDay, getMonth, getStartOfDay, getWeekday, toMs } from '@/utils/dateUtils';
 import TaskList from '@/features/tasks/TaskList';
 import { useTasks } from '@/features/tasks/context/TaskContext';
 import useWeekTasks from '@/hooks/useWeekTasks';
 
 const DayView = () => {
-  const date = useDate();
+  const date = useCurrentDate();
   const msDate = toMs(getStartOfDay(date));
 
   const { tasksByDay } = useWeekTasks(date);
