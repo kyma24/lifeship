@@ -23,7 +23,10 @@
     "allowJs": true,
     "checkJs": false,
 
-    "noUncheckedIndexedAccess": true
+    "noUncheckedIndexedAccess": true,
+    "paths": {
+        "@/*": ["./src/*"]
+    }
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]
