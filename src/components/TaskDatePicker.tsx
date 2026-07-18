@@ -1,11 +1,11 @@
-import { toDate, formatDate, getTime } from "@/utils/dateUtils";
-import { useRef } from "react";
+import { formatDate, getTime, toDate } from "@/utils/dateUtils";
+import { ChangeEvent, RefObject, useRef } from "react";
 
-const TaskDatePicker = ({
-    timeValue,
-    onChange
+const TaskDatePicker = ({timeValue, onChange}: {
+    timeValue: number,
+    onChange: (date: Date) => void
 }) => {
-    const inputRef = useRef(null);
+    const inputRef: RefObject<HTMLInputElement> = useRef(null!);
 
     return (
         <button
@@ -19,14 +19,14 @@ const TaskDatePicker = ({
                 id="date-picker"
                 type="datetime-local"
                 value={timeValue ? toLocalInputString(timeValue) : ''}
-                onChange={e => onChange(toDate(e.target.value))}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(new Date(e.target.value))}
                 className="absolute inset-0 opacity-0 cursor-pointer w-20"
             />
         </button>
     );
 }
 
-const toLocalInputString = (date) => {
+const toLocalInputString = (date: number) => {
     const offset = (toDate(date)).getTimezoneOffset() * 6000;
     return toDate(date-offset).toISOString().slice(0,16);
 }

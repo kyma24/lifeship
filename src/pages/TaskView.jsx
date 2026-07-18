@@ -2,7 +2,7 @@ import { useTasks } from '@/features/tasks/context/TaskContext';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom'
 import { toMs, toDate, getTime, addDuration } from '@/utils/dateUtils';
-import TaskDatePicker from '@/components/TaskDatePicker';
+import TaskDatePicker from '@/components/TaskDatePicker.tsx';
 
 import { Trash2, UndoDot, Save } from 'lucide-react';
 import CompleteButton from '@/components/CompleteButton';
