@@ -5,7 +5,7 @@ import { toMs, toDate, getTime, addDuration } from '@/utils/dateUtils';
 import TaskDatePicker from '@/components/TaskDatePicker.tsx';
 
 import { Trash2, UndoDot, Save } from 'lucide-react';
-import CompleteButton from '@/components/CompleteButton';
+import CheckButton from '@/components/CheckButton';
 
 const TaskView = () => {
     const [task, setTask] = useState(null);
@@ -72,8 +72,8 @@ const TaskView = () => {
     
     return (
         <div className="w-full flex flex-col items-center p-3">
-            <CompleteButton
-                completed={modTask.completed}
+            <CheckButton
+                checked={modTask.completed}
                 onChange={(e) => {
                     e.stopPropagation();
                     handleCompleteChange();

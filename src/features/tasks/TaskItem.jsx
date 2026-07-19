@@ -1,4 +1,4 @@
-import CompleteButton from '@/components/CompleteButton';
+import CheckButton from '@/components/CheckButton';
 import { toDate, getTime, addDuration, formatDate } from '@/utils/dateUtils'
 import { Repeat } from 'lucide-react';
 import { useNavigate } from 'react-router-dom'
@@ -31,8 +31,8 @@ const TaskItem = ({ task, onComplete, withDate }) => {
                     (task.duration > 0) && (<p>{task.duration}m</p>)
                 )}
             </div>
-            <CompleteButton
-                completed={task.completed} 
+            <CheckButton
+                checked={task.completed} 
                 onChange={(e) => {
                     e.stopPropagation();
                     onComplete(task);
