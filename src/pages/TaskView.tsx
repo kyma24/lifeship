@@ -1,16 +1,18 @@
 import { useTasks } from '@/features/tasks/context/TaskContext';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom'
-import { toMs, toDate, getTime, addDuration } from '@/utils/dateUtils';
+import { toMs, toDate, getTime, addDuration, formatTimePeriod, addDurationTPFormatted } from '@/utils/dateUtils';
 import TaskDatePicker from '@/components/TaskDatePicker.tsx';
 
 import { Trash2, UndoDot, Save } from 'lucide-react';
 import CheckButton from '@/components/CheckButton';
+import { DateString, PartialTask, Task } from '@/types';
+import { createTaskFromDraft } from '@/utils/taskUtils';
 
 const TaskView = () => {
-    const [task, setTask] = useState(null);
-    const [modTask, setModTask] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [task, setTask] = useState<Task>(null!);
+    const [modTask, setModTask] = useState<PartialTask>(null!);
+    const [loading, setLoading] = useState<boolean>(true);
 
     const params = useParams();
     const id = params.id;
@@ -20,9 +22,9 @@ const TaskView = () => {
     const { editTask, deleteTask, getTaskById } = useTasks();
 
     useEffect(() => {
-        getTaskById(id).then(task => {
-            setTask(task);
-            setModTask(task);
+        getTaskById(id!).then(task => {
+            setTask(task!);
+            setModTask({id, ...task});
             setLoading(false);
         });
     }, [id]);
@@ -32,21 +34,22 @@ const TaskView = () => {
     }
     
     const handleSubmit = () => {
-        if(modTask.name.trim() === "") return;
-        editTask(modTask);
-        setTask(modTask);
+        if(modTask.name?.trim() === "") return;
+        editTask(id!, modTask);
+        const newTask: Task = createTaskFromDraft(id!, modTask);
+        setTask(newTask);
     }
 
     const handleCompleteChange = () => {
-        setModTask({...modTask, completed: !modTask.completed});
+        setModTask({...modTask, checked: !modTask.checked});
     }
 
-    const handleStartTimeChange = (date) => {
-        setModTask({...modTask, startTime: toMs(date)});
+    const handleStartTimeChange = (date: DateString) => {
+        setModTask({...modTask, doDate: {...modTask.doDate!, date}});
     }
 
-    const handleDurationChange = (duration) => {
-        setModTask({...modTask, duration: duration});
+    const handleDurationChange = (duration: number) => {
+        setModTask({...modTask, doDate: {...modTask.doDate!, duration}});
     }
 
     /*const handleEndTimeChange = (date) => {
@@ -60,7 +63,7 @@ const TaskView = () => {
 
     const handleTaskDelete = async () => {
         if(window.confirm('Delete this task?')) {
-            await deleteTask(id);
+            deleteTask(id!);
             navigate(-1);
         }
     }
@@ -73,12 +76,12 @@ const TaskView = () => {
     return (
         <div className="w-full flex flex-col items-center p-3">
             <CheckButton
-                checked={modTask.completed}
+                checked={modTask.checked ?? false}
                 onChange={(e) => {
                     e.stopPropagation();
                     handleCompleteChange();
                 }}
-                styles={`h-15 aspect-square rounded-full transition duration-300 ${modTask.completed ? "bg-gray-500" : "bg-gray-300"}`}
+                styles={`h-15 aspect-square rounded-full transition duration-300 ${modTask.checked ? "bg-gray-500" : "bg-gray-300"}`}
             />             
             <h1>
                 <input
@@ -86,7 +89,7 @@ const TaskView = () => {
                     onChange={e => setModTask({...modTask, name: e.target.value})}
                     placeholder="task name"
                     className={`outline-none field-sizing-content transition-color duration-300
-                        ${modTask.completed ? "text-[#9ca3af] line-through" : `no-underline
+                        ${modTask.checked ? "text-[#9ca3af] line-through" : `no-underline
                             ${(modTask.name !== "") ? "text-[#f3f4f6]" : ""}
                         `}
                     `}
@@ -96,24 +99,26 @@ const TaskView = () => {
                 <div className="flex flex-col">
                     <div className="flex flex-row items-center gap-1">
                         <TaskDatePicker
-                            timeValue={modTask.startTime}
+                            doDate={modTask.doDate!}
                             onChange={handleStartTimeChange}
                         />
                         <p>for</p>
                         <div className="flex flex-row items-center gap-0.5">
                             <input
-                            type="number"
-                            value={modTask.duration}
-                            onChange={(e) => handleDurationChange(e.target.value)}
-                            className="relative h-fit w-fit field-sizing-content border border-gray-700 px-1"
+                                type="number"
+                                value={modTask.doDate?.duration ?? 0}
+                                onChange={(e) => handleDurationChange(Number(e.target.value))}
+                                className="relative h-fit w-fit field-sizing-content border border-gray-700 px-1"
                             />
                             <p>m</p>
                         </div>
                     </div>
-                    <p>{ modTask.startTime ? (
-                            `${getTime(toDate(modTask.startTime))} ${(modTask.duration > 0)
-                            ? `→ ${getTime(addDuration(toDate(modTask.startTime), modTask.duration))}`
-                            : ""}`
+                    <p>{ modTask.doDate ? (
+                            `${formatTimePeriod(modTask.doDate?.timePeriod)} ${(modTask.doDate.timePeriod?.type === "exact") ? (
+                                (modTask.doDate.duration) && `→ ${addDurationTPFormatted(modTask.doDate.timePeriod, modTask.doDate.duration)}`
+                            ) : (
+                                <p>{modTask.doDate.timePeriod?.timeOfDay}: {modTask.doDate.duration}m</p>
+                            )}`
                         ) : (
                             `--:--`
                         )
@@ -135,13 +140,13 @@ const TaskView = () => {
                 </button>
                 <button
                     className={`ml-auto px-3 py-1.5 border-2 rounded-full transition-colors duration-200 ease-in-out ${hasChanged ? "bg-amber-700 text-[#f3f4f6] border-amber-600" : "bg-gray-700 border-gray-600"}`}
-                    onClick={hasChanged ? handleRevert : null}
+                    onClick={hasChanged ? handleRevert : undefined}
                 >
                     <UndoDot strokeWidth={2} />
                 </button>
                 <button
                     className={`px-3 py-1.5 border-2 rounded-full transition-colors duration-200 ease-in-out ${hasChanged ? "bg-green-600 text-[#f3f4f6] border-green-500" : "bg-gray-700 border-gray-600"}`}
-                    onClick={hasChanged ? handleSubmit : null}
+                    onClick={hasChanged ? handleSubmit : undefined}
                 >
                     <Save strokeWidth={2} />
                 </button>

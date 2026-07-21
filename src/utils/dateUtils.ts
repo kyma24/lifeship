@@ -1,40 +1,113 @@
 import { RRule } from "rrule";
-import { Task } from "../types"
+import { DateComponents, DateString, Task, TimeOfDay, TimePeriod } from "../types"
 import { format, fromZonedTime, toZonedTime } from "date-fns-tz";
 
-export const getNextOccurrence = (task: Task): string | null => {
+// recurrence
+export const getNextOccurrence = (task: Task): DateString | null => {
     if(!task.doDate?.recurrence) return null;
     
     const rule = RRule.fromString(task.doDate.recurrence.rrule);
     // DATEMOD - turn next into date-only string
     const next = rule.after(new Date());
-    return "";
+    return "2026-10-01" as DateString;
 };
 
-export const getPrevOccurrence = (task: Task): string | null => {
+export const getPrevOccurrence = (task: Task): DateString | null => {
     if(!task.doDate?.recurrence) return null;
 
     const rule = RRule.fromString(task.doDate.recurrence.rrule);
     // DATEMOD - turn prev into date-only string
     const prev = rule.before(new Date());
-    return "";
+    return "2026-10-01" as DateString;
 };
 
-export const toDateStr = (utcDate: Date, timezone: string): string => {
-    const zonedDate = toZonedTime(utcDate, timezone);
-    
-    const year = zonedDate.getFullYear();
-    const month = zonedDate.getMonth()+1;
-    const date = zonedDate.getDate();
-
+// basic conversions
+export const toDateStr = (utcDate: Date, timezone?: string): DateString => {
+    const properTimezone = (timezone) ? timezone: getTimezone();
+    const zonedDate = toZonedTime(utcDate, properTimezone);
     // YYYY-MM-DD
-    return `${year}-${(month>=10)?(month):(`0${month}`)}-${(date>=10)?(date):(`0${date}`)}`;
+    const formattedStr = new Intl.DateTimeFormat("en-CA", {
+        timeZone: properTimezone,
+        year: "numeric", month: "2-digit", day: "2-digit",
+    }).format(zonedDate);
+
+    return formattedStr as DateString;
 };
+
+export const toDateComponents = (dateString: DateString): DateComponents => {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return { year, month, day } as DateComponents;
+};
+
+export const toTimeComponents = (rawMinutes: number) => {
+    const hrs = Math.floor(rawMinutes/60);
+    const mins = rawMinutes % 60;
+    return { hrs, mins };
+}
+
+export const toNativeDate = (dateString: DateString, minutesDayStart?: number): Date => {
+    const {year, month, day} = toDateComponents(dateString);
+    const ret = new Date(year, month-1, day);
+    if(minutesDayStart) {
+        const {hrs, mins} = toTimeComponents(minutesDayStart);
+        ret.setHours(hrs, mins);
+    }
+    return ret;
+};
+
+// time period management
+export const createTimePeriod = (type: string, newMinutesDayStart?: number, newTimeOfDay?: TimeOfDay): TimePeriod => {
+    if((type === "exact") && newMinutesDayStart) return { type: "exact", minutesDayStart: newMinutesDayStart } as TimePeriod;
+    if((type === "tod") && newTimeOfDay) return { type: "tod", timeOfDay: newTimeOfDay} as TimePeriod;
+    return null;
+}
+
+export const formatTimePeriod = (timePeriod: TimePeriod): string => {
+    if(timePeriod?.type === "exact") {
+        const {hrs, mins} = toTimeComponents(timePeriod.minutesDayStart);
+        return `${hrs}:${mins}`;
+    } else if (timePeriod?.type === "tod") {
+        return timePeriod.timeOfDay;
+    }
+    return "";
+}
+
+const addDurationTP = (timePeriod: TimePeriod, duration: number): TimePeriod => {
+    if(timePeriod?.type !== "exact") return timePeriod;
+    const ret = createTimePeriod(timePeriod.type, timePeriod.minutesDayStart + duration);
+    return ret;
+}
+
+export const addDurationTPFormatted = (timePeriod: TimePeriod, duration: number): string => {
+    const ret = formatTimePeriod(addDurationTP(timePeriod, duration));
+    return ret;
+}
+
+// transformations
+export const getEndOfWeekDS = (dateString: DateString): DateString => {
+    const startDate = toNativeDate(dateString);
+    const endDate = getEndOfWeek(startDate);
+    const ret = toDateStr(endDate);
+    return ret;
+}
+
+// formatting
+export const toWeekdayFormat = (dateString: DateString): string => {
+    const date: Date = toNativeDate(dateString);
+    const weekdayString: string = date.toLocaleDateString("en-US", { weekday: "long" });
+    return weekdayString;
+}
+
+export const toMonthDayFormat = (dateString: DateString): string => {
+    const date: Date = toNativeDate(dateString);
+    const monthDayString: string = date.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+    return monthDayString;
+}
 
 // to be reprocessed
 
-export const getTimezone = (task: Task): string =>
-    "";
+export const getTimezone = (task?: Task): string => 
+    task?.doDate?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 export const toLocalDate = (utcMs: number, task: Task): Date =>
     toZonedTime(new Date(utcMs), getTimezone(task));

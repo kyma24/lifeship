@@ -1,6 +1,11 @@
+import { Task } from '@/types'
 import TaskItem from './TaskItem'
 
-const TaskList = ({ tasks, onCompleteTask, withDate=true }) => {
+const TaskList = ({ tasks, onCompleteTask, withDate=true }: {
+    tasks: Task[],
+    onCompleteTask: (id: string) => void,
+    withDate: boolean
+}) => {
   if(tasks.length === 0) return <div>no tasks</div>
   
   return (

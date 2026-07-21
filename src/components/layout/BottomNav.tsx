@@ -1,9 +1,11 @@
 import { NavLink } from "react-router-dom";
 import AddTaskButton from "../AddTaskButton";
 
-const BottomNav = ({ onAddTaskClick }) => {
+const BottomNav = ({ onAddTaskClick }: {
+    onAddTaskClick: () => void,
+}) => {
     
-    const activeStyle = (isActive) => {
+    const activeStyle = (isActive: boolean) => {
         return (`
             ${(isActive ? "bg-gray-300 text-[#2e303a] opacity-100" : "bg-gray-700 opacity-75")}
             px-4 py-2 rounded-full transition duration-300 font-dongle font-bold text-2xl

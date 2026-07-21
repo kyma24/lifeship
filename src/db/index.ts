@@ -1,5 +1,5 @@
 import Dexie, { Table } from "dexie";
-import { PartialTask, Task } from "../types";
+import { DateString, PartialTask, Task } from "../types";
 import { getNextOccurrence, getPrevOccurrence } from "../utils/dateUtils";
 import { useLiveQuery } from "dexie-react-hooks";
 
@@ -52,10 +52,32 @@ export const toggleCheckedAPI = async (id: string) => {
 export const useTasksQueryAll = (): Task[] =>
     useLiveQuery(() => db.tasks.orderBy("doDate.date").toArray()) ?? [];
 
-export const getTaskByIdAPI = (id: string): Promise<Task | undefined> => db.tasks.get(id);
+export const getTaskByIdAPI = async (id: string): Promise<Task | undefined> => {
+    try {
+        return db.tasks.get(id);
+    } catch (err) {
+        throw new Error(`Failed to fetch task: ${err}`);
+    }
+}
 
-// CHECK
-export const getTasksByDayAPI = (today: string) => (
-    db.tasks.where("doDate.date")
-        .equals(today)
-);
+export const getTasksByDayAPI = async (today: DateString): Promise<Task[]> => {
+    try {
+        return await db.tasks
+            .where("doDate.date")
+            .equals(today)
+            .toArray();
+    } catch (err) {
+        throw new Error(`Failed to fetch tasks: ${err}`);
+    }
+};
+
+export const getTasksByDateRangeAPI = async (startDate: DateString, endDate: DateString): Promise<Task[]> => {
+    try {
+        return await db.tasks
+            .where("doDate.date")
+            .between(startDate, endDate)
+            .sortBy("doDate.date");
+    } catch (err) {
+        throw new Error(`Failed to fetch tasks: ${err}`);
+    }
+};

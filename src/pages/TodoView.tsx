@@ -2,7 +2,7 @@ import { useTasks } from '@/features/tasks/context/TaskContext';
 import TaskList from '@/features/tasks/TaskList';
 
 const TodoView = () => {
-  const { tasks, toggleCompleted } = useTasks();
+  const { tasks, toggleChecked } = useTasks();
 
   return (
     <div className="flex flex-col justify-center items-center">
@@ -15,7 +15,7 @@ const TodoView = () => {
       <div className="flex flex-col w-full max-w-3xl overflow-y-auto">
         <TaskList
             tasks={tasks}
-            onCompleteTask={toggleCompleted} 
+            onCompleteTask={toggleChecked} 
             withDate={true}
           />
         </div>

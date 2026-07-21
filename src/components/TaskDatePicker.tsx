@@ -1,9 +1,10 @@
-import { formatDate, getTime, toDate } from "@/utils/dateUtils";
+import { DateString, DoDate } from "@/types";
+import { formatDate, formatTimePeriod, toDate, toDateStr, toMs, toNativeDate } from "@/utils/dateUtils";
 import { ChangeEvent, RefObject, useRef } from "react";
 
-const TaskDatePicker = ({timeValue, onChange}: {
-    timeValue: number,
-    onChange: (date: Date) => void
+const TaskDatePicker = ({doDate, onChange}: {
+    doDate: DoDate,
+    onChange: (date: DateString) => void
 }) => {
     const inputRef: RefObject<HTMLInputElement> = useRef(null!);
 
@@ -12,23 +13,32 @@ const TaskDatePicker = ({timeValue, onChange}: {
             onClick={() => inputRef.current.showPicker()}
             className="relative flex items-center w-fit px-3 py-1.5 rounded-full border border-gray-700"
         >
-            { !timeValue ? "none" : `${formatDate(toDate(timeValue))} ${getTime(toDate(timeValue))}` }
+            { !doDate
+                ? "none" 
+                : `${formatDate(toNativeDate(doDate.date))} ${(doDate.timePeriod?.type === "exact") ? formatTimePeriod(doDate.timePeriod) : ""}` }
 
             <input
                 ref={inputRef}
                 id="date-picker"
                 type="datetime-local"
-                value={timeValue ? toLocalInputString(timeValue) : ''}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(new Date(e.target.value))}
+                value={doDate ? toLocalInputString(doDate) : ''}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(toDateStr(new Date(e.target.value)))}
                 className="absolute inset-0 opacity-0 cursor-pointer w-20"
             />
         </button>
     );
 }
 
-const toLocalInputString = (date: number) => {
-    const offset = (toDate(date)).getTimezoneOffset() * 6000;
-    return toDate(date-offset).toISOString().slice(0,16);
+const toLocalInputString = (date: DoDate) => {
+    const numericDate = toMs(toNativeDate(
+        date.date, 
+        (date.timePeriod?.type === "exact") 
+            ? date.timePeriod.minutesDayStart 
+            : undefined
+    ));
+
+    const offset = (toDate(numericDate)).getTimezoneOffset() * 6000;
+    return toDate(numericDate-offset).toISOString().slice(0,16);
 }
 
 export default TaskDatePicker;

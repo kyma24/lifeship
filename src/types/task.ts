@@ -1,4 +1,4 @@
-import { TimePeriod } from "./date";
+import { DateString, TimePeriod } from "./date";
 
 export interface Task {
     id: string;
@@ -8,15 +8,15 @@ export interface Task {
     child_order?: string[];
     priority?: number | 3; // 1-3?
     tags?: string[];
-    doDate?: DoDate;
-    checked?: boolean | false;
+    doDate?: DoDate | null;
+    checked: boolean;
     is_deleted?: boolean | false; // soft delete
 }
 
 export type PartialTask = Partial<Omit<Task,"id">>;
 
 export interface DoDate {
-    date: string;
+    date: DateString;
     timePeriod: TimePeriod | null;
     duration: number | null; // minutes
     timezone: string | null; // null = floating

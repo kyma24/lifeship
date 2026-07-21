@@ -1,47 +1,46 @@
 import { useState } from 'react'
-import { toMs } from '@/utils/dateUtils';
 import TaskDatePicker from '@/components/TaskDatePicker';
 import { Repeat, RepeatOff, Tags } from 'lucide-react';
+import { DateString, PartialTask, RecurrenceRule } from '@/types';
 
-const defaultTask = {
+const defaultTask: PartialTask = {
   name: "",
   description: "",
-  startTime: "",
-  duration: 0,
-  deadline: "",
-  recurrence: null,
-  timezone: null,
-  tags: []
+  tags: [],
+  doDate: null,
+  checked: false
 }
 
-const CreateTask = ({ isOpen, onCreate }) => {
-  const [draftTask, setDraftTask] = useState(defaultTask);
+const CreateTask = ({ isOpen, onCreate }: {
+    isOpen: boolean,
+    onCreate: (draftTask: PartialTask) => void,
+}) => {
+  const [draftTask, setDraftTask] = useState<PartialTask>(defaultTask);
 
   const handleSubmit = () => {
-    if(draftTask.name.trim() === "") return;
+    if(draftTask.name?.trim() === "") return;
     onCreate(draftTask);
     setDraftTask(defaultTask);
   }
 
-  const handleStartTimeChange = (date) => {
-    setDraftTask({...draftTask, startTime: toMs(date)});
+  const handleStartTimeChange = (date: DateString) => {
+    setDraftTask({...draftTask, doDate: {...draftTask.doDate!, date}});
   }
 
-  const handleDurationChange = (duration) => {
-    setDraftTask({...draftTask, duration: duration});
+  const handleDurationChange = (duration: number) => {
+    setDraftTask({...draftTask, doDate: {...draftTask.doDate!, duration}});
   }
 
   const handleToggleRecurrence = () => {
-    setDraftTask({...draftTask, recurrence:
-      (draftTask.recurrence 
+    setDraftTask({...draftTask, doDate: {...draftTask.doDate!, recurrence:
+      (draftTask.doDate?.recurrence 
         ? null 
         : {
             rrule: 'FREQ=DAILY',
-            timezone: null,
-            endDate: null,
-          }
+            endDate: "",
+          } as RecurrenceRule
       )
-    });
+    }});
   }
 
   /*const handleEndTimeChange = (date) => {
@@ -79,7 +78,7 @@ const CreateTask = ({ isOpen, onCreate }) => {
       <div className="flex flex-row gap-6 items-center text-md">
         <div className="flex flex-row gap-2 items-center">
           <TaskDatePicker
-            timeValue={draftTask.startTime}
+            doDate={draftTask.doDate!}
             onChange={handleStartTimeChange}
           />
 
@@ -88,8 +87,8 @@ const CreateTask = ({ isOpen, onCreate }) => {
           <div className="flex flex-row items-center gap-0.5">
             <input
               type="number"
-              value={draftTask.duration}
-              onChange={(e) => handleDurationChange(e.target.value)}
+              value={draftTask.doDate?.duration!}
+              onChange={(e) => handleDurationChange(Number(e.target.value))}
               className="px-2 py-1 field-sizing-content border border-gray-700"
             />
             <p>m</p>
@@ -97,7 +96,7 @@ const CreateTask = ({ isOpen, onCreate }) => {
 
           {/* end time picker
           <TaskDatePicker
-            timeValue={addDurationMs(draftTask.startTime, draftTask.duration)}
+            doDate={addDurationMs(draftTask.startTime, draftTask.duration)}
             onChange={handleEndTimeChange}
           />
           */}
@@ -110,7 +109,7 @@ const CreateTask = ({ isOpen, onCreate }) => {
             className="flex justify-center items-center p-2 aspect-square rounded-full border border-gray-700"
             onClick={handleToggleRecurrence}
           > 
-            {draftTask.recurrence 
+            {draftTask.doDate?.recurrence 
               ? <Repeat className="size-4" strokeWidth={2} />
               : <RepeatOff className="size-4" strokeWidth={2} />}
           </button>
@@ -119,7 +118,7 @@ const CreateTask = ({ isOpen, onCreate }) => {
         {/*<div className="flex flex-row items-center">
           <p>{"due: "}</p>
           <TaskDatePicker
-            timeValue={draftTask.deadline}
+            doDate={draftTask.deadline}
             onChange={handleDeadlineChange}
           />
         </div>*/}
@@ -136,7 +135,7 @@ const CreateTask = ({ isOpen, onCreate }) => {
         {/* submit info */}
         <button
           className={`h-10 ml-auto aspect-square rounded-full transition-colors duration-300 ease-in-out
-            ${(draftTask.name.trim() !== "") ?
+            ${(draftTask.name?.trim() !== "") ?
                 "bg-amber-100 text-amber-900"
               :
                 "bg-gray-500 border border-gray-800"

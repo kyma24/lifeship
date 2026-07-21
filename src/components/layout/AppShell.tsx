@@ -3,11 +3,11 @@ import useMediaQuery from '../../hooks/useMediaQuery'
 import BottomNav from './BottomNav';
 import CreateTask from '@/pages/operations/CreateTask';
 import { useTasks } from '@/features/tasks/context/TaskContext';
-import { toDateStr } from '../../utils/dateUtils.ts';
+import { PartialTask } from '@/types/task.ts';
 
-const AppShell = ({ children }) => {
-    const [createIsOpen, setCreateIsOpen] = useState(false);
-    const [createIsMounted, setCreateIsMounted] = useState(false);
+const AppShell = ({ children }: React.PropsWithChildren) => {
+    const [createIsOpen, setCreateIsOpen] = useState<boolean>(false);
+    const [createIsMounted, setCreateIsMounted] = useState<boolean>(false);
     const isDesktop = useMediaQuery('(min-width: 1024px)');
     
     const { createTask } = useTasks();
@@ -22,7 +22,7 @@ const AppShell = ({ children }) => {
         setTimeout(() => setCreateIsMounted(false), 401);
     }
 
-    const handleCreate = (draftTask) => {
+    const handleCreate = (draftTask: PartialTask) => {
         handleCreateClose();
         createTask(draftTask);
     }
@@ -50,7 +50,7 @@ const AppShell = ({ children }) => {
                 />
             }
         </div>
-    )
+    );
 }
 
-export default AppShell
+export default AppShell;

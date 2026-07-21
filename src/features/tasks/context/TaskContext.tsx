@@ -1,15 +1,17 @@
-import { createContext } from "react";
-import { createTaskAPI, deleteTaskAPI, getTaskByIdAPI, getTasksByDayAPI, toggleCheckedAPI, updateTaskAPI, useTasksQueryAll } from "@/db";
-import { PartialTask, Task } from "@/types";
+import { createContext, useContext } from "react";
+import { createTaskAPI, deleteTaskAPI, getTaskByIdAPI, getTasksByDateRangeAPI, getTasksByDayAPI, toggleCheckedAPI, updateTaskAPI, useTasksQueryAll } from "@/db";
+import { DateString, PartialTask, Task } from "@/types";
 import { nanoid } from "nanoid";
 
 interface TaskContextProps {
     tasks: Task[],
-    /*createTask: (task: Task) => void,
+    createTask: (task: PartialTask) => void,
     editTask: (id: string, modTask: PartialTask) => void,
     deleteTask: (id: string) => void,
     toggleChecked: (id: string) => void,
-    getTaskById: (id: string) => Promise<Task | undefined>,*/
+    getTaskById: (id: string) => Promise<Task | undefined>,
+    getTasksByDay: (day: DateString) => Promise<Task[]>,
+    getTasksByDateRange: (startDate: DateString, endDate: DateString) => Promise<Task[]>,
 }
 
 const TaskContext = createContext<TaskContextProps>(null!);
@@ -18,8 +20,8 @@ export const TaskProvider = ({ children }: React.PropsWithChildren) => {
     const tasks = useTasksQueryAll() ?? [];
 
     const tasksAPI = {
-        createTask: (task: Task): void => {
-            const validTask = {...task, id: nanoid()};
+        createTask: (task: PartialTask): void => {
+            const validTask = {...task, id: nanoid()} as Task;
             createTaskAPI(validTask);
         },
 
@@ -37,13 +39,19 @@ export const TaskProvider = ({ children }: React.PropsWithChildren) => {
 
         getTaskById: (id: string) => getTaskByIdAPI(id),
 
-        // CHECK
-        getTasksByDay: (day: string) => getTasksByDayAPI(day),
+        getTasksByDay: (day: DateString): Promise<Task[]> => getTasksByDayAPI(day),
+
+        getTasksByDateRange: (startDate: DateString, endDate: DateString): Promise<Task[]> => getTasksByDateRangeAPI(startDate, endDate),
     }
 
     return (
         <TaskContext.Provider value={{tasks, ...tasksAPI}}>
             {children}
         </TaskContext.Provider>
-    )
+    );
+}
+
+export const useTasks = () => {
+    const context = useContext(TaskContext);
+    return context;
 }

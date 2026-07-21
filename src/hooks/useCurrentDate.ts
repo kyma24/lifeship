@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { toDateStr } from "../utils/dateUtils";
+import { DateString } from "@/types";
 
-function useCurrentDate(): string {
-    const [today, setToday] = useState<string>(toDateStr(new Date(), ""));
+function useCurrentDate(): DateString {
+    const [today, setToday] = useState<DateString>(toDateStr(new Date(), ""));
 
     useEffect(() => {
         const update = () => setToday(toDateStr(new Date(), ""));
