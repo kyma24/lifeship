@@ -23,16 +23,20 @@ const TaskItem = ({ task, onComplete, withDate }: {
             <div className={`h-full aspect-square rounded-full transition duration-300 ${task.checked ? "bg-gray-500" : "bg-gray-300"}`} />
             <div className="flex flex-col text-left justify-center leading-tight">
                 <p className={`font-bold text-ellipsis transition duration-300 ${task.checked ? "line-through" : "no-underline text-[#f3f4f6]"}`}>{task.name}</p>
-                {task.doDate?.timePeriod ? (
+                {task.doDate?.date ? (
                     <div className="flex flex-row items-center gap-2">
                         <p>
                             {withDate && task.doDate.date} {" "}
-                            {formatTimePeriod(task.doDate.timePeriod)} {" "}
-                            {(task.doDate.timePeriod.type === "exact") ? (
-                                (task.doDate.duration) && `→ ${addDurationTPFormatted(task.doDate.timePeriod, task.doDate.duration)}`
-                            ) : (
-                                <p>{task.doDate.timePeriod.timeOfDay}: {task.doDate.duration}m</p>
-                            )}
+                            {task.doDate.timePeriod ? (
+                                <>
+                                    {formatTimePeriod(task.doDate.timePeriod)} {" "}
+                                    {(task.doDate.timePeriod.type === "exact") ? (
+                                        (task.doDate.duration) && `→ ${addDurationTPFormatted(task.doDate.timePeriod, task.doDate.duration)}`
+                                    ) : (
+                                        <p>{task.doDate.timePeriod.timeOfDay}: {task.doDate.duration}m</p>
+                                    )}
+                                </>
+                            ) : ("")}
                         </p>
                         {task.doDate.recurrence && <Repeat className="size-4" strokeWidth={2} />}
                     </div>

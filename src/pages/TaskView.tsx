@@ -1,12 +1,12 @@
 import { useTasks } from '@/features/tasks/context/TaskContext';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom'
-import { toMs, toDate, getTime, addDuration, formatTimePeriod, addDurationTPFormatted } from '@/utils/dateUtils';
+import { formatTimePeriod, addDurationTPFormatted } from '@/utils/dateUtils';
 import TaskDatePicker from '@/components/TaskDatePicker.tsx';
 
 import { Trash2, UndoDot, Save } from 'lucide-react';
 import CheckButton from '@/components/CheckButton';
-import { DateString, PartialTask, Task } from '@/types';
+import { DoDate, PartialTask, Task } from '@/types';
 import { createTaskFromDraft } from '@/utils/taskUtils';
 
 const TaskView = () => {
@@ -40,12 +40,15 @@ const TaskView = () => {
         setTask(newTask);
     }
 
-    const handleCompleteChange = () => {
+    const handleCheckedChange = () => {
         setModTask({...modTask, checked: !modTask.checked});
     }
 
-    const handleStartTimeChange = (date: DateString) => {
-        setModTask({...modTask, doDate: {...modTask.doDate!, date}});
+    const handleDoDateChange = (doDate: DoDate) => {
+        setModTask({...modTask, doDate: {...modTask.doDate!, 
+            date: doDate.date,
+            timePeriod: doDate.timePeriod
+        }});
     }
 
     const handleDurationChange = (duration: number) => {
@@ -79,7 +82,7 @@ const TaskView = () => {
                 checked={modTask.checked ?? false}
                 onChange={(e) => {
                     e.stopPropagation();
-                    handleCompleteChange();
+                    handleCheckedChange();
                 }}
                 styles={`h-15 aspect-square rounded-full transition duration-300 ${modTask.checked ? "bg-gray-500" : "bg-gray-300"}`}
             />             
@@ -100,7 +103,7 @@ const TaskView = () => {
                     <div className="flex flex-row items-center gap-1">
                         <TaskDatePicker
                             doDate={modTask.doDate!}
-                            onChange={handleStartTimeChange}
+                            onChange={handleDoDateChange}
                         />
                         <p>for</p>
                         <div className="flex flex-row items-center gap-0.5">

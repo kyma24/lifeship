@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import TaskDatePicker from '@/components/TaskDatePicker';
 import { Repeat, RepeatOff, Tags } from 'lucide-react';
-import { DateString, PartialTask, RecurrenceRule } from '@/types';
+import { DateString, DoDate, PartialTask, RecurrenceRule } from '@/types';
 
 const defaultTask: PartialTask = {
   name: "",
@@ -23,8 +23,11 @@ const CreateTask = ({ isOpen, onCreate }: {
     setDraftTask(defaultTask);
   }
 
-  const handleStartTimeChange = (date: DateString) => {
-    setDraftTask({...draftTask, doDate: {...draftTask.doDate!, date}});
+  const handleDoDateChange = (doDate: DoDate) => {
+    setDraftTask({...draftTask, doDate: {...draftTask.doDate!, 
+      date: doDate.date,
+      timePeriod: doDate.timePeriod
+    }});
   }
 
   const handleDurationChange = (duration: number) => {
@@ -79,7 +82,7 @@ const CreateTask = ({ isOpen, onCreate }: {
         <div className="flex flex-row gap-2 items-center">
           <TaskDatePicker
             doDate={draftTask.doDate!}
-            onChange={handleStartTimeChange}
+            onChange={handleDoDateChange}
           />
 
           <p>→</p>

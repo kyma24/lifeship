@@ -1,29 +1,37 @@
 import { RRule } from "rrule";
-import { DateComponents, DateString, Task, TimeOfDay, TimePeriod } from "../types"
+import { DateComponents, DateString, DoDate, Task, TimeOfDay, TimePeriod } from "../types"
 import { format, fromZonedTime, toZonedTime } from "date-fns-tz";
 
 // recurrence
 export const getNextOccurrence = (task: Task): DateString | null => {
     if(!task.doDate?.recurrence) return null;
+
+    const ruleString = RRule.parseString(task.doDate.recurrence.rrule);
+    const date = toNativeDate(task.doDate.date);
+    ruleString.dtstart = date;
     
-    const rule = RRule.fromString(task.doDate.recurrence.rrule);
-    // DATEMOD - turn next into date-only string
-    const next = rule.after(new Date());
-    return "2026-10-01" as DateString;
+    const rule = new RRule(ruleString);
+    const next = rule.after(date);
+
+    return (next) ? toDateStr(next) : null;
 };
 
 export const getPrevOccurrence = (task: Task): DateString | null => {
     if(!task.doDate?.recurrence) return null;
 
-    const rule = RRule.fromString(task.doDate.recurrence.rrule);
-    // DATEMOD - turn prev into date-only string
-    const prev = rule.before(new Date());
-    return "2026-10-01" as DateString;
+    const ruleString = RRule.parseString(task.doDate.recurrence.rrule);
+    const date = toNativeDate(task.doDate.date);
+    ruleString.dtstart = date;
+
+    const rule = new RRule(ruleString);
+    const prev = rule.before(date);
+
+    return (prev) ? toDateStr(prev) : null;
 };
 
 // basic conversions
 export const toDateStr = (utcDate: Date, timezone?: string): DateString => {
-    const properTimezone = (timezone) ? timezone: getTimezone();
+    const properTimezone = (timezone) ? timezone : getTimezone();
     const zonedDate = toZonedTime(utcDate, properTimezone);
     // YYYY-MM-DD
     const formattedStr = new Intl.DateTimeFormat("en-CA", {
@@ -33,6 +41,22 @@ export const toDateStr = (utcDate: Date, timezone?: string): DateString => {
 
     return formattedStr as DateString;
 };
+
+export const toDoDate = (utcDate: Date, timezone?: string): DoDate => {
+    const properTimezone = (timezone) ? timezone : getTimezone();
+    const zonedDate = toZonedTime(utcDate, properTimezone);
+    const minutesDayStart = zonedDate.getHours()*60 + zonedDate.getMinutes();
+    return {
+        date: toDateStr(utcDate, timezone),
+        timePeriod: {
+            type: "exact",
+            minutesDayStart: minutesDayStart
+        } as TimePeriod,
+        duration: null,
+        timezone: timezone,
+        recurrence: null,
+    } as DoDate;
+}
 
 export const toDateComponents = (dateString: DateString): DateComponents => {
     const [year, month, day] = dateString.split('-').map(Number);
@@ -109,28 +133,8 @@ export const toMonthDayFormat = (dateString: DateString): string => {
 export const getTimezone = (task?: Task): string => 
     task?.doDate?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-export const toLocalDate = (utcMs: number, task: Task): Date =>
-    toZonedTime(new Date(utcMs), getTimezone(task));
-
-export const toUTCMs = (localDate: Date, task: Task): number =>
-    fromZonedTime(localDate, getTimezone(task)).getTime();
-
-export const customFormatDate = (utcMs: number, task: Task, fmt: string = "MMM d, yyyy"): string => 
-    format(
-        toZonedTime(new Date(utcMs), getTimezone(task)),
-        fmt, 
-        { timeZone: getTimezone(task) }
-    );
-
-export const formatTime = (utcMs: number, task: Task) =>
-    customFormatDate(utcMs, task, "h:mm a");
-
-export const formatDateTime = (utcMs: number, task: Task) =>
-    customFormatDate(utcMs, task, "MMM d h::mm a");
-
 export const toDate = (ms: number): Date => new Date(ms);
 export const toMs = (date: Date): number => date.getTime();
-export const nowMs = (): number => Date.now();
 
 export const getToday = (): Date => new Date();
 export const getTomorrow = (): Date => {
@@ -151,15 +155,6 @@ export const getWeekday = (date: Date): string => date.toLocaleDateString("en-US
 export const getMonth = (date: Date): string => date.toLocaleDateString("en-US", { month: "long" });
 export const getMonthAbbr = (date: Date): string => date.toLocaleDateString("en-US", { month: "short" });
 export const getDay = (date: Date): string => date.toLocaleDateString("en-US", { day: "numeric" });
-export const getYear = (date: Date): string => date.toLocaleDateString("en-US", { year: "numeric" });
-export const getTime = (date: Date): string => {
-    const hours = date.getHours();
-    const mins = date.getMinutes();
-    return `${(hours%12==0)?12:hours%12}:${(mins<10)?'0':''}${mins} ${(hours<12)?'AM':'PM'}`;
-};
-
-export const addDurationMs = (ms: number, duration: number): number => ms + duration*60000;
-export const addDuration = (date: Date, duration: number): Date => toDate(addDurationMs(date.getTime(), duration));
 
 export const getEndOfWeek = (date: Date): Date => {
     const retDate = getStartOfDay(date);

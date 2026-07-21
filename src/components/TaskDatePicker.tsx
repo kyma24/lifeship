@@ -1,10 +1,10 @@
-import { DateString, DoDate } from "@/types";
-import { formatDate, formatTimePeriod, toDate, toDateStr, toMs, toNativeDate } from "@/utils/dateUtils";
+import { DoDate } from "@/types";
+import { formatDate, formatTimePeriod, toDate, toDoDate, toMs, toNativeDate } from "@/utils/dateUtils";
 import { ChangeEvent, RefObject, useRef } from "react";
 
 const TaskDatePicker = ({doDate, onChange}: {
     doDate: DoDate,
-    onChange: (date: DateString) => void
+    onChange: (doDate: DoDate) => void
 }) => {
     const inputRef: RefObject<HTMLInputElement> = useRef(null!);
 
@@ -22,7 +22,7 @@ const TaskDatePicker = ({doDate, onChange}: {
                 id="date-picker"
                 type="datetime-local"
                 value={doDate ? toLocalInputString(doDate) : ''}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(toDateStr(new Date(e.target.value)))}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(toDoDate(new Date(e.target.value)))}
                 className="absolute inset-0 opacity-0 cursor-pointer w-20"
             />
         </button>
