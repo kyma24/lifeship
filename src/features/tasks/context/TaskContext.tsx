@@ -2,6 +2,7 @@ import { createContext, useContext } from "react";
 import { createTaskAPI, deleteTaskAPI, getTaskByIdAPI, getTasksByDateRangeAPI, getTasksByDayAPI, toggleCheckedAPI, updateTaskAPI, useTasksQueryAll } from "@/db";
 import { DateString, PartialTask, Task } from "@/types";
 import { nanoid } from "nanoid";
+import { createTaskFromDraft } from "@/utils/taskUtils";
 
 interface TaskContextProps {
     tasks: Task[],
@@ -21,7 +22,8 @@ export const TaskProvider = ({ children }: React.PropsWithChildren) => {
 
     const tasksAPI = {
         createTask: (task: PartialTask): void => {
-            const validTask = {...task, id: nanoid()} as Task;
+            const id: string = nanoid();
+            const validTask: Task = createTaskFromDraft(id,task);
             createTaskAPI(validTask);
         },
 

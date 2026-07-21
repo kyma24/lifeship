@@ -2,6 +2,7 @@ import Dexie, { Table } from "dexie";
 import { DateString, PartialTask, Task } from "../types";
 import { getNextOccurrence, getPrevOccurrence } from "../utils/dateUtils";
 import { useLiveQuery } from "dexie-react-hooks";
+import { compareTasksByDate } from "@/utils/taskUtils";
 
 class TasksDatabase extends Dexie {
     tasks!: Table<Task, string>;
@@ -50,7 +51,10 @@ export const toggleCheckedAPI = async (id: string) => {
 }
 
 export const useTasksQueryAll = (): Task[] =>
-    useLiveQuery(() => db.tasks.orderBy("doDate.date").toArray()) ?? [];
+    useLiveQuery(async () => {
+        const tasks = await db.tasks.toArray();
+        return tasks.sort(compareTasksByDate);
+    }, []) ?? [];
 
 export const getTaskByIdAPI = async (id: string): Promise<Task | undefined> => {
     try {
