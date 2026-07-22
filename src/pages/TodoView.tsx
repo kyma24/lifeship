@@ -1,5 +1,14 @@
-import { useTasks } from '@/features/tasks/context/TaskContext';
-import TaskList from '@/features/tasks/TaskList';
+import { useTasks } from '@/components/features/tasks/context/TaskContext';
+import TaskList from '@/components/features/tasks/TaskList';
+import { PartialTask } from '@/types';
+
+const defaultTask: PartialTask = {
+  name: "",
+  description: "",
+  tags: [],
+  doDate: null,
+  checked: false
+}
 
 const TodoView = () => {
   const { tasks, toggleChecked } = useTasks();
@@ -17,6 +26,7 @@ const TodoView = () => {
             tasks={tasks}
             onCompleteTask={toggleChecked} 
             withDate={true}
+            defaultTask={defaultTask}
           />
         </div>
     </div>

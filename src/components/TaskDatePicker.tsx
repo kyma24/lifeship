@@ -11,7 +11,8 @@ const TaskDatePicker = ({doDate, onChange}: {
     return (
         <button
             onClick={() => inputRef.current.showPicker()}
-            className="relative flex items-center w-fit px-3 py-1.5 rounded-full border border-gray-700"
+            className="relative flex items-center w-fit 
+                px-3 py-1.5 rounded-full border border-gray-700"
         >
             { !doDate
                 ? "none" 

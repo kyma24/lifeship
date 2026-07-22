@@ -1,4 +1,4 @@
-import { useTasks } from '@/features/tasks/context/TaskContext';
+import { useTasks } from '@/components/features/tasks/context/TaskContext';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom'
 import { formatTimePeriod, addDurationTPFormatted } from '@/utils/dateUtils';
@@ -8,6 +8,15 @@ import { Trash2, UndoDot, Save } from 'lucide-react';
 import CheckButton from '@/components/CheckButton';
 import { DoDate, PartialTask, Task } from '@/types';
 import { createTaskFromDraft } from '@/utils/taskUtils';
+import TaskList from '@/components/features/tasks/TaskList';
+
+const defaultTask: PartialTask = {
+  name: "",
+  description: "",
+  tags: [],
+  doDate: null,
+  checked: false
+}
 
 const TaskView = () => {
     const [task, setTask] = useState<Task>(null!);
@@ -131,7 +140,7 @@ const TaskView = () => {
                     value={modTask.description}
                     onChange={e => setModTask({...modTask, description: e.target.value})}
                     placeholder="description"
-                    className={`w-full min-h-50 p-3 border border-gray-700 rounded-2xl outline-none field-sizing-content ${(modTask.name !== "") ? "text-[#f3f4f6]" : ""}`}
+                    className={`w-full min-h-25 p-3 border border-gray-700 rounded-2xl outline-none field-sizing-content ${(modTask.name !== "") ? "text-[#f3f4f6]" : ""}`}
                 />
             </div>
             <div className="w-full flex flex-row p-3 gap-3">
@@ -153,6 +162,16 @@ const TaskView = () => {
                 >
                     <Save strokeWidth={2} />
                 </button>
+            </div>
+
+            {/* subtasks */}
+            <div className="w-full">
+                <TaskList
+                    tasks={[]}
+                    onCompleteTask={(a: string) => ""}
+                    withDate={true}
+                    defaultTask={defaultTask}
+                />
             </div>
         </div>
     )

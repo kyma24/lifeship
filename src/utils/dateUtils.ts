@@ -1,6 +1,6 @@
 import { RRule } from "rrule";
 import { DateComponents, DateString, DoDate, Task, TimeOfDay, TimePeriod } from "../types"
-import { format, fromZonedTime, toZonedTime } from "date-fns-tz";
+import { toZonedTime } from "date-fns-tz";
 
 // recurrence
 export const getNextOccurrence = (task: Task): DateString | null => {

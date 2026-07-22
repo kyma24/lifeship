@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import TaskDatePicker from '@/components/TaskDatePicker';
 import { Repeat, RepeatOff, Tags } from 'lucide-react';
-import { DateString, DoDate, PartialTask, RecurrenceRule } from '@/types';
+import { DoDate, PartialTask, RecurrenceRule } from '@/types';
 
 const defaultTask: PartialTask = {
   name: "",

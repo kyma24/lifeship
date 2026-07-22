@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import useMediaQuery from '../../hooks/useMediaQuery'
 import BottomNav from './BottomNav';
-import CreateTask from '@/pages/operations/CreateTask';
-import { useTasks } from '@/features/tasks/context/TaskContext';
+import CreateTask from '@/components/features/tasks/CreateTask';
+import { useTasks } from '@/components/features/tasks/context/TaskContext';
 import { PartialTask } from '@/types/task.ts';
 
 const AppShell = ({ children }: React.PropsWithChildren) => {
