@@ -85,3 +85,14 @@ export const getTasksByDateRangeAPI = async (startDate: DateString, endDate: Dat
         throw new Error(`Failed to fetch tasks: ${err}`);
     }
 };
+
+export const getTasksByParentIdAPI = async (parentId: string): Promise<Task[]> => {
+    try {
+        return await db.tasks
+            .where("parentId")
+            .equals(parentId)
+            .toArray();
+    } catch (err) {
+        throw new Error(`Failed to fetch tasks: ${err}`);
+    }
+};

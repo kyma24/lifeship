@@ -9,6 +9,8 @@ import CheckButton from '@/components/CheckButton';
 import { DoDate, PartialTask, Task } from '@/types';
 import { createTaskFromDraft } from '@/utils/taskUtils';
 import TaskList from '@/components/features/tasks/TaskList';
+import useSubtasks from '@/hooks/useSubtasks';
+import CreateTaskBlock from '@/components/features/tasks/CreateTaskBlock';
 
 const defaultTask: PartialTask = {
   name: "",
@@ -28,7 +30,9 @@ const TaskView = () => {
     
     const navigate = useNavigate();
 
-    const { editTask, deleteTask, getTaskById } = useTasks();
+    const { createTask, editTask, deleteTask, toggleChecked, getTaskById } = useTasks();
+
+    const { subtasks } = useSubtasks(id!);
 
     useEffect(() => {
         getTaskById(id!).then(task => {
@@ -62,6 +66,11 @@ const TaskView = () => {
 
     const handleDurationChange = (duration: number) => {
         setModTask({...modTask, doDate: {...modTask.doDate!, duration}});
+    }
+
+    const handleCreateSubtask = (draftTask: PartialTask) => {
+        console.log(id);
+        createTask({...draftTask, parentId: id});
     }
 
     /*const handleEndTimeChange = (date) => {
@@ -165,12 +174,15 @@ const TaskView = () => {
             </div>
 
             {/* subtasks */}
-            <div className="w-full">
+            <div className="w-full gap-3">
                 <TaskList
-                    tasks={[]}
-                    onCompleteTask={(a: string) => ""}
+                    tasks={subtasks ?? []}
+                    onCompleteTask={toggleChecked}
                     withDate={true}
-                    defaultTask={defaultTask}
+                />
+                <CreateTaskBlock 
+                    defaultTask={defaultTask} 
+                    onCreateTask={handleCreateSubtask}
                 />
             </div>
         </div>

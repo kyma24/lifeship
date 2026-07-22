@@ -4,13 +4,13 @@ export interface Task {
     id: string;
     name: string;
     description?: string | "";
-    parent_id?: string;
-    child_order?: string[];
+    parentId?: string;
+    childOrder?: string[];
     priority?: number | 3; // 1-3?
     tags?: string[];
     doDate?: DoDate | null;
     checked: boolean;
-    is_deleted?: boolean | false; // soft delete
+    isDeleted?: boolean | false; // soft delete
 }
 
 export type PartialTask = Partial<Omit<Task,"id">>;

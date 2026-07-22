@@ -1,14 +1,12 @@
-import { PartialTask, Task } from '@/types'
+import { Task } from '@/types'
 import TaskItem from './TaskItem'
-import CreateTaskBlock from './CreateTaskBlock'
 
-const TaskList = ({ tasks, onCompleteTask, withDate=true, defaultTask }: {
+const TaskList = ({ tasks, onCompleteTask, withDate=true }: {
     tasks: Task[],
     onCompleteTask: (id: string) => void,
     withDate: boolean,
-    defaultTask: PartialTask
 }) => (
-    <ul className="flex flex-col p-3 gap-3">
+    <ul className="flex flex-col gap-3">
       {tasks.map(task => (
             <TaskItem
               key={task.id} 
@@ -17,9 +15,6 @@ const TaskList = ({ tasks, onCompleteTask, withDate=true, defaultTask }: {
               withDate={withDate}
             />
       ))}
-      <CreateTaskBlock 
-        defaultTask={defaultTask} 
-      />
     </ul>
 );
 

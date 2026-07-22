@@ -3,20 +3,18 @@ import PropertyTag from "@/components/PropertyTag";
 import TaskDatePicker from "@/components/TaskDatePicker";
 import { DoDate, PartialTask, RecurrenceRule } from "@/types";
 import { useState } from "react";
-import { useTasks } from "./context/TaskContext";
 import { Repeat, RepeatOff } from "lucide-react";
 
-const CreateTaskBlock = ({ defaultTask }: {
-    defaultTask: PartialTask
+const CreateTaskBlock = ({ defaultTask, onCreateTask }: {
+    defaultTask: PartialTask,
+    onCreateTask: (draftTask: PartialTask) => void
 }) => {
     const [isCreating, setIsCreating] = useState<boolean>(false);
     const [draftTask, setDraftTask] = useState<PartialTask>(defaultTask);
-
-    const { createTask } = useTasks();
     
     const handleSubmit = () => {
         if(draftTask.name?.trim() === "") return;
-        createTask(draftTask);
+        onCreateTask(draftTask);
         setDraftTask(defaultTask);
         setIsCreating(false);
     }
