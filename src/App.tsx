@@ -7,7 +7,7 @@ import DayView from './pages/DayView'
 import WeekView from './pages/WeekView'
 import TagsView from './pages/TagsView'
 import TaskView from './pages/TaskView'
-import { TaskProvider } from './components/features/tasks/context/TaskContext'
+import { TaskProvider } from './context/TaskContext'
 
 function App() {
   return (

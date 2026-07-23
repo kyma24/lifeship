@@ -1,10 +1,10 @@
 import useCurrentDate from '@/hooks/useCurrentDate';
 import { toDateStr, toMonthDayFormat, toWeekdayFormat } from '@/utils/dateUtils';
-import TaskList from '@/components/features/tasks/TaskList';
-import { useTasks } from '@/components/features/tasks/context/TaskContext';
+import TaskList from '@/components/tasks/TaskList';
+import { useTasks } from '@/context/TaskContext';
 import useWeekTasks from '@/hooks/useWeekTasks';
 import { PartialTask } from '@/types';
-import CreateTaskBlock from '@/components/features/tasks/CreateTaskBlock';
+import CreateTaskBlock from '@/components/tasks/CreateTaskBlock';
 
 const defaultTodayTask: PartialTask = {
   name: "",

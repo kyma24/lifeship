@@ -1,4 +1,4 @@
-import { useTasks } from '@/components/features/tasks/context/TaskContext';
+import { useTasks } from '@/context/TaskContext';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom'
 import { formatTimePeriod, addDurationTPFormatted } from '@/utils/dateUtils';
@@ -8,9 +8,9 @@ import { Trash2, UndoDot, Save } from 'lucide-react';
 import CheckButton from '@/components/CheckButton';
 import { DoDate, PartialTask, Task } from '@/types';
 import { createTaskFromDraft } from '@/utils/taskUtils';
-import TaskList from '@/components/features/tasks/TaskList';
+import TaskList from '@/components/tasks/TaskList';
 import useSubtasks from '@/hooks/useSubtasks';
-import CreateTaskBlock from '@/components/features/tasks/CreateTaskBlock';
+import CreateTaskBlock from '@/components/tasks/CreateTaskBlock';
 
 const defaultTask: PartialTask = {
   name: "",

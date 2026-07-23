@@ -1,6 +1,6 @@
-import { useTasks } from '@/components/features/tasks/context/TaskContext';
-import CreateTaskBlock from '@/components/features/tasks/CreateTaskBlock';
-import TaskList from '@/components/features/tasks/TaskList';
+import { useTasks } from '@/context/TaskContext';
+import CreateTaskBlock from '@/components/tasks/CreateTaskBlock';
+import TaskList from '@/components/tasks/TaskList';
 import { PartialTask } from '@/types';
 
 const defaultTask: PartialTask = {
