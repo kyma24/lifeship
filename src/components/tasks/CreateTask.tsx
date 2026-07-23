@@ -5,6 +5,7 @@ import { DoDate, PartialTask, RecurrenceRule } from '@/types';
 
 const defaultTask: PartialTask = {
   name: "",
+  parentId: "",
   description: "",
   tags: [],
   doDate: null,

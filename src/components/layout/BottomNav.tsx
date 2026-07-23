@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import AddTaskButton from "../AddTaskButton";
+import AddTaskButton from "../buttons/AddTaskButton";
 
 const BottomNav = ({ onAddTaskClick }: {
     onAddTaskClick: () => void,

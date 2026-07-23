@@ -4,7 +4,7 @@ export interface Task {
     id: string;
     name: string;
     description?: string | "";
-    parentId?: string;
+    parentId: string;
     childOrder?: string[];
     priority?: number | 3; // 1-3?
     tags?: string[];

@@ -1,4 +1,4 @@
-import CheckButton from "@/components/CheckButton";
+import CheckButton from "@/components/buttons/CheckButton";
 import Divider from "@/components/Divider";
 import SubtaskDropdown from "@/components/SubtaskDropdown";
 import useSubtasks from "@/hooks/useSubtasks";

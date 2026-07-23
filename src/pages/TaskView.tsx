@@ -4,8 +4,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { formatTimePeriod, addDurationTPFormatted } from '@/utils/dateUtils';
 import TaskDatePicker from '@/components/TaskDatePicker.tsx';
 
-import { Trash2, UndoDot, Save } from 'lucide-react';
-import CheckButton from '@/components/CheckButton';
+import { Trash2, UndoDot, Save, Ellipsis, X } from 'lucide-react';
+import CheckButton from '@/components/buttons/CheckButton';
 import { DoDate, PartialTask, Task } from '@/types';
 import { createTaskFromDraft } from '@/utils/taskUtils';
 import TaskList from '@/components/tasks/TaskList';
@@ -14,6 +14,7 @@ import CreateTaskBlock from '@/components/tasks/CreateTaskBlock';
 
 const defaultTask: PartialTask = {
   name: "",
+  parentId: "",
   description: "",
   tags: [],
   doDate: null,
@@ -95,7 +96,29 @@ const TaskView = () => {
     if(!task) return <div>not found task</div>
     
     return (
-        <div className="w-full flex flex-col items-center p-3">
+        <div className="w-full flex flex-col items-center p-3 overflow-x-hidden overflow-y-scroll">
+            <div className="sticky flex flex-row justify-between w-dvw mb-5 px-3 h-8 border-b border-gray-700">
+                {/* path/task name on scroll */}
+                <p>
+                    path stuff
+                </p>
+
+                <div className="flex flex-row gap-3">
+                    {/* menu */}
+                    <button 
+                        className="w-fit h-fit"
+                    >
+                        <Ellipsis strokeWidth={2} />
+                    </button>
+                    {/* close */}
+                    <button
+                        className="w-fit h-fit"
+                        onClick={() => navigate(-1)}
+                    >
+                        <X strokeWidth={2} />
+                    </button>
+                </div>
+            </div>
             <CheckButton
                 checked={modTask.checked ?? false}
                 onChange={(e) => {
@@ -174,7 +197,7 @@ const TaskView = () => {
             </div>
 
             {/* subtasks */}
-            <div className="w-full gap-3">
+            <div className="flex flex-col w-full gap-3">
                 <TaskList
                     tasks={subtasks ?? []}
                     onCompleteTask={toggleChecked}

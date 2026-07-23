@@ -5,6 +5,7 @@ import { PartialTask } from '@/types';
 
 const defaultTask: PartialTask = {
   name: "",
+  parentId: "",
   description: "",
   tags: [],
   doDate: null,
@@ -12,7 +13,7 @@ const defaultTask: PartialTask = {
 }
 
 const TodoView = () => {
-  const { tasks, createTask, toggleChecked } = useTasks();
+  const { rootTasks, createTask, toggleChecked } = useTasks();
 
   return (
     <div className="flex flex-col justify-center items-center">
@@ -24,7 +25,7 @@ const TodoView = () => {
       </div>
       <div className="flex flex-col w-full max-w-3xl overflow-y-auto p-3 gap-3">
         <TaskList
-            tasks={tasks}
+            tasks={rootTasks}
             onCompleteTask={toggleChecked} 
             withDate={true}
           />

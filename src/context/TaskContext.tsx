@@ -1,11 +1,13 @@
 import { createContext, useContext } from "react";
-import { createTaskAPI, deleteTaskAPI, getTaskByIdAPI, getTasksByDateRangeAPI, getTasksByDayAPI, toggleCheckedAPI, updateTaskAPI, useTasksQueryAll } from "@/db";
+import { createTaskAPI, deleteTaskAPI, getTaskByIdAPI, getTasksByDateRangeAPI, getTasksByDayAPI, getTasksByParentIdAPI, toggleCheckedAPI, updateTaskAPI, useTasksQueryAll } from "@/db";
 import { DateString, PartialTask, Task } from "@/types";
 import { nanoid } from "nanoid";
 import { createTaskFromDraft } from "@/utils/taskUtils";
+import { useLiveQuery } from "dexie-react-hooks";
 
 interface TaskContextProps {
     tasks: Task[],
+    rootTasks: Task[],
     createTask: (task: PartialTask) => void,
     editTask: (id: string, modTask: PartialTask) => void,
     deleteTask: (id: string) => void,
@@ -19,6 +21,11 @@ const TaskContext = createContext<TaskContextProps>(null!);
 
 export const TaskProvider = ({ children }: React.PropsWithChildren) => {
     const tasks = useTasksQueryAll() ?? [];
+
+    const rootTasks = useLiveQuery(
+        () => getTasksByParentIdAPI(""),
+        []
+    ) ?? [];
 
     const tasksAPI = {
         createTask: (task: PartialTask): void => {
@@ -47,7 +54,7 @@ export const TaskProvider = ({ children }: React.PropsWithChildren) => {
     }
 
     return (
-        <TaskContext.Provider value={{tasks, ...tasksAPI}}>
+        <TaskContext.Provider value={{tasks, rootTasks, ...tasksAPI}}>
             {children}
         </TaskContext.Provider>
     );

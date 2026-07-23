@@ -9,7 +9,7 @@ class TasksDatabase extends Dexie {
     constructor() {
         super("TasksDatabase");
         this.version(1).stores ({
-            tasks: "id, parentId, doDate.date",
+            tasks: "id, parentId, doDate.date, checked",
         });
     }
 }
@@ -18,7 +18,35 @@ const db = new TasksDatabase();
 
 export const createTaskAPI = (task: Task): Promise<string> => db.tasks.add(task);
 export const updateTaskAPI = (id: string, modTask: PartialTask): Promise<number> => db.tasks.update(id, modTask);
-export const deleteTaskAPI = (id: string): Promise<void> => db.tasks.delete(id);
+
+const getDescendantIds = async (rootId: string) => {
+    const descendants: string[] = [rootId];
+    let curParents = [rootId];
+
+    while(curParents.length > 0) {
+        const children = await db.tasks
+            .where("parentId")
+            .anyOf(curParents)
+            .toArray();
+        
+        const childIds = children.map(ch => ch.id);
+        descendants.push(...childIds);
+        curParents = childIds;
+    }
+
+    return descendants;
+}
+
+export const deleteTaskAPI = async (id: string) => {
+    const toDeleteIds = await getDescendantIds(id);
+    await db.tasks
+        .where("id")
+        .anyOf(toDeleteIds)
+        .delete();
+        // BELOW FOR WHEN CONSIDERING SYNC
+        //.modify({ isDeleted: true });
+}
+
 export const toggleCheckedAPI = async (id: string) => {
     const task = await db.tasks.get(id);
     if(!task) throw new Error(`Task ${id} not found`);
