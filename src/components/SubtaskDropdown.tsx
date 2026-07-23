@@ -16,6 +16,7 @@ const SubtaskDropdown = ({ subtasks, isExpanded, onExpand, onCompleteSubtask }: 
                     tasks={subtasks}
                     onCompleteTask={onCompleteSubtask}
                     withDate={true}
+                    isSubtask={true}
                 />
             }
             

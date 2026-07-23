@@ -8,10 +8,11 @@ import { Repeat } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const TaskItem = ({ task, onComplete, withDate }: {
+const TaskItem = ({ task, onComplete, withDate, isSubtask }: {
     task: Task,
     onComplete: (id: string) => void,
-    withDate: boolean
+    withDate: boolean,
+    isSubtask: boolean
 }) => {
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
@@ -28,12 +29,24 @@ const TaskItem = ({ task, onComplete, withDate }: {
     }
 
     return (
-        <li className="flex flex-col w-full bg-gray-900 border-gray-800 border rounded-2xl">
+        <li className={`
+            flex flex-col w-full 
+            ${isSubtask
+                ? ""
+                : "bg-gray-900 border-gray-800 border rounded-2xl"
+            }
+        `}>
             <div
                 className="flex flex-row items-center w-full h-15 p-3 gap-3"
                 onClick={handleTaskClick}
             >
-                <div className={`h-full aspect-square rounded-full transition duration-300 ${task.checked ? "bg-gray-500" : "bg-gray-300"}`} />
+                <div className={`
+                    h-full aspect-square rounded-full transition duration-300 
+                    ${task.checked 
+                        ? (isSubtask ? "bg-gray-800" : "bg-gray-500")
+                        : (isSubtask ? "bg-gray-700" :"bg-gray-300")
+                    }
+                `} />
                 <div className="flex flex-col text-left justify-center leading-tight">
                     <p className={`font-bold text-ellipsis transition duration-300 ${task.checked ? "line-through" : "no-underline text-[#f3f4f6]"}`}>{task.name}</p>
                     {task.doDate?.date ? (
@@ -66,7 +79,7 @@ const TaskItem = ({ task, onComplete, withDate }: {
                     styles="ml-auto"
                 />
             </div>
-            { (subtasks && (subtasks.length > 0)) && 
+            { (!isSubtask && subtasks && (subtasks.length > 0)) && 
                 <>
                     <Divider />
                     <SubtaskDropdown

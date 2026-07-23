@@ -89,7 +89,7 @@ export const createTimePeriod = (type: string, newMinutesDayStart?: number, newT
 export const formatTimePeriod = (timePeriod: TimePeriod): string => {
     if(timePeriod?.type === "exact") {
         const {hrs, mins} = toTimeComponents(timePeriod.minutesDayStart);
-        return `${hrs}:${mins}`;
+        return `${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}`;
     } else if (timePeriod?.type === "tod") {
         return timePeriod.timeOfDay;
     }
