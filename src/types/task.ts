@@ -1,16 +1,20 @@
 import { DateString, TimePeriod } from "./date";
 
-export interface Task {
+export interface BaseItem {
     id: string;
     name: string;
     description?: string | "";
     parentId: string;
-    childOrder?: string[];
-    priority?: number | 3; // 1-3?
+    childOrder?: number;
     tags?: string[];
     doDate?: DoDate | null;
-    checked: boolean;
     isDeleted?: boolean | false; // soft delete
+}
+
+export interface Task extends BaseItem {
+    variant: "task";
+    priority?: number; // 1-3?
+    checked: boolean;
 }
 
 export type PartialTask = Partial<Omit<Task,"id">>;

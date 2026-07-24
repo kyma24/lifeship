@@ -2,8 +2,9 @@ import { Task } from "@/types";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import TaskList from "./tasks/TaskList";
 
-const SubtaskDropdown = ({ subtasks, isExpanded, onExpand, onCompleteSubtask }: {
+const SubtaskDropdown = ({ subtasks, checkedCount, isExpanded, onExpand, onCompleteSubtask }: {
     subtasks: Task[],
+    checkedCount: number,
     isExpanded: boolean,
     onExpand: () => void,
     onCompleteSubtask: (id: string) => void
@@ -26,7 +27,7 @@ const SubtaskDropdown = ({ subtasks, isExpanded, onExpand, onCompleteSubtask }: 
                 onClick={onExpand}
             >
                 <div>
-                    <p>0/{subtasks.length}</p>
+                    <p>{checkedCount}/{subtasks.length}</p>
                 </div>
                 <div>
                     {isExpanded ? (

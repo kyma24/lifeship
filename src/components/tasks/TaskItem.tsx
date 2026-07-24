@@ -1,6 +1,7 @@
 import CheckButton from "@/components/buttons/CheckButton";
 import Divider from "@/components/Divider";
 import SubtaskDropdown from "@/components/SubtaskDropdown";
+import useSubtaskCompletion from "@/hooks/useSubtaskCompletion";
 import useSubtasks from "@/hooks/useSubtasks";
 import { Task } from "@/types";
 import { addDurationTPFormatted, formatTimePeriod } from "@/utils/dateUtils";
@@ -17,6 +18,7 @@ const TaskItem = ({ task, onComplete, withDate, isSubtask }: {
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
     const { subtasks } = useSubtasks(task.id);
+    const checkedSubtaskCount = useSubtaskCompletion(task.id);
 
     const navigate = useNavigate();
 
@@ -84,6 +86,7 @@ const TaskItem = ({ task, onComplete, withDate, isSubtask }: {
                     <Divider />
                     <SubtaskDropdown
                         subtasks={subtasks}
+                        checkedCount={checkedSubtaskCount ?? 0}
                         isExpanded={isExpanded}
                         onExpand={handleSubtasksExpand}
                         onCompleteSubtask={onComplete}

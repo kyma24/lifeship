@@ -1,4 +1,4 @@
-import { PartialTask, Task } from "@/types";
+import { PartialTask, ScheduleItem, Task } from "@/types";
 
 export const createTaskFromDraft = (id: string, draftTask: PartialTask): Task => (
     {
@@ -16,7 +16,7 @@ export const createTaskFromDraft = (id: string, draftTask: PartialTask): Task =>
 );
 
 // -1: a < b, 0: a = b, 1: a > b
-export const compareTasksByDate = (a: Task, b: Task): number => {
+export const compareItemsByDate = (a: ScheduleItem, b: ScheduleItem): number => {
     if(!a.doDate?.date && !b.doDate?.date) return 0;
     if(!a.doDate?.date) return -1;
     if(!b.doDate?.date) return 1;
