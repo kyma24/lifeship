@@ -7,19 +7,10 @@ import TaskDatePicker from '@/components/TaskDatePicker.tsx';
 import { Trash2, UndoDot, Save, Ellipsis, X } from 'lucide-react';
 import CheckButton from '@/components/buttons/CheckButton';
 import { DoDate, PartialTask, Task } from '@/types';
-import { createTaskFromDraft } from '@/utils/taskUtils';
-import TaskList from '@/components/tasks/TaskList';
+import { createTaskFromDraft, defaultTask, isPartialTaskDifferent } from '@/utils/taskUtils';
+import ItemList from '@/components/ItemList';
 import useSubtasks from '@/hooks/useSubtasks';
 import CreateTaskBlock from '@/components/tasks/CreateTaskBlock';
-
-const defaultTask: PartialTask = {
-  name: "",
-  parentId: "",
-  description: "",
-  tags: [],
-  doDate: null,
-  checked: false
-}
 
 const TaskView = () => {
     const [task, setTask] = useState<Task>(null!);
@@ -37,14 +28,18 @@ const TaskView = () => {
 
     useEffect(() => {
         getTaskById(id!).then(task => {
-            setTask(task!);
-            setModTask({id, ...task});
-            setLoading(false);
+            if(task?.variant === "task") {
+                setTask(task);
+                const {id, ...partialTask} = task;
+                setModTask(partialTask);
+                setLoading(false);
+            }
         });
     }, [id]);
 
     const handleRevert = () => {
-        setModTask(task);
+        const {id, ...partialTask} = task;
+        setModTask(partialTask);
     }
     
     const handleSubmit = () => {
@@ -90,7 +85,7 @@ const TaskView = () => {
         }
     }
 
-    const hasChanged = JSON.stringify(task) !== JSON.stringify(modTask);
+    const hasChanged = isPartialTaskDifferent(task, modTask);
 
     if(loading) return <div>loading...</div>
     if(!task) return <div>not found task</div>
@@ -198,7 +193,7 @@ const TaskView = () => {
 
             {/* subtasks */}
             <div className="flex flex-col w-full gap-3">
-                <TaskList
+                <ItemList
                     tasks={subtasks ?? []}
                     onCompleteTask={toggleChecked}
                     withDate={true}

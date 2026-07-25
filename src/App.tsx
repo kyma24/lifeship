@@ -7,11 +7,11 @@ import DayView from './pages/DayView'
 import WeekView from './pages/WeekView'
 import TagsView from './pages/TagsView'
 import TaskView from './pages/TaskView'
-import { TaskProvider } from './context/TaskContext'
+import { ScheduleItemProvider } from './context/TaskContext'
 
 function App() {
   return (
-    <TaskProvider>
+    <ScheduleItemProvider>
       <BrowserRouter>
         <AppShell>
           <Routes>
@@ -27,7 +27,7 @@ function App() {
           </Routes>
         </AppShell>
       </BrowserRouter>
-    </TaskProvider>
+    </ScheduleItemProvider>
   )
 }
 

@@ -1,16 +1,8 @@
 import { useTasks } from '@/context/TaskContext';
 import CreateTaskBlock from '@/components/tasks/CreateTaskBlock';
-import TaskList from '@/components/tasks/TaskList';
+import ItemList from '@/components/ItemList';
 import { PartialTask } from '@/types';
-
-const defaultTask: PartialTask = {
-  name: "",
-  parentId: "",
-  description: "",
-  tags: [],
-  doDate: null,
-  checked: false
-}
+import { defaultTask } from '@/utils/taskUtils';
 
 const TodoView = () => {
   const { rootTasks, createTask, toggleChecked } = useTasks();
@@ -24,7 +16,7 @@ const TodoView = () => {
         </div>
       </div>
       <div className="flex flex-col w-full max-w-3xl overflow-y-auto p-3 gap-3">
-        <TaskList
+        <ItemList
             tasks={rootTasks}
             onCompleteTask={toggleChecked} 
             withDate={true}

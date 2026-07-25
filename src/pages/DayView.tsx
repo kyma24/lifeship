@@ -1,25 +1,21 @@
 import useCurrentDate from '@/hooks/useCurrentDate';
 import { toDateStr, toMonthDayFormat, toWeekdayFormat } from '@/utils/dateUtils';
-import TaskList from '@/components/tasks/TaskList';
+import ItemList from '@/components/ItemList';
 import { useTasks } from '@/context/TaskContext';
 import { PartialTask } from '@/types';
 import CreateTaskBlock from '@/components/tasks/CreateTaskBlock';
 import useDayTasks from '@/hooks/useDayTasks';
+import { defaultTask } from '@/utils/taskUtils';
 
-const defaultTodayTask: PartialTask = {
-  name: "",
-  parentId: "",
-  description: "",
-  tags: [],
+const defaultTodayTask: PartialTask = {...defaultTask, 
   doDate: {
     date: toDateStr(new Date()),
     timePeriod: null,
     duration: null,
     timezone: null,
     recurrence: null
-  },
-  checked: false
-}
+  }
+};
 
 const DayView = () => {
     const date = useCurrentDate();
@@ -37,7 +33,7 @@ const DayView = () => {
                 </div>
             </div>
             <div className="flex flex-col w-full max-w-3xl overflow-y-auto p-3 gap-3">
-                <TaskList
+                <ItemList
                     tasks={dayTasks}
                     onCompleteTask={toggleChecked} 
                     withDate={false}

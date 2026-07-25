@@ -2,15 +2,7 @@ import { useState } from 'react'
 import TaskDatePicker from '@/components/TaskDatePicker';
 import { Repeat, RepeatOff, Tags } from 'lucide-react';
 import { DoDate, PartialTask, RecurrenceRule } from '@/types';
-
-const defaultTask: PartialTask = {
-  name: "",
-  parentId: "",
-  description: "",
-  tags: [],
-  doDate: null,
-  checked: false
-}
+import { defaultTask } from '@/utils/taskUtils';
 
 const CreateTask = ({ isOpen, onCreate }: {
     isOpen: boolean,

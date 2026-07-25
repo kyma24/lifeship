@@ -1,5 +1,15 @@
 import { PartialTask, ScheduleItem, Task } from "@/types";
 
+export const defaultTask: PartialTask = {
+  name: "",
+  parentId: "",
+  description: "",
+  tags: [],
+  doDate: null,
+  checked: false,
+  variant: "task"
+}
+
 export const createTaskFromDraft = (id: string, draftTask: PartialTask): Task => (
     {
         id: id,
@@ -11,7 +21,8 @@ export const createTaskFromDraft = (id: string, draftTask: PartialTask): Task =>
         tags: draftTask.tags ?? [],
         doDate: draftTask.doDate ?? null,
         checked: draftTask.checked ?? false,
-        isDeleted: draftTask.isDeleted ?? false
+        isDeleted: draftTask.isDeleted ?? false,
+        variant: draftTask.variant ?? "task",
     } as Task
 );
 
@@ -22,3 +33,9 @@ export const compareItemsByDate = (a: ScheduleItem, b: ScheduleItem): number => 
     if(!b.doDate?.date) return 1;
     return 0;
 };
+
+export const isPartialTaskDifferent = (task: Task, modTask: PartialTask): boolean => {
+    if(!task || !modTask) return false;
+    const {id, ...noIdTask} = task;
+    return JSON.stringify(noIdTask) !== JSON.stringify(modTask);
+}

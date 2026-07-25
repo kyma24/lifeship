@@ -1,9 +1,9 @@
-import { Task } from "@/types";
+import { ScheduleItem } from "@/types";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import TaskList from "./tasks/TaskList";
+import ItemList from "./ItemList";
 
 const SubtaskDropdown = ({ subtasks, checkedCount, isExpanded, onExpand, onCompleteSubtask }: {
-    subtasks: Task[],
+    subtasks: ScheduleItem[],
     checkedCount: number,
     isExpanded: boolean,
     onExpand: () => void,
@@ -13,7 +13,7 @@ const SubtaskDropdown = ({ subtasks, checkedCount, isExpanded, onExpand, onCompl
         <div>
             {/* subtask list */}
             { isExpanded &&
-                <TaskList
+                <ItemList
                     tasks={subtasks}
                     onCompleteTask={onCompleteSubtask}
                     withDate={true}

@@ -1,26 +1,26 @@
 import { createContext, useContext } from "react";
-import { createTaskAPI, deleteTaskAPI, getTaskByIdAPI, getTasksByDateRangeAPI, getTasksByDayAPI, getTasksByParentIdAPI, toggleCheckedAPI, updateTaskAPI, useTasksQueryAll } from "@/db";
-import { DateString, PartialTask, Task } from "@/types";
+import { createTaskAPI, deleteTaskAPI, getItemByIdAPI, getTasksByDateRangeAPI, getTasksByDayAPI, getTasksByParentIdAPI, toggleCheckedAPI, updateTaskAPI, useTasksQueryAll } from "@/db";
+import { DateString, PartialTask, ScheduleItem, Task } from "@/types";
 import { nanoid } from "nanoid";
 import { createTaskFromDraft } from "@/utils/taskUtils";
 import { useLiveQuery } from "dexie-react-hooks";
 
-interface TaskContextProps {
-    tasks: Task[],
-    rootTasks: Task[],
+interface ItemContextProps {
+    //tasks: Task[],
+    rootTasks: ScheduleItem[],
     createTask: (task: PartialTask) => void,
     editTask: (id: string, modTask: PartialTask) => void,
     deleteTask: (id: string) => void,
     toggleChecked: (id: string) => void,
-    getTaskById: (id: string) => Promise<Task | undefined>,
-    getTasksByDay: (day: DateString) => Promise<Task[]>,
-    getTasksByDateRange: (startDate: DateString, endDate: DateString) => Promise<Task[]>,
+    getTaskById: (id: string) => Promise<ScheduleItem | undefined>,
+    getTasksByDay: (day: DateString) => Promise<ScheduleItem[]>,
+    getTasksByDateRange: (startDate: DateString, endDate: DateString) => Promise<ScheduleItem[]>,
 }
 
-const TaskContext = createContext<TaskContextProps>(null!);
+const ItemContext = createContext<ItemContextProps>(null!);
 
-export const TaskProvider = ({ children }: React.PropsWithChildren) => {
-    const tasks = useTasksQueryAll() ?? [];
+export const ScheduleItemProvider = ({ children }: React.PropsWithChildren) => {
+    //const tasks = useTasksQueryAll() ?? [];
 
     const rootTasks = useLiveQuery(
         () => getTasksByParentIdAPI(""),
@@ -46,21 +46,21 @@ export const TaskProvider = ({ children }: React.PropsWithChildren) => {
             toggleCheckedAPI(id);
         },
 
-        getTaskById: (id: string) => getTaskByIdAPI(id),
+        getTaskById: (id: string) => getItemByIdAPI(id),
 
-        getTasksByDay: (day: DateString): Promise<Task[]> => getTasksByDayAPI(day),
+        getTasksByDay: (day: DateString): Promise<ScheduleItem[]> => getTasksByDayAPI(day),
 
-        getTasksByDateRange: (startDate: DateString, endDate: DateString): Promise<Task[]> => getTasksByDateRangeAPI(startDate, endDate),
+        getTasksByDateRange: (startDate: DateString, endDate: DateString): Promise<ScheduleItem[]> => getTasksByDateRangeAPI(startDate, endDate),
     }
 
     return (
-        <TaskContext.Provider value={{tasks, rootTasks, ...tasksAPI}}>
+        <ItemContext.Provider value={{rootTasks, ...tasksAPI}}>
             {children}
-        </TaskContext.Provider>
+        </ItemContext.Provider>
     );
 }
 
 export const useTasks = () => {
-    const context = useContext(TaskContext);
+    const context = useContext(ItemContext);
     return context;
 }

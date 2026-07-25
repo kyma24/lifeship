@@ -85,7 +85,7 @@ export const useTasksQueryAll = (): ScheduleItem[] =>
         return items.sort(compareItemsByDate);
     }, []) ?? [];
 
-export const getTaskByIdAPI = async (id: string): Promise<ScheduleItem | undefined> => {
+export const getItemByIdAPI = async (id: string): Promise<ScheduleItem | undefined> => {
     try {
         return db.items.get(id);
     } catch (err) {
