@@ -1,11 +1,11 @@
-import { useTasks } from '@/context/TaskContext';
+import { useScheduleItems } from '@/context/ScheduleItemContext';
 import CreateTaskBlock from '@/components/tasks/CreateTaskBlock';
 import ItemList from '@/components/ItemList';
 import { PartialTask } from '@/types';
 import { defaultTask } from '@/utils/taskUtils';
 
 const TodoView = () => {
-  const { rootTasks, createTask, toggleChecked } = useTasks();
+  const { rootTasks, createTask, toggleChecked } = useScheduleItems();
 
   return (
     <div className="flex flex-col justify-center items-center">
@@ -17,7 +17,7 @@ const TodoView = () => {
       </div>
       <div className="flex flex-col w-full max-w-3xl overflow-y-auto p-3 gap-3">
         <ItemList
-            tasks={rootTasks}
+            items={rootTasks}
             onCompleteTask={toggleChecked} 
             withDate={true}
           />

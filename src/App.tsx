@@ -7,7 +7,7 @@ import DayView from './pages/DayView'
 import WeekView from './pages/WeekView'
 import TagsView from './pages/TagsView'
 import TaskView from './pages/TaskView'
-import { ScheduleItemProvider } from './context/TaskContext'
+import { ScheduleItemProvider } from './context/ScheduleItemContext'
 
 function App() {
   return (

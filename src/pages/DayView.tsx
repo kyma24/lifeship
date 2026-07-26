@@ -1,7 +1,7 @@
 import useCurrentDate from '@/hooks/useCurrentDate';
 import { toDateStr, toMonthDayFormat, toWeekdayFormat } from '@/utils/dateUtils';
 import ItemList from '@/components/ItemList';
-import { useTasks } from '@/context/TaskContext';
+import { useScheduleItems } from '@/context/ScheduleItemContext';
 import { PartialTask } from '@/types';
 import CreateTaskBlock from '@/components/tasks/CreateTaskBlock';
 import useDayTasks from '@/hooks/useDayTasks';
@@ -22,7 +22,7 @@ const DayView = () => {
 
     const { dayTasks } = useDayTasks(date);
 
-    const { createTask, toggleChecked } = useTasks();
+    const { createTask, toggleChecked } = useScheduleItems();
 
     return (
         <div className="flex flex-col justify-center items-center">
@@ -34,7 +34,7 @@ const DayView = () => {
             </div>
             <div className="flex flex-col w-full max-w-3xl overflow-y-auto p-3 gap-3">
                 <ItemList
-                    tasks={dayTasks}
+                    items={dayTasks}
                     onCompleteTask={toggleChecked} 
                     withDate={false}
                 />

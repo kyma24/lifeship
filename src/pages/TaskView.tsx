@@ -1,4 +1,4 @@
-import { useTasks } from '@/context/TaskContext';
+import { useScheduleItems } from '@/context/ScheduleItemContext';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom'
 import { formatTimePeriod, addDurationTPFormatted } from '@/utils/dateUtils';
@@ -22,12 +22,12 @@ const TaskView = () => {
     
     const navigate = useNavigate();
 
-    const { createTask, editTask, deleteTask, toggleChecked, getTaskById } = useTasks();
+    const { createTask, editTask, deleteItem, toggleChecked, getItemById } = useScheduleItems();
 
     const { subtasks } = useSubtasks(id!);
 
     useEffect(() => {
-        getTaskById(id!).then(task => {
+        getItemById(id!).then(task => {
             if(task?.variant === "task") {
                 setTask(task);
                 const {id, ...partialTask} = task;
@@ -65,7 +65,6 @@ const TaskView = () => {
     }
 
     const handleCreateSubtask = (draftTask: PartialTask) => {
-        console.log(id);
         createTask({...draftTask, parentId: id});
     }
 
@@ -80,7 +79,7 @@ const TaskView = () => {
 
     const handleTaskDelete = async () => {
         if(window.confirm('Delete this task?')) {
-            deleteTask(id!);
+            deleteItem(id!);
             navigate(-1);
         }
     }
@@ -194,7 +193,7 @@ const TaskView = () => {
             {/* subtasks */}
             <div className="flex flex-col w-full gap-3">
                 <ItemList
-                    tasks={subtasks ?? []}
+                    items={subtasks ?? []}
                     onCompleteTask={toggleChecked}
                     withDate={true}
                 />

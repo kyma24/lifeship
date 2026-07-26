@@ -1,18 +1,20 @@
 import { createContext, useContext } from "react";
-import { createTaskAPI, deleteTaskAPI, getItemByIdAPI, getTasksByDateRangeAPI, getTasksByDayAPI, getTasksByParentIdAPI, toggleCheckedAPI, updateTaskAPI, useTasksQueryAll } from "@/db";
-import { DateString, PartialTask, ScheduleItem, Task } from "@/types";
+import { createBlockAPI, createTaskAPI, deleteItemAPI, getItemByIdAPI, getTasksByDateRangeAPI, getTasksByDayAPI, getTasksByParentIdAPI, toggleCheckedAPI, updateTaskAPI } from "@/db";
+import { Block, DateString, PartialBlock, PartialTask, ScheduleItem, Task } from "@/types";
 import { nanoid } from "nanoid";
 import { createTaskFromDraft } from "@/utils/taskUtils";
 import { useLiveQuery } from "dexie-react-hooks";
+import { createBlockFromDraft } from "@/utils/blockUtils";
 
 interface ItemContextProps {
     //tasks: Task[],
     rootTasks: ScheduleItem[],
     createTask: (task: PartialTask) => void,
+    createBlock: (block: PartialBlock) => void,
     editTask: (id: string, modTask: PartialTask) => void,
-    deleteTask: (id: string) => void,
+    deleteItem: (id: string) => void,
     toggleChecked: (id: string) => void,
-    getTaskById: (id: string) => Promise<ScheduleItem | undefined>,
+    getItemById: (id: string) => Promise<ScheduleItem | undefined>,
     getTasksByDay: (day: DateString) => Promise<ScheduleItem[]>,
     getTasksByDateRange: (startDate: DateString, endDate: DateString) => Promise<ScheduleItem[]>,
 }
@@ -27,6 +29,14 @@ export const ScheduleItemProvider = ({ children }: React.PropsWithChildren) => {
         []
     ) ?? [];
 
+    const itemsAPI = {
+        deleteItem: (id: string): void => {
+            deleteItemAPI(id);
+        },
+
+        getItemById: (id: string) => getItemByIdAPI(id),
+    }
+
     const tasksAPI = {
         createTask: (task: PartialTask): void => {
             const id: string = nanoid();
@@ -38,29 +48,31 @@ export const ScheduleItemProvider = ({ children }: React.PropsWithChildren) => {
             updateTaskAPI(id, modTask);
         },
 
-        deleteTask: (id: string): void => {
-            deleteTaskAPI(id);
-        },
-
         toggleChecked: (id: string): void => {
             toggleCheckedAPI(id);
         },
-
-        getTaskById: (id: string) => getItemByIdAPI(id),
 
         getTasksByDay: (day: DateString): Promise<ScheduleItem[]> => getTasksByDayAPI(day),
 
         getTasksByDateRange: (startDate: DateString, endDate: DateString): Promise<ScheduleItem[]> => getTasksByDateRangeAPI(startDate, endDate),
     }
 
+    const blocksAPI = {
+        createBlock: (block: PartialBlock): void => {
+            const id: string = nanoid();
+            const validBlock: Block = createBlockFromDraft(id,block);
+            createBlockAPI(validBlock);
+        },
+    }
+
     return (
-        <ItemContext.Provider value={{rootTasks, ...tasksAPI}}>
+        <ItemContext.Provider value={{rootTasks, ...itemsAPI, ...tasksAPI, ...blocksAPI}}>
             {children}
         </ItemContext.Provider>
     );
 }
 
-export const useTasks = () => {
+export const useScheduleItems = () => {
     const context = useContext(ItemContext);
     return context;
 }

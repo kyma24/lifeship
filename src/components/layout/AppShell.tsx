@@ -1,16 +1,16 @@
 import React, { useState } from 'react'
 import useMediaQuery from '../../hooks/useMediaQuery'
 import BottomNav from './BottomNav';
-import CreateTask from '@/components/tasks/CreateTask';
-import { useTasks } from '@/context/TaskContext';
-import { PartialTask } from '@/types/task.ts';
+import CreateItemSheet from '@/components/CreateItemSheet';
+import { useScheduleItems } from '@/context/ScheduleItemContext';
+import { PartialScheduleItem } from '@/types';
 
 const AppShell = ({ children }: React.PropsWithChildren) => {
     const [createIsOpen, setCreateIsOpen] = useState<boolean>(false);
     const [createIsMounted, setCreateIsMounted] = useState<boolean>(false);
     const isDesktop = useMediaQuery('(min-width: 1024px)');
     
-    const { createTask } = useTasks();
+    const { createTask, createBlock } = useScheduleItems();
 
     const handleCreateOpen = () => {
         setCreateIsMounted(true);
@@ -22,9 +22,10 @@ const AppShell = ({ children }: React.PropsWithChildren) => {
         setTimeout(() => setCreateIsMounted(false), 401);
     }
 
-    const handleCreate = (draftTask: PartialTask) => {
+    const handleCreate = (draft: PartialScheduleItem) => {
         handleCreateClose();
-        createTask(draftTask);
+        if(draft.variant === "task") createTask(draft);
+        if(draft.variant === "block") createBlock(draft);
     }
 
     return (
@@ -35,7 +36,7 @@ const AppShell = ({ children }: React.PropsWithChildren) => {
                         className={`fixed w-full h-full z-100 ${createIsOpen ? "bg-[#16171d]/50" : "bg-[#16171d]/0"} transition-colors duration-300 ease-in-out`}
                         onClick={handleCreateClose}
                     />
-                    <CreateTask
+                    <CreateItemSheet
                         isOpen={createIsOpen}
                         onCreate={handleCreate} 
                     />
