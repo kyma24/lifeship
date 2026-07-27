@@ -1,9 +1,9 @@
 import useCurrentDate from '@/hooks/useCurrentDate';
 import { toDateStr, toMonthDayFormat, toWeekdayFormat } from '@/utils/dateUtils';
-import ItemList from '@/components/ItemList';
+import ItemList from '@/components/schedule-items/ItemList';
 import { useScheduleItems } from '@/context/ScheduleItemContext';
 import { PartialTask } from '@/types';
-import CreateTaskBlock from '@/components/tasks/CreateTaskBlock';
+import CreateTaskBlock from '@/components/schedule-items/tasks/CreateTaskBlock';
 import useDayTasks from '@/hooks/useDayTasks';
 import { defaultTask } from '@/utils/taskUtils';
 

@@ -20,8 +20,8 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
-    /*"allowJs": true,
-    "checkJs": false,*/
+    "allowJs": false,
+    //"checkJs": false,
 
     "noUncheckedIndexedAccess": true,
     "paths": {

@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import TaskDatePicker from '@/components/TaskDatePicker';
+import DatePicker from '@/components/DatePicker';
 import { ArrowUp, Repeat, RepeatOff, Tags } from 'lucide-react';
 import { DoDate, PartialBlock, PartialScheduleItem, PartialTask, RecurrenceRule } from '@/types';
 import { defaultTask } from '@/utils/taskUtils';
-import Divider from './Divider';
+import Divider from '@/components/Divider';
 import { defaultBlock } from '@/utils/blockUtils';
 
 const CreateItemSheet = ({ isOpen, onCreate }: {
@@ -13,7 +13,7 @@ const CreateItemSheet = ({ isOpen, onCreate }: {
   const [variant, setVariant] = useState<string>("");
 
   const renderContent = (curVariant: string) => {
-    switch (variant) {
+    switch (curVariant) {
       case "task":
         return <CreateTaskDisplay onCreate={onCreate} />;
       case "block":
@@ -204,7 +204,7 @@ const CreateTaskDisplay = ({ onCreate }: {
         {/*separate display for start time, duration, deadline, recurrence*/}
         <div className="flex flex-row gap-6 items-center text-md">
           <div className="flex flex-row gap-2 items-center">
-            <TaskDatePicker
+            <DatePicker
               doDate={draftTask.doDate!}
               onChange={handleDoDateChange}
             />
@@ -222,7 +222,7 @@ const CreateTaskDisplay = ({ onCreate }: {
             </div>
 
             {/* end time picker
-            <TaskDatePicker
+            <DatePicker
               doDate={addDurationMs(draftTask.startTime, draftTask.duration)}
               onChange={handleEndTimeChange}
             />
@@ -244,7 +244,7 @@ const CreateTaskDisplay = ({ onCreate }: {
 
           {/*<div className="flex flex-row items-center">
             <p>{"due: "}</p>
-            <TaskDatePicker
+            <DatePicker
               doDate={draftTask.deadline}
               onChange={handleDeadlineChange}
             />

@@ -2,15 +2,15 @@ import { useScheduleItems } from '@/context/ScheduleItemContext';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom'
 import { formatTimePeriod, addDurationTPFormatted } from '@/utils/dateUtils';
-import TaskDatePicker from '@/components/TaskDatePicker.tsx';
+import DatePicker from '@/components/DatePicker';
 
 import { Trash2, UndoDot, Save, Ellipsis, X } from 'lucide-react';
 import CheckButton from '@/components/buttons/CheckButton';
 import { DoDate, PartialTask, Task } from '@/types';
 import { createTaskFromDraft, defaultTask, isPartialTaskDifferent } from '@/utils/taskUtils';
-import ItemList from '@/components/ItemList';
+import ItemList from '@/components/schedule-items/ItemList';
 import useSubtasks from '@/hooks/useSubtasks';
-import CreateTaskBlock from '@/components/tasks/CreateTaskBlock';
+import CreateTaskBlock from '@/components/schedule-items/tasks/CreateTaskBlock';
 
 const TaskView = () => {
     const [task, setTask] = useState<Task>(null!);
@@ -136,7 +136,7 @@ const TaskView = () => {
             <div className="w-full flex flex-col items-center gap-3">
                 <div className="flex flex-col">
                     <div className="flex flex-row items-center gap-1">
-                        <TaskDatePicker
+                        <DatePicker
                             doDate={modTask.doDate!}
                             onChange={handleDoDateChange}
                         />

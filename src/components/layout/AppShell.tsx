@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import useMediaQuery from '../../hooks/useMediaQuery'
 import BottomNav from './BottomNav';
-import CreateItemSheet from '@/components/CreateItemSheet';
+import CreateItemSheet from '@/components/schedule-items/CreateItemSheet';
 import { useScheduleItems } from '@/context/ScheduleItemContext';
 import { PartialScheduleItem } from '@/types';
 

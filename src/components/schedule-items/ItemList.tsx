@@ -1,6 +1,6 @@
 import { ScheduleItem } from '@/types'
 import TaskItem from './tasks/TaskItem'
-import BlockItem from './BlockItem';
+import BlockItem from './blocks/BlockItem';
 
 const ItemList = ({ items, onCompleteTask, withDate=true, isSubtask=false }: {
     items: ScheduleItem[],

@@ -1,6 +1,6 @@
 import Divider from "@/components/Divider";
 import PropertyTag from "@/components/PropertyTag";
-import TaskDatePicker from "@/components/TaskDatePicker";
+import DatePicker from "@/components/DatePicker";
 import { DoDate, PartialTask, RecurrenceRule } from "@/types";
 import { useState } from "react";
 import { Repeat, RepeatOff } from "lucide-react";
@@ -61,7 +61,7 @@ const CreateTaskBlock = ({ defaultTask, onCreateTask }: {
 
                     {/* property tags, e.g. doDate/priority/tags */}
                     <div className="flex flex-row gap-2">
-                        <TaskDatePicker 
+                        <DatePicker 
                             doDate={draftTask.doDate!}
                             onChange={handleDoDateChange}
                         />

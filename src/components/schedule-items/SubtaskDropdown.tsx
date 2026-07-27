@@ -1,6 +1,6 @@
 import { ScheduleItem } from "@/types";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import ItemList from "./ItemList";
+import ItemList from "@/components/schedule-items/ItemList";
 
 const SubtaskDropdown = ({ subtasks, checkedCount, isExpanded, onExpand, onCompleteSubtask }: {
     subtasks: ScheduleItem[],

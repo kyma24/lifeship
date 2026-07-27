@@ -2,7 +2,7 @@ import { DoDate } from "@/types";
 import { formatDate, formatTimePeriod, toDate, toDoDate, toMs, toNativeDate } from "@/utils/dateUtils";
 import { ChangeEvent, RefObject, useRef } from "react";
 
-const TaskDatePicker = ({doDate, onChange}: {
+const DatePicker = ({doDate, onChange}: {
     doDate: DoDate,
     onChange: (doDate: DoDate) => void
 }) => {
@@ -42,4 +42,4 @@ const toLocalInputString = (date: DoDate) => {
     return toDate(numericDate-offset).toISOString().slice(0,16);
 }
 
-export default TaskDatePicker;
+export default DatePicker;

@@ -1,6 +1,6 @@
 import CheckButton from "@/components/buttons/CheckButton";
 import Divider from "@/components/Divider";
-import SubtaskDropdown from "@/components/SubtaskDropdown";
+import SubtaskDropdown from "@/components/schedule-items/SubtaskDropdown";
 import useSubtaskCompletion from "@/hooks/useSubtaskCompletion";
 import useSubtasks from "@/hooks/useSubtasks";
 import { Task } from "@/types";

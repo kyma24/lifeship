@@ -5,6 +5,7 @@ import { PartialTask, Task } from "./task";
 export * from "./task";
 export * from "./date";
 export * from "./container";
+export * from "./menu";
 
 export interface BaseItem {
     id: string;
