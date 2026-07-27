@@ -1,20 +1,21 @@
-import { ChevronDown, ChevronUp, SunMedium } from "lucide-react";
 import { useState } from "react";
 import ItemList from "../ItemList";
 import CreateTaskBlock from "../tasks/CreateTaskBlock";
 import { defaultTask } from "@/utils/taskUtils";
-import { Block, PartialTask } from "@/types";
+import { Block, BlockActions, PartialTask } from "@/types";
 import { useScheduleItems } from "@/context/ScheduleItemContext";
 import useSubtasks from "@/hooks/useSubtasks";
-import Menu from "@/components/menu/Menu";
-import { blockMenu } from "@/utils/menuUtils";
+import CreateBlockHeader from "./header/CreateBlockHeader";
+import { getPartialBlock } from "@/utils/blockUtils";
+import DisplayBlockHeader from "./header/DisplayBlockHeader";
 
 const BlockItem = ({ block }: {
     block: Block
 }) => {
     const [isExpanded, setIsExpanded] = useState<boolean>(true);
+    const [isModifying, setIsModifying] = useState<boolean>(false);
 
-    const { createTask, toggleChecked, deleteItem } = useScheduleItems();
+    const { createTask, editBlock, toggleChecked, deleteItem } = useScheduleItems();
 
     const { subtasks } = useSubtasks(block.id);
 
@@ -23,59 +24,37 @@ const BlockItem = ({ block }: {
     }
 
     const handleDeleteBlock = () => {
-        deleteItem(block.id);
+        if(window.confirm('Delete this task?')) {
+            deleteItem(block.id);
+        }
     }
+
+    const blockActions: BlockActions = {
+        edit: () => setIsModifying(!isModifying),
+        delete: handleDeleteBlock,
+    };
 
     return (
         <li className="flex flex-col p-3 w-full">
-            <div className="flex flex-row w-full items-center">
-                {/* menu */}
-                <Menu items={blockMenu(block,handleDeleteBlock)} />
-
-                {/* main section */}
-                <div className="flex flex-row w-full p-3 justify-between items-center">
-                    <div 
-                        className="flex flex-row gap-3 items-center
-                                  bg-gray-700 rounded-full"
+            {(isModifying)
+                ? (
+                    <CreateBlockHeader
+                        id={block.id}
+                        startBlock={getPartialBlock(block)}
+                        onChangeBlock={editBlock}
+                        onClose={() => setIsModifying(false)}
+                    />
+                )
+                : (
+                    <DisplayBlockHeader
+                        block={block}
+                        subtasks={subtasks ?? []}
+                        isExpanded={isExpanded}
                         onClick={() => setIsExpanded(!isExpanded)}
-                    >
-                        {/* icon 
-                        <div>
-                            <SunMedium 
-                                className="size-6"
-                                strokeWidth={2} 
-                            />
-                        </div>*/}
-
-                        <div 
-                            className="flex flex-row items-center px-2 py-1 gap-1 
-                                        text-left leading-tight">
-                            {/* title, no. tasks left */}
-                            <p className="font-bold">{block.name} ({(subtasks ?? []).length})</p>
-
-                            {/* caret/expand */}
-                            <div>
-                                {isExpanded ? (
-                                    <ChevronUp 
-                                        className="size-6"
-                                        strokeWidth={2} 
-                                    />
-                                ) : (
-                                    <ChevronDown
-                                        className="size-6"
-                                        strokeWidth={2}
-                                    />
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                        
-                    {/* time */}
-                    <div className="ml-auto">
-                        <p className="text-sm">10:30 - 12:50</p>
-                    </div>
-                </div>
-            </div>
+                        actions={blockActions}
+                    />
+                )
+            }
 
             {isExpanded && (
                 <ul className="flex flex-col w-full gap-3">
@@ -83,6 +62,7 @@ const BlockItem = ({ block }: {
                         items={subtasks ?? []}
                         onCompleteTask={toggleChecked}
                         withDate={true}
+                        isSubtask={true}
                     />
                     <CreateTaskBlock
                         defaultTask={defaultTask}

@@ -1,5 +1,5 @@
 import Dexie, { Table } from "dexie";
-import { Block, DateString, PartialTask, ScheduleItem, Task } from "@/types";
+import { Block, DateString, PartialBlock, PartialTask, ScheduleItem, Task } from "@/types";
 import { getNextOccurrence, getPrevOccurrence } from "@/utils/dateUtils";
 import { useLiveQuery } from "dexie-react-hooks";
 import { compareItemsByDate } from "@/utils/taskUtils";
@@ -20,6 +20,7 @@ export const createTaskAPI = (task: Task): Promise<string> => db.items.add(task)
 export const createBlockAPI = (block: Block): Promise<string> => db.items.add(block);
 
 export const updateTaskAPI = (id: string, modTask: PartialTask): Promise<number> => db.items.update(id, modTask);
+export const updateBlockAPI = (id: string, modBlock: PartialBlock): Promise<number> => db.items.update(id,modBlock);
 
 const getDescendantIds = async (rootId: string) => {
     const descendants: string[] = [rootId];

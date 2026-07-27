@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import { createBlockAPI, createTaskAPI, deleteItemAPI, getItemByIdAPI, getTasksByDateRangeAPI, getTasksByDayAPI, getTasksByParentIdAPI, toggleCheckedAPI, updateTaskAPI } from "@/db";
+import { createBlockAPI, createTaskAPI, deleteItemAPI, getItemByIdAPI, getTasksByDateRangeAPI, getTasksByDayAPI, getTasksByParentIdAPI, toggleCheckedAPI, updateBlockAPI, updateTaskAPI } from "@/db";
 import { Block, DateString, PartialBlock, PartialTask, ScheduleItem, Task } from "@/types";
 import { nanoid } from "nanoid";
 import { createTaskFromDraft } from "@/utils/taskUtils";
@@ -12,6 +12,7 @@ interface ItemContextProps {
     createTask: (task: PartialTask) => void,
     createBlock: (block: PartialBlock) => void,
     editTask: (id: string, modTask: PartialTask) => void,
+    editBlock: (id: string, modBlock: PartialBlock) => void,
     deleteItem: (id: string) => void,
     toggleChecked: (id: string) => void,
     getItemById: (id: string) => Promise<ScheduleItem | undefined>,
@@ -63,6 +64,10 @@ export const ScheduleItemProvider = ({ children }: React.PropsWithChildren) => {
             const validBlock: Block = createBlockFromDraft(id,block);
             createBlockAPI(validBlock);
         },
+
+        editBlock: (id: string, modBlock: PartialBlock): void => {
+            updateBlockAPI(id, modBlock);
+        }
     }
 
     return (

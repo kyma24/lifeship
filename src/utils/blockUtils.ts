@@ -22,3 +22,8 @@ export const createBlockFromDraft = (id: string, draftBlock: PartialBlock): Bloc
         variant: draftBlock.variant ?? "block",
     } as Block
 );
+
+export const getPartialBlock = (block: Block): PartialBlock => {
+    const {id, ...noIdBlock} = block;
+    return noIdBlock;
+}

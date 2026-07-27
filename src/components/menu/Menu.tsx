@@ -49,6 +49,10 @@ const Menu = ({ items }: {
                             <MenuItem 
                                 key={item.id}
                                 item={item} 
+                                onClick={() => {
+                                    item.onClick();
+                                    setIsOpen(!isOpen);
+                                }}
                             />
                         ))}
                     </div>

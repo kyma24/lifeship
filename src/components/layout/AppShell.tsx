@@ -42,7 +42,9 @@ const AppShell = ({ children }: React.PropsWithChildren) => {
                     />
                 </>
             }
-            <main className="flex-1 overflow-y-auto w-screen h-screen overscroll-none">
+            <main className={`flex-1 overflow-y-auto w-screen h-screen overscroll-none
+                ${!isDesktop && "pb-30"}`
+            }>
                 {children}
             </main>
             {!isDesktop &&

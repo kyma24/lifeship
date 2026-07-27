@@ -1,7 +1,6 @@
 import { useScheduleItems } from '@/context/ScheduleItemContext';
 import CreateTaskBlock from '@/components/schedule-items/tasks/CreateTaskBlock';
 import ItemList from '@/components/schedule-items/ItemList';
-import { PartialTask } from '@/types';
 import { defaultTask } from '@/utils/taskUtils';
 
 const TodoView = () => {

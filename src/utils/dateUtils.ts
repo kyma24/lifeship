@@ -128,6 +128,11 @@ export const toMonthDayFormat = (dateString: DateString): string => {
     return monthDayString;
 }
 
+export const formatDateString = (dateString: DateString): string => {
+    const date: Date = toNativeDate(dateString);
+    return formatDate(date);
+}
+
 // to be reprocessed
 
 export const getTimezone = (task?: Task): string => 
