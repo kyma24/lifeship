@@ -1,5 +1,5 @@
 import { Block, PartialBlock } from "./container";
-import { DoDate } from "./date";
+import { DoInfo, ISOString } from "./date";
 import { PartialTask, Task } from "./task";
 
 export * from "./task";
@@ -10,15 +10,21 @@ export * from "./menu";
 export interface BaseItem {
     id: string;
     name: string;
-    description?: string | "";
+    description?: string;
     parentId: string;
-    childOrder?: number;
+    childOrder: number;
     tags?: string[];
-    doDate?: DoDate | null;
-    isDeleted?: boolean | false; // soft delete
+    doDate?: DoInfo | null;
 
     color?: string;
     icon?: string;
+
+    // sync metadata
+    deletedAt: ISOString | null;
+    updatedAt: ISOString;
+    createdAt: ISOString;
+    userId: string;
+    deviceId: string;
 }
 
 export type ScheduleItem = Task | Block;

@@ -1,7 +1,7 @@
 import Divider from "@/components/Divider";
 import PropertyTag from "@/components/PropertyTag";
 import DatePicker from "@/components/DatePicker";
-import { DoDate, PartialTask, RecurrenceRule } from "@/types";
+import { DoInfo, PartialTask, RecurrenceRule } from "@/types";
 import { useState } from "react";
 import { Repeat, RepeatOff } from "lucide-react";
 
@@ -19,7 +19,7 @@ const CreateTaskBlock = ({ defaultTask, onCreateTask }: {
         setIsCreating(false);
     }
 
-    const handleDoDateChange = (doDate: DoDate) => {
+    const handleDoDateChange = (doDate: DoInfo) => {
         setDraftTask({...draftTask, doDate: {...draftTask.doDate!, 
           date: doDate.date,
           timePeriod: doDate.timePeriod

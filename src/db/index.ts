@@ -9,7 +9,7 @@ class ItemsDatabase extends Dexie {
     constructor() {
         super("ItemsDatabase");
         this.version(1).stores ({
-            items: "id, parentId, doDate.date, variant, [variant+checked]",
+            items: "id, parentId, doDate.date, variant, [variant+checked], [parentId+deletedAt]",
         });
     }
 }
@@ -128,6 +128,17 @@ export const getTasksByParentIdAPI = async (parentId: string): Promise<ScheduleI
         throw new Error(`Failed to fetch items: ${err}`);
     }
 };
+
+export const getItemsToDisplayAPI = async (): Promise<ScheduleItem[]> => {
+    try {
+        return await db.items  
+            .where("[parentId+deletedAt]")
+            .equals(["",""])
+            .toArray();
+    } catch (err) {
+        throw new Error(`Failed to fetch items: ${err}`);
+    }
+}
 
 export const getSubtaskCheckedCountAPI = (parentId: string) => (
     db.items

@@ -4,8 +4,9 @@ import BottomNav from './BottomNav';
 import CreateItemSheet from '@/components/schedule-items/CreateItemSheet';
 import { useScheduleItems } from '@/context/ScheduleItemContext';
 import { PartialScheduleItem } from '@/types';
+import { Outlet } from 'react-router-dom';
 
-const AppShell = ({ children }: React.PropsWithChildren) => {
+const AppShell = () => {
     const [createIsOpen, setCreateIsOpen] = useState<boolean>(false);
     const [createIsMounted, setCreateIsMounted] = useState<boolean>(false);
     const isDesktop = useMediaQuery('(min-width: 1024px)');
@@ -45,7 +46,7 @@ const AppShell = ({ children }: React.PropsWithChildren) => {
             <main className={`flex-1 overflow-y-auto w-screen h-screen overscroll-none
                 ${!isDesktop && "pb-30"}`
             }>
-                {children}
+                <Outlet />
             </main>
             {!isDesktop &&
                 <BottomNav

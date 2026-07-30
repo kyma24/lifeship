@@ -1,24 +1,27 @@
 import { useScheduleItems } from '@/context/ScheduleItemContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom'
 import { formatTimePeriod, addDurationTPFormatted } from '@/utils/dateUtils';
 import DatePicker from '@/components/DatePicker';
 
 import { Trash2, UndoDot, Save, Ellipsis, X } from 'lucide-react';
 import CheckButton from '@/components/buttons/CheckButton';
-import { DoDate, PartialTask, Task } from '@/types';
-import { createTaskFromDraft, defaultTask, isPartialTaskDifferent } from '@/utils/taskUtils';
+import { DoInfo, PartialTask } from '@/types';
+import { defaultTask, isPartialTaskDifferent } from '@/utils/taskUtils';
 import ItemList from '@/components/schedule-items/ItemList';
 import useSubtasks from '@/hooks/useSubtasks';
 import CreateTaskBlock from '@/components/schedule-items/tasks/CreateTaskBlock';
+import { useLiveQuery } from 'dexie-react-hooks';
 
 const TaskView = () => {
-    const [task, setTask] = useState<Task>(null!);
     const [modTask, setModTask] = useState<PartialTask>(null!);
     const [loading, setLoading] = useState<boolean>(true);
+    const initFor = useRef<string|null>(null);
 
     const params = useParams();
     const id = params.id;
+
+    const task = useLiveQuery(() => getItemById(id!), [id]);
     
     const navigate = useNavigate();
 
@@ -27,33 +30,32 @@ const TaskView = () => {
     const { subtasks } = useSubtasks(id!);
 
     useEffect(() => {
-        getItemById(id!).then(task => {
-            if(task?.variant === "task") {
-                setTask(task);
-                const {id, ...partialTask} = task;
-                setModTask(partialTask);
-                setLoading(false);
-            }
-        });
-    }, [id]);
+        if((task?.variant === "task") && (initFor.current !== task.id)) {
+            const {id, ...partialTask} = task;
+            initFor.current = id;
+            setModTask(partialTask);
+            setLoading(false);
+        }
+    }, [task]);
 
     const handleRevert = () => {
-        const {id, ...partialTask} = task;
-        setModTask(partialTask);
+        if(!task) return;
+        if(task.variant === "task") {
+            const {id, ...partialTask} = task;
+            setModTask(partialTask);
+        }
     }
     
     const handleSubmit = () => {
         if(modTask.name?.trim() === "") return;
         editTask(id!, modTask);
-        const newTask: Task = createTaskFromDraft(id!, modTask);
-        setTask(newTask);
     }
 
     const handleCheckedChange = () => {
         setModTask({...modTask, checked: !modTask.checked});
     }
 
-    const handleDoDateChange = (doDate: DoDate) => {
+    const handleDoDateChange = (doDate: DoInfo) => {
         setModTask({...modTask, doDate: {...modTask.doDate!, 
             date: doDate.date,
             timePeriod: doDate.timePeriod
@@ -84,10 +86,11 @@ const TaskView = () => {
         }
     }
 
-    const hasChanged = isPartialTaskDifferent(task, modTask);
+    if(!task) return (<div>not found task</div>);
+    if(task.variant !== "task") return (<div>not a task</div>);
+    if(loading) return (<div>loading...</div>);
 
-    if(loading) return <div>loading...</div>
-    if(!task) return <div>not found task</div>
+    const hasChanged = isPartialTaskDifferent(task, modTask);
     
     return (
         <div className="w-full flex flex-col items-center p-3 overflow-x-hidden overflow-y-scroll">

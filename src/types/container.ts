@@ -1,7 +1,7 @@
 import { BaseItem } from ".";
 
 export interface Block extends BaseItem {
-    fixed?: boolean;
+    fixed: boolean;
     variant: "block";
 }
 

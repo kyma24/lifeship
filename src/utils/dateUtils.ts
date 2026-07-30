@@ -1,5 +1,5 @@
 import { RRule } from "rrule";
-import { DateComponents, DateString, DoDate, Task, TimeOfDay, TimePeriod } from "../types"
+import { DateComponents, DateString, DoInfo, Task, TimeOfDay, TimePeriod } from "../types"
 import { toZonedTime } from "date-fns-tz";
 
 // recurrence
@@ -42,7 +42,7 @@ export const toDateStr = (utcDate: Date, timezone?: string): DateString => {
     return formattedStr as DateString;
 };
 
-export const toDoDate = (utcDate: Date, timezone?: string): DoDate => {
+export const toDoDate = (utcDate: Date, timezone?: string): DoInfo => {
     const properTimezone = (timezone) ? timezone : getTimezone();
     const zonedDate = toZonedTime(utcDate, properTimezone);
     const minutesDayStart = zonedDate.getHours()*60 + zonedDate.getMinutes();
@@ -55,7 +55,7 @@ export const toDoDate = (utcDate: Date, timezone?: string): DoDate => {
         duration: null,
         timezone: timezone,
         recurrence: null,
-    } as DoDate;
+    } as DoInfo;
 }
 
 export const toDateComponents = (dateString: DateString): DateComponents => {
@@ -134,6 +134,11 @@ export const formatDateString = (dateString: DateString): string => {
 }
 
 // to be reprocessed
+
+export const nowISO = (): string => {
+    const now = new Date();
+    return now.toISOString();
+}
 
 export const getTimezone = (task?: Task): string => 
     task?.doDate?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;

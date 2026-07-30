@@ -1,10 +1,10 @@
-import { DoDate } from "@/types";
+import { DoInfo } from "@/types";
 import { formatDate, formatTimePeriod, toDate, toDoDate, toMs, toNativeDate } from "@/utils/dateUtils";
 import { ChangeEvent, RefObject, useRef } from "react";
 
 const DatePicker = ({doDate, onChange}: {
-    doDate: DoDate,
-    onChange: (doDate: DoDate) => void
+    doDate: DoInfo,
+    onChange: (doDate: DoInfo) => void
 }) => {
     const inputRef: RefObject<HTMLInputElement> = useRef(null!);
 
@@ -30,7 +30,7 @@ const DatePicker = ({doDate, onChange}: {
     );
 }
 
-const toLocalInputString = (date: DoDate) => {
+const toLocalInputString = (date: DoInfo) => {
     const numericDate = toMs(toNativeDate(
         date.date, 
         (date.timePeriod?.type === "exact") 

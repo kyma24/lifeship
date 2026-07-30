@@ -1,4 +1,6 @@
 import { PartialTask, ScheduleItem, Task } from "@/types";
+import { nowISO } from "./dateUtils";
+import { getDeviceId } from "./backend/device";
 
 export const defaultTask: PartialTask = {
   name: "",
@@ -16,13 +18,18 @@ export const createTaskFromDraft = (id: string, draftTask: PartialTask): Task =>
         name: draftTask.name ?? "",
         description: draftTask.description ?? "",
         parentId: draftTask.parentId ?? undefined,
-        childOrder: draftTask.childOrder ?? undefined,
+        childOrder: draftTask.childOrder ?? 0,
         priority: draftTask.priority ?? 3,
         tags: draftTask.tags ?? [],
         doDate: draftTask.doDate ?? null,
         checked: draftTask.checked ?? false,
-        isDeleted: draftTask.isDeleted ?? false,
         variant: draftTask.variant ?? "task",
+        
+        deletedAt: draftTask.deletedAt ?? "",
+        updatedAt: nowISO(),
+        createdAt: draftTask.createdAt ?? nowISO(),
+        deviceId: getDeviceId(),
+        userId: draftTask.userId,
     } as Task
 );
 

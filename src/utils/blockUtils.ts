@@ -1,4 +1,6 @@
 import { Block, PartialBlock } from "@/types";
+import { nowISO } from "./dateUtils";
+import { getDeviceId } from "./backend/device";
 
 export const defaultBlock: PartialBlock = {
   name: "",
@@ -15,11 +17,17 @@ export const createBlockFromDraft = (id: string, draftBlock: PartialBlock): Bloc
         name: draftBlock.name ?? "",
         description: draftBlock.description ?? "",
         parentId: draftBlock.parentId ?? undefined,
-        childOrder: draftBlock.childOrder ?? undefined,
+        childOrder: draftBlock.childOrder ?? 0,
         tags: draftBlock.tags ?? [],
         doDate: draftBlock.doDate ?? null,
-        isDeleted: draftBlock.isDeleted ?? false,
         variant: draftBlock.variant ?? "block",
+        fixed: draftBlock.fixed ?? false,
+                
+        deletedAt: draftBlock.deletedAt ?? "",
+        updatedAt: nowISO(),
+        createdAt: draftBlock.createdAt ?? nowISO(),
+        deviceId: getDeviceId(),
+        userId: draftBlock.userId,
     } as Block
 );
 

@@ -1,9 +1,9 @@
-import { DoDate } from "@/types";
+import { DoInfo } from "@/types";
 import { addDurationTPFormatted, formatDateString, formatTimePeriod } from "@/utils/dateUtils";
 import { Repeat } from "lucide-react";
 
 const TaskDoDateDisplay = ({doDate, withDate}: {
-    doDate: DoDate, 
+    doDate: DoInfo, 
     withDate: boolean
 }) => {
     const { date, timePeriod, duration, timezone, recurrence } = doDate;

@@ -1,4 +1,4 @@
-export interface DoDate {
+export interface DoInfo {
     date: DateString;
     timePeriod: TimePeriod | null;
     duration: number | null; // minutes
@@ -17,8 +17,9 @@ export type TimePeriod = null
 
 export type TimeOfDay = "morning" | "afternoon" | "evening";
 
-declare const brand: unique symbol;
-export type DateString = string & {[brand]: "DateString"};
+export type DateString = string & {__brand: "DateString"};
+
+export type ISOString = string & {__brand: "ISOString"};
 
 export interface DateComponents { 
     year: number; 

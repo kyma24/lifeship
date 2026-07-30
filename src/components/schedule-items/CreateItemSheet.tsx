@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import DatePicker from '@/components/DatePicker';
 import { ArrowUp, Repeat, RepeatOff, Tags } from 'lucide-react';
-import { DoDate, PartialBlock, PartialScheduleItem, PartialTask, RecurrenceRule } from '@/types';
+import { DoInfo, PartialBlock, PartialScheduleItem, PartialTask, RecurrenceRule } from '@/types';
 import { defaultTask } from '@/utils/taskUtils';
 import Divider from '@/components/Divider';
 import { defaultBlock } from '@/utils/blockUtils';
@@ -88,7 +88,7 @@ const CreateBlockDisplay = ({ onCreate }: {
     setDraftBlock(defaultBlock);
   }
 
-  const handleDoDateChange = (doDate: DoDate) => {
+  const handleDoDateChange = (doDate: DoInfo) => {
     setDraftBlock({...draftBlock, doDate: {...draftBlock.doDate!,
       date: doDate.date,
       timePeriod: doDate.timePeriod
@@ -147,7 +147,7 @@ const CreateTaskDisplay = ({ onCreate }: {
     setDraftTask(defaultTask);
   }
 
-  const handleDoDateChange = (doDate: DoDate) => {
+  const handleDoDateChange = (doDate: DoInfo) => {
     setDraftTask({...draftTask, doDate: {...draftTask.doDate!, 
       date: doDate.date,
       timePeriod: doDate.timePeriod

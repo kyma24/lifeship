@@ -4,7 +4,7 @@ import ItemList from '@/components/schedule-items/ItemList';
 import { defaultTask } from '@/utils/taskUtils';
 
 const TodoView = () => {
-  const { rootTasks, createTask, toggleChecked } = useScheduleItems();
+  const { rootItems, createTask, toggleChecked } = useScheduleItems();
 
   return (
     <div className="flex flex-col justify-center items-center">
@@ -16,7 +16,7 @@ const TodoView = () => {
       </div>
       <div className="flex flex-col w-full max-w-3xl overflow-y-auto p-3 gap-3">
         <ItemList
-            items={rootTasks}
+            items={rootItems}
             onCompleteTask={toggleChecked} 
             withDate={true}
           />

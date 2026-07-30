@@ -1,14 +1,15 @@
 import { createContext, useContext } from "react";
-import { createBlockAPI, createTaskAPI, deleteItemAPI, getItemByIdAPI, getTasksByDateRangeAPI, getTasksByDayAPI, getTasksByParentIdAPI, toggleCheckedAPI, updateBlockAPI, updateTaskAPI } from "@/db";
+import { createBlockAPI, createTaskAPI, deleteItemAPI, getItemByIdAPI, getItemsToDisplayAPI, getTasksByDateRangeAPI, getTasksByDayAPI, toggleCheckedAPI, updateBlockAPI, updateTaskAPI } from "@/db";
 import { Block, DateString, PartialBlock, PartialTask, ScheduleItem, Task } from "@/types";
 import { nanoid } from "nanoid";
 import { createTaskFromDraft } from "@/utils/taskUtils";
 import { useLiveQuery } from "dexie-react-hooks";
 import { createBlockFromDraft } from "@/utils/blockUtils";
+import { useAuth } from "./AuthContext";
 
 interface ItemContextProps {
     //tasks: Task[],
-    rootTasks: ScheduleItem[],
+    rootItems: ScheduleItem[],
     createTask: (task: PartialTask) => void,
     createBlock: (block: PartialBlock) => void,
     editTask: (id: string, modTask: PartialTask) => void,
@@ -23,12 +24,12 @@ interface ItemContextProps {
 const ItemContext = createContext<ItemContextProps>(null!);
 
 export const ScheduleItemProvider = ({ children }: React.PropsWithChildren) => {
-    //const tasks = useTasksQueryAll() ?? [];
 
-    const rootTasks = useLiveQuery(
-        () => getTasksByParentIdAPI(""),
-        []
-    ) ?? [];
+    const { userId } = useAuth();
+
+    const rootItems = useLiveQuery(() => (
+        getItemsToDisplayAPI()
+    ), []) ?? [];
 
     const itemsAPI = {
         deleteItem: (id: string): void => {
@@ -40,8 +41,9 @@ export const ScheduleItemProvider = ({ children }: React.PropsWithChildren) => {
 
     const tasksAPI = {
         createTask: (task: PartialTask): void => {
+            if(!userId) return;
             const id: string = nanoid();
-            const validTask: Task = createTaskFromDraft(id,task);
+            const validTask: Task = createTaskFromDraft(id,{...task, userId});
             createTaskAPI(validTask);
         },
 
@@ -60,18 +62,19 @@ export const ScheduleItemProvider = ({ children }: React.PropsWithChildren) => {
 
     const blocksAPI = {
         createBlock: (block: PartialBlock): void => {
+            if(!userId) return;
             const id: string = nanoid();
-            const validBlock: Block = createBlockFromDraft(id,block);
+            const validBlock: Block = createBlockFromDraft(id,{...block, userId});
             createBlockAPI(validBlock);
         },
 
         editBlock: (id: string, modBlock: PartialBlock): void => {
             updateBlockAPI(id, modBlock);
-        }
+        },
     }
 
     return (
-        <ItemContext.Provider value={{rootTasks, ...itemsAPI, ...tasksAPI, ...blocksAPI}}>
+        <ItemContext.Provider value={{rootItems, ...itemsAPI, ...tasksAPI, ...blocksAPI}}>
             {children}
         </ItemContext.Provider>
     );
