@@ -66,9 +66,9 @@ const TaskItem = ({ task, onComplete, withDate, isSubtask }: {
                             </div>
                         }
                         
-                        { task.doDate && 
+                        { task.doInfo && 
                             <TaskDoDateDisplay 
-                                doDate={task.doDate}
+                                doInfo={task.doInfo}
                                 withDate={withDate}
                             />
                         }

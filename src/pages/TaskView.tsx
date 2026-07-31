@@ -55,15 +55,15 @@ const TaskView = () => {
         setModTask({...modTask, checked: !modTask.checked});
     }
 
-    const handleDoDateChange = (doDate: DoInfo) => {
-        setModTask({...modTask, doDate: {...modTask.doDate!, 
-            date: doDate.date,
-            timePeriod: doDate.timePeriod
+    const handleDoDateChange = (doInfo: DoInfo) => {
+        setModTask({...modTask, doInfo: {...modTask.doInfo!, 
+            date: doInfo.date,
+            timePeriod: doInfo.timePeriod
         }});
     }
 
     const handleDurationChange = (duration: number) => {
-        setModTask({...modTask, doDate: {...modTask.doDate!, duration}});
+        setModTask({...modTask, doInfo: {...modTask.doInfo!, duration}});
     }
 
     const handleCreateSubtask = (draftTask: PartialTask) => {
@@ -140,25 +140,25 @@ const TaskView = () => {
                 <div className="flex flex-col">
                     <div className="flex flex-row items-center gap-1">
                         <DatePicker
-                            doDate={modTask.doDate!}
+                            doInfo={modTask.doInfo!}
                             onChange={handleDoDateChange}
                         />
                         <p>for</p>
                         <div className="flex flex-row items-center gap-0.5">
                             <input
                                 type="number"
-                                value={modTask.doDate?.duration ?? 0}
+                                value={modTask.doInfo?.duration ?? 0}
                                 onChange={(e) => handleDurationChange(Number(e.target.value))}
                                 className="relative h-fit w-fit field-sizing-content border border-gray-700 px-1"
                             />
                             <p>m</p>
                         </div>
                     </div>
-                    <p>{ modTask.doDate ? (
-                            `${formatTimePeriod(modTask.doDate?.timePeriod)} ${(modTask.doDate.timePeriod?.type === "exact") ? (
-                                (modTask.doDate.duration) && `→ ${addDurationTPFormatted(modTask.doDate.timePeriod, modTask.doDate.duration)}`
+                    <p>{ modTask.doInfo ? (
+                            `${formatTimePeriod(modTask.doInfo?.timePeriod)} ${(modTask.doInfo.timePeriod?.type === "exact") ? (
+                                (modTask.doInfo.duration) && `→ ${addDurationTPFormatted(modTask.doInfo.timePeriod, modTask.doInfo.duration)}`
                             ) : (
-                                <p>{modTask.doDate.timePeriod?.timeOfDay}: {modTask.doDate.duration}m</p>
+                                <p>{modTask.doInfo.timePeriod?.timeOfDay}: {modTask.doInfo.duration}m</p>
                             )}`
                         ) : (
                             `--:--`

@@ -19,16 +19,16 @@ const CreateTaskBlock = ({ defaultTask, onCreateTask }: {
         setIsCreating(false);
     }
 
-    const handleDoDateChange = (doDate: DoInfo) => {
-        setDraftTask({...draftTask, doDate: {...draftTask.doDate!, 
-          date: doDate.date,
-          timePeriod: doDate.timePeriod
+    const handleDoDateChange = (doInfo: DoInfo) => {
+        setDraftTask({...draftTask, doInfo: {...draftTask.doInfo!, 
+          date: doInfo.date,
+          timePeriod: doInfo.timePeriod
         }});
     }
 
     const handleToggleRecurrence = () => {
-        setDraftTask({...draftTask, doDate: {...draftTask.doDate!, recurrence:
-          (draftTask.doDate?.recurrence 
+        setDraftTask({...draftTask, doInfo: {...draftTask.doInfo!, recurrence:
+          (draftTask.doInfo?.recurrence 
             ? null 
             : {
                 rrule: 'FREQ=DAILY',
@@ -59,10 +59,10 @@ const CreateTaskBlock = ({ defaultTask, onCreateTask }: {
                         />
                     </div>
 
-                    {/* property tags, e.g. doDate/priority/tags */}
+                    {/* property tags, e.g. doInfo/priority/tags */}
                     <div className="flex flex-row gap-2">
                         <DatePicker 
-                            doDate={draftTask.doDate!}
+                            doInfo={draftTask.doInfo!}
                             onChange={handleDoDateChange}
                         />
 
@@ -70,7 +70,7 @@ const CreateTaskBlock = ({ defaultTask, onCreateTask }: {
                             className="flex justify-center items-center p-2 aspect-square rounded-full border border-gray-700"
                             onClick={handleToggleRecurrence}
                         > 
-                            {draftTask.doDate?.recurrence 
+                            {draftTask.doInfo?.recurrence 
                             ? <Repeat className="size-4" strokeWidth={2} />
                             : <RepeatOff className="size-4" strokeWidth={2} />}
                         </button>

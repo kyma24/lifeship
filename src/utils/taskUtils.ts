@@ -7,7 +7,7 @@ export const defaultTask: PartialTask = {
   parentId: "",
   description: "",
   tags: [],
-  doDate: null,
+  doInfo: null,
   checked: false,
   variant: "task"
 }
@@ -17,11 +17,11 @@ export const createTaskFromDraft = (id: string, draftTask: PartialTask): Task =>
         id: id,
         name: draftTask.name ?? "",
         description: draftTask.description ?? "",
-        parentId: draftTask.parentId ?? undefined,
+        parentId: draftTask.parentId ?? "",
         childOrder: draftTask.childOrder ?? 0,
         priority: draftTask.priority ?? 3,
         tags: draftTask.tags ?? [],
-        doDate: draftTask.doDate ?? null,
+        doInfo: draftTask.doInfo ?? null,
         checked: draftTask.checked ?? false,
         variant: draftTask.variant ?? "task",
         
@@ -30,14 +30,15 @@ export const createTaskFromDraft = (id: string, draftTask: PartialTask): Task =>
         createdAt: draftTask.createdAt ?? nowISO(),
         deviceId: getDeviceId(),
         userId: draftTask.userId,
+        dirty: true,
     } as Task
 );
 
 // -1: a < b, 0: a = b, 1: a > b
 export const compareItemsByDate = (a: ScheduleItem, b: ScheduleItem): number => {
-    if(!a.doDate?.date && !b.doDate?.date) return 0;
-    if(!a.doDate?.date) return -1;
-    if(!b.doDate?.date) return 1;
+    if(!a.doInfo?.date && !b.doInfo?.date) return 0;
+    if(!a.doInfo?.date) return -1;
+    if(!b.doInfo?.date) return 1;
     return 0;
 };
 

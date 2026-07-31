@@ -13,8 +13,8 @@ const useWeekTasks = (startDate: DateString) => {
 
     const tasksByDay = useMemo(() => {
         return (tasks ?? []).reduce((acc, task) => {
-            if(task.doDate?.date) {
-                const date: DateString = task.doDate.date;
+            if(task.doInfo?.date) {
+                const date: DateString = task.doInfo.date;
                 acc.set(date, [...(acc.get(date) || []), task]);
             }
             return acc;

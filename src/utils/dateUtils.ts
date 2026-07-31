@@ -1,13 +1,13 @@
 import { RRule } from "rrule";
-import { DateComponents, DateString, DoInfo, Task, TimeOfDay, TimePeriod } from "../types"
+import { DateComponents, DateString, DoInfo, ISOString, RemoteItem, Task, TimeOfDay, TimePeriod } from "../types"
 import { toZonedTime } from "date-fns-tz";
 
 // recurrence
 export const getNextOccurrence = (task: Task): DateString | null => {
-    if(!task.doDate?.recurrence) return null;
+    if(!task.doInfo?.recurrence) return null;
 
-    const ruleString = RRule.parseString(task.doDate.recurrence.rrule);
-    const date = toNativeDate(task.doDate.date);
+    const ruleString = RRule.parseString(task.doInfo.recurrence.rrule);
+    const date = toNativeDate(task.doInfo.date);
     ruleString.dtstart = date;
     
     const rule = new RRule(ruleString);
@@ -17,10 +17,10 @@ export const getNextOccurrence = (task: Task): DateString | null => {
 };
 
 export const getPrevOccurrence = (task: Task): DateString | null => {
-    if(!task.doDate?.recurrence) return null;
+    if(!task.doInfo?.recurrence) return null;
 
-    const ruleString = RRule.parseString(task.doDate.recurrence.rrule);
-    const date = toNativeDate(task.doDate.date);
+    const ruleString = RRule.parseString(task.doInfo.recurrence.rrule);
+    const date = toNativeDate(task.doInfo.date);
     ruleString.dtstart = date;
 
     const rule = new RRule(ruleString);
@@ -42,7 +42,35 @@ export const toDateStr = (utcDate: Date, timezone?: string): DateString => {
     return formattedStr as DateString;
 };
 
-export const toDoDate = (utcDate: Date, timezone?: string): DoInfo => {
+export const toLocalDoInfo = (remoteItem: RemoteItem): DoInfo => {
+    const retInfo = {
+        date: remoteItem.do_date,
+        duration: remoteItem.duration ?? null,
+        timezone: remoteItem.timezone ?? null,
+        recurrence: {
+            rrule: remoteItem.rrule ?? "",
+            endDate: remoteItem.end_date ?? null,
+        }
+    } as DoInfo;
+
+    if(remoteItem.time_period_type === "exact") {
+        return {...retInfo,
+            timePeriod: {
+                type: "exact",
+                minutesDayStart: remoteItem.exact_mins_date_start ?? 0
+            } as TimePeriod
+        };
+    }
+    
+    return {...retInfo,
+        timePeriod: {
+            type: "tod",
+            timeOfDay: remoteItem.time_of_day ?? "morning"
+        } as TimePeriod
+    };
+}
+
+export const nativeToDateInfo = (utcDate: Date, timezone?: string): DoInfo => {
     const properTimezone = (timezone) ? timezone : getTimezone();
     const zonedDate = toZonedTime(utcDate, properTimezone);
     const minutesDayStart = zonedDate.getHours()*60 + zonedDate.getMinutes();
@@ -135,13 +163,13 @@ export const formatDateString = (dateString: DateString): string => {
 
 // to be reprocessed
 
-export const nowISO = (): string => {
+export const nowISO = (): ISOString => {
     const now = new Date();
-    return now.toISOString();
+    return now.toISOString() as ISOString;
 }
 
 export const getTimezone = (task?: Task): string => 
-    task?.doDate?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+    task?.doInfo?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 export const toDate = (ms: number): Date => new Date(ms);
 export const toMs = (date: Date): number => date.getTime();

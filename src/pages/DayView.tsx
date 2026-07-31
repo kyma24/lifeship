@@ -8,7 +8,7 @@ import useDayTasks from '@/hooks/useDayTasks';
 import { defaultTask } from '@/utils/taskUtils';
 
 const defaultTodayTask: PartialTask = {...defaultTask, 
-  doDate: {
+  doInfo: {
     date: toDateStr(new Date()),
     timePeriod: null,
     duration: null,

@@ -1,10 +1,10 @@
 import { DoInfo } from "@/types";
-import { formatDate, formatTimePeriod, toDate, toDoDate, toMs, toNativeDate } from "@/utils/dateUtils";
+import { formatDate, formatTimePeriod, toDate, nativeToDateInfo, toMs, toNativeDate } from "@/utils/dateUtils";
 import { ChangeEvent, RefObject, useRef } from "react";
 
-const DatePicker = ({doDate, onChange}: {
-    doDate: DoInfo,
-    onChange: (doDate: DoInfo) => void
+const DatePicker = ({doInfo, onChange}: {
+    doInfo: DoInfo,
+    onChange: (doInfo: DoInfo) => void
 }) => {
     const inputRef: RefObject<HTMLInputElement> = useRef(null!);
 
@@ -14,16 +14,16 @@ const DatePicker = ({doDate, onChange}: {
             className="relative flex items-center w-fit 
                 px-3 py-1.5 rounded-full border border-gray-700"
         >
-            { !doDate
+            { !doInfo
                 ? "none" 
-                : `${formatDate(toNativeDate(doDate.date))} ${(doDate.timePeriod?.type === "exact") ? formatTimePeriod(doDate.timePeriod) : ""}` }
+                : `${formatDate(toNativeDate(doInfo.date))} ${(doInfo.timePeriod?.type === "exact") ? formatTimePeriod(doInfo.timePeriod) : ""}` }
 
             <input
                 ref={inputRef}
                 id="date-picker"
                 type="datetime-local"
-                value={doDate ? toLocalInputString(doDate) : ''}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(toDoDate(new Date(e.target.value)))}
+                value={doInfo ? toLocalInputString(doInfo) : ''}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(nativeToDateInfo(new Date(e.target.value)))}
                 className="absolute inset-0 opacity-0 cursor-pointer w-20"
             />
         </button>

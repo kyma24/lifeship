@@ -5,7 +5,7 @@ const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 export const supabase = createClient(supabaseUrl, supabasePublishableKey);
 
-export async function ensureAuthenticated() {
+export const ensureAuthenticated = async () => {
     const { data: { session }} = await supabase.auth.getSession();
     if(!session) {
         await supabase.auth.signInAnonymously();

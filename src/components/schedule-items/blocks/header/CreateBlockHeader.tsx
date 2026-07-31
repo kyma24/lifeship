@@ -17,7 +17,7 @@ const CreateBlockHeader = ({ id, startBlock, onChangeBlock, onClose }: {
     }
 
     return (
-        <li className="flex flex-col w-full border border-gray-700 rounded-2xl">
+        <div className="flex flex-col w-full border border-gray-700 rounded-2xl">
             <div className="flex flex-col px-4 p-3 gap-2">
                 {/* task name / description */}
                 <div className="flex flex-col">
@@ -36,10 +36,10 @@ const CreateBlockHeader = ({ id, startBlock, onChangeBlock, onClose }: {
                     />
                 </div>
 
-                {/* property tags, e.g. doDate/priority/tags
+                {/* property tags, e.g. doInfo/priority/tags
                 <div className="flex flex-row gap-2">
                     <DatePicker 
-                        doDate={draftBlock.doDate!}
+                        doInfo={draftBlock.doInfo!}
                         onChange={handleDoDateChange}
                     />
 
@@ -47,7 +47,7 @@ const CreateBlockHeader = ({ id, startBlock, onChangeBlock, onClose }: {
                         className="flex justify-center items-center p-2 aspect-square rounded-full border border-gray-700"
                         onClick={handleToggleRecurrence}
                     > 
-                        {draftBlock.doDate?.recurrence 
+                        {draftBlock.doInfo?.recurrence 
                         ? <Repeat className="size-4" strokeWidth={2} />
                         : <RepeatOff className="size-4" strokeWidth={2} />}
                     </button>
@@ -76,7 +76,7 @@ const CreateBlockHeader = ({ id, startBlock, onChangeBlock, onClose }: {
                     </button>
                 </div>
             </div>
-        </li>
+        </div>
     );
 };
 

@@ -88,10 +88,10 @@ const CreateBlockDisplay = ({ onCreate }: {
     setDraftBlock(defaultBlock);
   }
 
-  const handleDoDateChange = (doDate: DoInfo) => {
-    setDraftBlock({...draftBlock, doDate: {...draftBlock.doDate!,
-      date: doDate.date,
-      timePeriod: doDate.timePeriod
+  const handleDoDateChange = (doInfo: DoInfo) => {
+    setDraftBlock({...draftBlock, doInfo: {...draftBlock.doInfo!,
+      date: doInfo.date,
+      timePeriod: doInfo.timePeriod
     }});
   }
 
@@ -147,20 +147,20 @@ const CreateTaskDisplay = ({ onCreate }: {
     setDraftTask(defaultTask);
   }
 
-  const handleDoDateChange = (doDate: DoInfo) => {
-    setDraftTask({...draftTask, doDate: {...draftTask.doDate!, 
-      date: doDate.date,
-      timePeriod: doDate.timePeriod
+  const handleDoDateChange = (doInfo: DoInfo) => {
+    setDraftTask({...draftTask, doInfo: {...draftTask.doInfo!, 
+      date: doInfo.date,
+      timePeriod: doInfo.timePeriod
     }});
   }
 
   const handleDurationChange = (duration: number) => {
-    setDraftTask({...draftTask, doDate: {...draftTask.doDate!, duration}});
+    setDraftTask({...draftTask, doInfo: {...draftTask.doInfo!, duration}});
   }
 
   const handleToggleRecurrence = () => {
-    setDraftTask({...draftTask, doDate: {...draftTask.doDate!, recurrence:
-      (draftTask.doDate?.recurrence 
+    setDraftTask({...draftTask, doInfo: {...draftTask.doInfo!, recurrence:
+      (draftTask.doInfo?.recurrence 
         ? null 
         : {
             rrule: 'FREQ=DAILY',
@@ -205,7 +205,7 @@ const CreateTaskDisplay = ({ onCreate }: {
         <div className="flex flex-row gap-6 items-center text-md">
           <div className="flex flex-row gap-2 items-center">
             <DatePicker
-              doDate={draftTask.doDate!}
+              doInfo={draftTask.doInfo!}
               onChange={handleDoDateChange}
             />
 
@@ -214,7 +214,7 @@ const CreateTaskDisplay = ({ onCreate }: {
             <div className="flex flex-row items-center gap-0.5">
               <input
                 type="number"
-                value={draftTask.doDate?.duration!}
+                value={draftTask.doInfo?.duration!}
                 onChange={(e) => handleDurationChange(Number(e.target.value))}
                 className="px-2 py-1 field-sizing-content border border-gray-700"
               />
@@ -223,7 +223,7 @@ const CreateTaskDisplay = ({ onCreate }: {
 
             {/* end time picker
             <DatePicker
-              doDate={addDurationMs(draftTask.startTime, draftTask.duration)}
+              doInfo={addDurationMs(draftTask.startTime, draftTask.duration)}
               onChange={handleEndTimeChange}
             />
             */}
@@ -236,7 +236,7 @@ const CreateTaskDisplay = ({ onCreate }: {
               className="flex justify-center items-center p-2 aspect-square rounded-full border border-gray-700"
               onClick={handleToggleRecurrence}
             > 
-              {draftTask.doDate?.recurrence 
+              {draftTask.doInfo?.recurrence 
                 ? <Repeat className="size-4" strokeWidth={2} />
                 : <RepeatOff className="size-4" strokeWidth={2} />}
             </button>
@@ -245,7 +245,7 @@ const CreateTaskDisplay = ({ onCreate }: {
           {/*<div className="flex flex-row items-center">
             <p>{"due: "}</p>
             <DatePicker
-              doDate={draftTask.deadline}
+              doInfo={draftTask.deadline}
               onChange={handleDeadlineChange}
             />
           </div>*/}

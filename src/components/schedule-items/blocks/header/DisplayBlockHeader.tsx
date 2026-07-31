@@ -59,7 +59,7 @@ const DisplayBlockHeader = ({ block, subtasks, isExpanded, onClick, actions }: {
                 </div>
                     
                 {/* time */}
-                { block.doDate && 
+                { block.doInfo && 
                     <div className="ml-auto">
                         <p className="text-sm">10:30 - 12:50</p>
                     </div>

@@ -7,7 +7,7 @@ export const defaultBlock: PartialBlock = {
   parentId: "",
   description: "",
   tags: [],
-  doDate: null,
+  doInfo: null,
   variant: "block"
 }
 
@@ -16,10 +16,10 @@ export const createBlockFromDraft = (id: string, draftBlock: PartialBlock): Bloc
         id: id,
         name: draftBlock.name ?? "",
         description: draftBlock.description ?? "",
-        parentId: draftBlock.parentId ?? undefined,
+        parentId: draftBlock.parentId ?? "",
         childOrder: draftBlock.childOrder ?? 0,
         tags: draftBlock.tags ?? [],
-        doDate: draftBlock.doDate ?? null,
+        doInfo: draftBlock.doInfo ?? null,
         variant: draftBlock.variant ?? "block",
         fixed: draftBlock.fixed ?? false,
                 
@@ -28,6 +28,7 @@ export const createBlockFromDraft = (id: string, draftBlock: PartialBlock): Bloc
         createdAt: draftBlock.createdAt ?? nowISO(),
         deviceId: getDeviceId(),
         userId: draftBlock.userId,
+        dirty: true,
     } as Block
 );
 
