@@ -1,5 +1,5 @@
 import Dexie, { Table } from "dexie";
-import { Block, DateString, PartialBlock, PartialTask, ScheduleItem, Task } from "@/types";
+import { Block, DateString, PartialBlock, PartialScheduleItem, PartialTask, ScheduleItem, Task } from "@/types";
 import { getNextOccurrence, getPrevOccurrence, nowISO } from "@/utils/dateUtils";
 import { useLiveQuery } from "dexie-react-hooks";
 import { compareItemsByDate } from "@/utils/taskUtils";
@@ -30,33 +30,22 @@ export const db = new AppDatabase();
 
 // local
 
-export const createTaskAPI = async (task: Task) => {
-    await db.items.add({...task,
+export const createItemAPI = async (item: ScheduleItem) => {
+    await db.items.add({...item,
+        createdAt: nowISO(),
+        updatedAt: nowISO(),
         dirty: true
     });
     debouncedSync();
-};
-export const createBlockAPI = async (block: Block) => {
-    await db.items.add({...block,
-        dirty: true
-    });
-    debouncedSync();
-};
+}
 
-export const updateTaskAPI = async (id: string, modTask: PartialTask) => {
-    await db.items.update(id, {...modTask, 
+export const updateItemAPI = async (id: string, modItem: PartialScheduleItem) => {
+    await db.items.update(id, {...modItem,
         updatedAt: nowISO(),
         dirty: true
     });
     debouncedSync();
-};
-export const updateBlockAPI = async (id: string, modBlock: PartialBlock) => {
-    await db.items.update(id,{...modBlock, 
-        updatedAt: nowISO(),
-        dirty: true
-    });
-    debouncedSync();
-};
+}
 
 const getDescendantIds = async (rootId: string) => {
     const descendants: string[] = [rootId];
@@ -83,6 +72,7 @@ export const deleteItemAPI = async (id: string) => {
         .anyOf(toDeleteIds)
         //.delete();
         .modify({ 
+            updatedAt: nowISO(),
             deletedAt: nowISO(),
             dirty: true
         });
@@ -232,6 +222,12 @@ export const pullChangesAPI = async (lastSyncedAt: string) => {
         .gt("updated_at", lastSyncedAt);
     
     for(const remote of (remoteItems ?? [])) {
+        // remove dead rows
+        if(remote.deleted_at) {
+            await db.items.delete(remote.id);
+            continue;
+        }
+
         const local = await db.items.get(remote.id);
         // last write wins: local less recent
         if(!local || (remote.updated_at > local.updatedAt)) {
@@ -246,7 +242,9 @@ export const hardPullAPI = async () => {
     const { data: allRemoteItems, error } = await supabase
         .from("items")
         .select("*")
-        .eq("user_id", userId);
+        .eq("user_id", userId)
+        // don't repull deleted items
+        .is("deleted_at", null);
     
     if(error) throw error;
 

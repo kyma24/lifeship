@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import { createBlockAPI, createTaskAPI, deleteItemAPI, getItemByIdAPI, getItemsToDisplayAPI, getTasksByDateRangeAPI, getTasksByDayAPI, toggleCheckedAPI, updateBlockAPI, updateTaskAPI } from "@/db";
+import { createItemAPI, deleteItemAPI, getItemByIdAPI, getItemsToDisplayAPI, getTasksByDateRangeAPI, getTasksByDayAPI, toggleCheckedAPI, updateItemAPI } from "@/db";
 import { Block, DateString, PartialBlock, PartialTask, ScheduleItem, Task } from "@/types";
 import { nanoid } from "nanoid";
 import { createTaskFromDraft } from "@/utils/taskUtils";
@@ -44,11 +44,11 @@ export const ScheduleItemProvider = ({ children }: React.PropsWithChildren) => {
             if(!userId) return;
             const id: string = nanoid();
             const validTask: Task = createTaskFromDraft(id,{...task, userId});
-            createTaskAPI(validTask);
+            createItemAPI(validTask);
         },
 
         editTask: (id: string, modTask: PartialTask): void => {
-            updateTaskAPI(id, modTask);
+            updateItemAPI(id, modTask);
         },
 
         toggleChecked: (id: string): void => {
@@ -65,11 +65,11 @@ export const ScheduleItemProvider = ({ children }: React.PropsWithChildren) => {
             if(!userId) return;
             const id: string = nanoid();
             const validBlock: Block = createBlockFromDraft(id,{...block, userId});
-            createBlockAPI(validBlock);
+            createItemAPI(validBlock);
         },
 
         editBlock: (id: string, modBlock: PartialBlock): void => {
-            updateBlockAPI(id, modBlock);
+            updateItemAPI(id, modBlock);
         },
     }
 
