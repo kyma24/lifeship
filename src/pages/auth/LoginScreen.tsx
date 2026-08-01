@@ -1,42 +1,52 @@
-import { signInWithEmail } from "@/utils/backend/auth";
+import { signIn } from "@/utils/backend/auth";
+import { AuthError } from "@supabase/supabase-js";
 import { useState } from "react"
 
 export const LoginScreen = () => {
     const [email, setEmail] = useState<string>("");
-    const [status, setStatus] = useState<"idle"|"sending"|"sent"|"error">("idle");
+    const [password, setPassword] = useState<string>("");
+    const [status, setStatus] = useState<"idle"|"processing"|"success"|"error">("idle");
+    const [error, setError] = useState<AuthError | null>(null);
 
     const handleSubmit = async () => {
-        setStatus("sending");
-        const { error } = await signInWithEmail(email);
-        setStatus(error ? "error" : "sent");
+        setStatus("processing");
+        const { data, error } = await signIn(email, password);
+        setStatus(error ? "error" : "success");
+        setError(error);
     }
 
     switch (status) {
         case "idle":
             return (
-                <div>
+                <div className="flex flex-col gap-2">
                     <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="you@lifeship.com"
                     />
+                    <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="pswd123"
+                    />
                     <button onClick={handleSubmit}>
-                        Send login link
+                        Sign in
                     </button>
                 </div>
             );
-        case "sending":
+        case "processing":
             return (
-                <p>Sending...</p>
+                <p>Processing...</p>
             );
-        case "sent":
+        case "success":
             return (
-                <p>Check email for sign-in link</p>
+                <p>Logged in successfully</p>
             );
         case "error":
             return (
-                <p>Error</p>
+                <p>Error: {error?.message}, reload to reset</p>
             );
         default:
             return <></>;

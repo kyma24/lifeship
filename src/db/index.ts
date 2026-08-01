@@ -5,7 +5,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { compareItemsByDate } from "@/utils/taskUtils";
 import { supabase } from "@/lib/supabase";
 import { toLocalShape, toRemoteShape } from "@/utils/itemUtils";
-import { debouncedSync } from "@/utils/backend/sync";
+import { debouncedSync, setLastSyncedAt } from "@/utils/backend/sync";
 import { getCurrentUserId } from "@/utils/backend/auth";
 
 interface SyncStateRec {
@@ -223,9 +223,12 @@ export const pushChangesAPI = async () => {
 }
 
 export const pullChangesAPI = async (lastSyncedAt: string) => {
+    const userId = await getCurrentUserId();
+
     const { data: remoteItems } = await supabase
         .from("items")
         .select("*")
+        .eq("user_id", userId)
         .gt("updated_at", lastSyncedAt);
     
     for(const remote of (remoteItems ?? [])) {
@@ -235,4 +238,24 @@ export const pullChangesAPI = async (lastSyncedAt: string) => {
             await db.items.put(toLocalShape(remote)!);
         }
     }
+}
+
+export const hardPullAPI = async () => {
+    const userId = await getCurrentUserId();
+
+    const { data: allRemoteItems, error } = await supabase
+        .from("items")
+        .select("*")
+        .eq("user_id", userId);
+    
+    if(error) throw error;
+
+    await db.transaction("rw", db.items, async () => {
+        await db.items.clear();
+        await db.items.bulkPut(
+            allRemoteItems.map(item => toLocalShape(item))
+        );
+    });
+
+    await setLastSyncedAt(new Date().toISOString());
 }

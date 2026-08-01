@@ -37,12 +37,12 @@ export const toRemoteShape = (item: ScheduleItem): RemoteItem => (
     } as RemoteItem
 );
 
-export const toLocalShape = (remoteItem: RemoteItem): ScheduleItem | null => {
+export const toLocalShape = (remoteItem: RemoteItem): ScheduleItem => {
     const retItem = {
         id: remoteItem.id,
         name: remoteItem.name,
         description: remoteItem.description,
-        parentId: remoteItem.parent_id,
+        parentId: remoteItem.parent_id ?? "",
         childOrder: remoteItem.child_order,
         tags: remoteItem.tags,
         doInfo: (remoteItem.do_date) ? toLocalDoInfo(remoteItem) : null,
@@ -65,14 +65,10 @@ export const toLocalShape = (remoteItem: RemoteItem): ScheduleItem | null => {
             priority: remoteItem.priority,
             checked: remoteItem.checked
         };
-    }
-
-    if(remoteItem.variant === "block") {
+    } else {
         return {...retItem,
             variant: "block",
             fixed: remoteItem.fixed
         };
     }
-
-    return null;
 }

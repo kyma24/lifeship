@@ -11,20 +11,20 @@ const TaskDoDateDisplay = ({doInfo, withDate}: {
     if(date) {
         return (
             <div className="flex flex-row items-center gap-2">
-                <p>
+                <div>
                     {withDate && `${formatDateString(date)} `}
 
                     {timePeriod &&
                         <>
                             {formatTimePeriod(timePeriod)} {" "}
                             {(timePeriod.type === "exact") ? (
-                                (duration) && `→ ${addDurationTPFormatted(timePeriod, duration)}`
+                                (duration) ? `→ ${addDurationTPFormatted(timePeriod, duration)}` : ""
                             ) : (
-                                <p>(duration) && {`${duration}m`}</p>
+                                (duration) ? <p>{`${duration}m`}</p> : ""
                             )}
                         </>
                     }
-                </p>
+                </div>
                 {recurrence && <Repeat className="size-4" strokeWidth={2} />}
             </div>
         );

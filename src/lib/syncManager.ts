@@ -11,4 +11,6 @@ export const initSyncManager = () => {
 
     // on app startup
     sync();
+
+    console.log("synced");
 }

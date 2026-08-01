@@ -1,12 +1,12 @@
 import { db, pullChangesAPI, pushChangesAPI } from "@/db"
 import { nowISO } from "../dateUtils";
 
-const getLastSyncedAt = async (): Promise<string> => {
+export const getLastSyncedAt = async (): Promise<string> => {
     const state = await db.syncState.get("lastSyncedAt");
     return state?.value ?? new Date(0).toISOString();
 }
 
-const setLastSyncedAt = async (timestamp: string) => {
+export const setLastSyncedAt = async (timestamp: string) => {
     await db.syncState.put({ key: "lastSyncedAt", value: timestamp });
 }
 

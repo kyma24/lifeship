@@ -41,10 +41,10 @@ const BottomNav = ({ onAddTaskClick }: {
                 </li>
                 <li>
                     <NavLink
-                        to="/tags"
+                        to="/settings"
                         className={({ isActive }) => activeStyle(isActive)}
                     >
-                        tags
+                        settings
                     </NavLink>
                 </li>
             </ul>
