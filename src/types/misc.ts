@@ -7,3 +7,10 @@ export interface MenuItemInfo {
     danger?: boolean;
     disabled?: boolean;
 }
+
+export interface DropdownOption {
+    label: string;
+    description?: string;
+    onClick: ()=>void;
+    meta?: string | null;
+}

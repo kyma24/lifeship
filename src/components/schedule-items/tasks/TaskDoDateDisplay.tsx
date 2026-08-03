@@ -25,7 +25,7 @@ const TaskDoDateDisplay = ({doInfo, withDate}: {
                         </>
                     }
                 </div>
-                {recurrence && <Repeat className="size-4" strokeWidth={2} />}
+                {recurrence?.rrule && <Repeat className="size-4" strokeWidth={2} />}
             </div>
         );
     }

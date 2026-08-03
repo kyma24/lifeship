@@ -1,10 +1,9 @@
 import { useState } from 'react'
-import DatePicker from '@/components/DatePicker';
+import DatePicker from '@/components/doInfo/DatePicker';
 import { ArrowUp, Repeat, RepeatOff, Tags } from 'lucide-react';
 import { DoInfo, PartialBlock, PartialScheduleItem, PartialTask, RecurrenceRule } from '@/types';
-import { defaultTask } from '@/utils/taskUtils';
 import Divider from '@/components/Divider';
-import { defaultBlock } from '@/utils/blockUtils';
+import { defaultTask, defaultBlock } from '@/utils/constants';
 
 const CreateItemSheet = ({ isOpen, onCreate }: {
     isOpen: boolean,
@@ -59,7 +58,7 @@ const ChooseVariantDisplay = ({ onClickVariant }: {
           <p className="text-lg font-semibold">Task</p>
         </button>
 
-        <Divider />
+        <Divider color="gray-800" />
 
         <button
           className="flex flex-row h-15 py-3 gap-3 items-center"
@@ -86,13 +85,6 @@ const CreateBlockDisplay = ({ onCreate }: {
     if(trimmedName === "") return;
     onCreate({...draftBlock, name: trimmedName});
     setDraftBlock(defaultBlock);
-  }
-
-  const handleDoDateChange = (doInfo: DoInfo) => {
-    setDraftBlock({...draftBlock, doInfo: {...draftBlock.doInfo!,
-      date: doInfo.date,
-      timePeriod: doInfo.timePeriod
-    }});
   }
 
   const draftIsValid = (draft: PartialBlock) => {
@@ -147,11 +139,8 @@ const CreateTaskDisplay = ({ onCreate }: {
     setDraftTask(defaultTask);
   }
 
-  const handleDoDateChange = (doInfo: DoInfo) => {
-    setDraftTask({...draftTask, doInfo: {...draftTask.doInfo!, 
-      date: doInfo.date,
-      timePeriod: doInfo.timePeriod
-    }});
+  const handleDoDateChange = (doInfo: DoInfo | null) => {
+    setDraftTask({...draftTask, doInfo});
   }
 
   const handleDurationChange = (duration: number) => {

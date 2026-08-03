@@ -1,6 +1,6 @@
 import Divider from "@/components/Divider";
 import PropertyTag from "@/components/PropertyTag";
-import DatePicker from "@/components/DatePicker";
+import DatePicker from "@/components/doInfo/DatePicker";
 import { DoInfo, PartialTask, RecurrenceRule } from "@/types";
 import { useState } from "react";
 import { Repeat, RepeatOff } from "lucide-react";
@@ -19,11 +19,8 @@ const CreateTaskBlock = ({ defaultTask, onCreateTask }: {
         setIsCreating(false);
     }
 
-    const handleDoDateChange = (doInfo: DoInfo) => {
-        setDraftTask({...draftTask, doInfo: {...draftTask.doInfo!, 
-          date: doInfo.date,
-          timePeriod: doInfo.timePeriod
-        }});
+    const handleDoDateChange = (doInfo: DoInfo | null) => {
+        setDraftTask({...draftTask, doInfo});
     }
 
     const handleToggleRecurrence = () => {
@@ -77,7 +74,7 @@ const CreateTaskBlock = ({ defaultTask, onCreateTask }: {
                     </div>
                 </div>
 
-                <Divider />
+                <Divider color="gray-800" />
 
                 {/* footer, e.g. parent project, cancel/create */}
                 <div className="flex flex-row p-3">

@@ -1,7 +1,7 @@
 import { ChevronDown, ChevronUp, SunMedium } from "lucide-react";
 import Menu from "@/components/menu/Menu";
 import { Block, BlockActions, ScheduleItem } from "@/types";
-import { blockMenu } from "@/utils/menuUtils";
+import { blockMenu } from "@/utils/constants";
 
 const DisplayBlockHeader = ({ block, subtasks, isExpanded, onClick, actions }: {
     block: Block,

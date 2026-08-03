@@ -1,11 +1,11 @@
-import { Block, PartialBlock } from "./container";
+import { Block, PartialBlock } from "./block";
 import { DoInfo, ISOString } from "./date";
 import { PartialTask, Task } from "./task";
 
 export * from "./task";
 export * from "./date";
-export * from "./container";
-export * from "./menu";
+export * from "./block";
+export * from "./misc";
 
 export interface BaseItem {
     id: string;

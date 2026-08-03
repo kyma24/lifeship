@@ -2,15 +2,6 @@ import { Block, PartialBlock } from "@/types";
 import { nowISO } from "./dateUtils";
 import { getDeviceId } from "./backend/device";
 
-export const defaultBlock: PartialBlock = {
-  name: "",
-  parentId: "",
-  description: "",
-  tags: [],
-  doInfo: null,
-  variant: "block"
-}
-
 export const createBlockFromDraft = (id: string, draftBlock: PartialBlock): Block => (
     {
         id: id,

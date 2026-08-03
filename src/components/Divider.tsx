@@ -1,7 +1,9 @@
 
-const Divider = () => {
+const Divider = ({ color }: {
+    color: string,
+}) => {
     return (
-        <hr className="w-full border-t border-gray-800" />
+        <hr className={`w-full border-t border-${color}`} />
     );
 };
 

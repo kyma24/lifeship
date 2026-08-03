@@ -5,7 +5,7 @@ import { useScheduleItems } from '@/context/ScheduleItemContext';
 import { PartialTask } from '@/types';
 import CreateTaskBlock from '@/components/schedule-items/tasks/CreateTaskBlock';
 import useDayTasks from '@/hooks/useDayTasks';
-import { defaultTask } from '@/utils/taskUtils';
+import { defaultTask } from '@/utils/constants';
 
 const defaultTodayTask: PartialTask = {...defaultTask, 
   doInfo: {

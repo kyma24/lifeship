@@ -1,6 +1,15 @@
 import { RRule } from "rrule";
-import { DateComponents, DateString, DoInfo, ISOString, RemoteItem, Task, TimeOfDay, TimePeriod } from "../types"
+import { DateComponents, DateString, DoInfo, ISOString, RecurrenceRule, RemoteItem, Task, TimeOfDay, TimePeriod } from "../types"
 import { toZonedTime } from "date-fns-tz";
+
+// default info
+export const getBaseDoInfo = (): DoInfo => ({
+    date: getTodayString(),
+    timePeriod: null,
+    duration: null,
+    timezone: null,
+    recurrence: null
+});
 
 // recurrence
 export const getNextOccurrence = (task: Task): DateString | null => {
@@ -107,21 +116,66 @@ export const toNativeDate = (dateString: DateString, minutesDayStart?: number): 
     return ret;
 };
 
+const isValidTimeOfDay = (str: string): boolean => {
+    return (str==="morning") || (str==="afternoon") || (str==="evening");
+}
+
+export const parseTimeString = (tstr: string): TimePeriod | null => {
+    if(tstr==="") return null;
+    // tod: "morning", "afternoon", "evening"
+    if(isValidTimeOfDay(tstr)) return {
+        type: "tod",
+        timeOfDay: tstr as TimeOfDay
+    };
+
+    // exact: parse _ _ : _ _ (AM/PM)
+    const regex: RegExp = /^(?<hours>0?\d|1\d|2[0-3]):(?<minutes>[0-5]\d)\s?(?<meridiem>am|pm)?$/i;
+    const res = tstr.match(regex);
+    if(res?.groups) {
+        const { hours, minutes, meridiem } = res.groups;
+        if(!hours || !minutes) return null;
+
+        if(meridiem) {
+            switch (meridiem.toLowerCase()) {
+                case "am":
+                    if((+hours)>12) return null;
+                    return {
+                        type: "exact",
+                        minutesDayStart: (+hours%12)*60+(+minutes)
+                    };
+                case "pm":
+                    if((+hours)>12) return null;
+                    return {
+                        type: "exact",
+                        minutesDayStart: ((+hours%12)+12)*60+(+minutes)
+                    };
+                default:
+                    return null;
+            }
+        } 
+        else return {
+            type: "exact",
+            minutesDayStart: (+hours)*60+(+minutes)
+        };
+    }
+
+    return null;
+}
+
+// revise with current date later
+export const getTodayString = () => {
+    return toDateStr(getToday());
+};
+
+export const getTomorrowString = () => {
+    return toDateStr(getTomorrow());
+};
+
 // time period management
 export const createTimePeriod = (type: string, newMinutesDayStart?: number, newTimeOfDay?: TimeOfDay): TimePeriod => {
     if((type === "exact") && newMinutesDayStart) return { type: "exact", minutesDayStart: newMinutesDayStart } as TimePeriod;
     if((type === "tod") && newTimeOfDay) return { type: "tod", timeOfDay: newTimeOfDay} as TimePeriod;
     return null;
-}
-
-export const formatTimePeriod = (timePeriod: TimePeriod): string => {
-    if(timePeriod?.type === "exact") {
-        const {hrs, mins} = toTimeComponents(timePeriod.minutesDayStart);
-        return `${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}`;
-    } else if (timePeriod?.type === "tod") {
-        return timePeriod.timeOfDay;
-    }
-    return "";
 }
 
 const addDurationTP = (timePeriod: TimePeriod, duration: number): TimePeriod => {
@@ -150,6 +204,12 @@ export const toWeekdayFormat = (dateString: DateString): string => {
     return weekdayString;
 }
 
+export const toWeekdayAbbrFormat = (dateString: DateString): string => {
+    const date: Date = toNativeDate(dateString);
+    const weekdayString: string = date.toLocaleDateString("en-US", { weekday: "short" });
+    return weekdayString;
+}
+
 export const toMonthDayFormat = (dateString: DateString): string => {
     const date: Date = toNativeDate(dateString);
     const monthDayString: string = date.toLocaleDateString("en-US", { month: "long", day: "numeric" });
@@ -159,6 +219,28 @@ export const toMonthDayFormat = (dateString: DateString): string => {
 export const formatDateString = (dateString: DateString): string => {
     const date: Date = toNativeDate(dateString);
     return formatDate(date);
+}
+
+const formatTimeComponent = (comp: number | null): string => {
+    if(!comp) return "";
+    return String(comp).padStart(2,'0');
+}
+
+export const formatTimePeriod = (timePeriod: TimePeriod): string => {
+    if(timePeriod?.type === "exact") {
+        const {hrs, mins} = toTimeComponents(timePeriod.minutesDayStart);
+        return `${formatTimeComponent(hrs)}:${formatTimeComponent(mins)}`;
+    } else if (timePeriod?.type === "tod") {
+        return timePeriod.timeOfDay;
+    }
+    return "";
+}
+
+export const formatRecurrence = (recurrence: RecurrenceRule): string => {
+    if(recurrence?.rrule === "FREQ=DAILY") {
+        return "every day";
+    }
+    return "";
 }
 
 // to be reprocessed

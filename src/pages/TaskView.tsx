@@ -2,12 +2,13 @@ import { useScheduleItems } from '@/context/ScheduleItemContext';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom'
 import { formatTimePeriod, addDurationTPFormatted } from '@/utils/dateUtils';
-import DatePicker from '@/components/DatePicker';
+import DatePicker from '@/components/doInfo/DatePicker';
 
 import { Trash2, UndoDot, Save, Ellipsis, X } from 'lucide-react';
 import CheckButton from '@/components/buttons/CheckButton';
 import { DoInfo, PartialTask } from '@/types';
-import { defaultTask, isPartialTaskDifferent } from '@/utils/taskUtils';
+import { isPartialTaskDifferent } from '@/utils/taskUtils';
+import { defaultTask } from '@/utils/constants';
 import ItemList from '@/components/schedule-items/ItemList';
 import useSubtasks from '@/hooks/useSubtasks';
 import CreateTaskBlock from '@/components/schedule-items/tasks/CreateTaskBlock';
@@ -55,11 +56,8 @@ const TaskView = () => {
         setModTask({...modTask, checked: !modTask.checked});
     }
 
-    const handleDoDateChange = (doInfo: DoInfo) => {
-        setModTask({...modTask, doInfo: {...modTask.doInfo!, 
-            date: doInfo.date,
-            timePeriod: doInfo.timePeriod
-        }});
+    const handleDoDateChange = (doInfo: DoInfo | null) => {
+        setModTask({...modTask, doInfo});
     }
 
     const handleDurationChange = (duration: number) => {
@@ -140,7 +138,7 @@ const TaskView = () => {
                 <div className="flex flex-col">
                     <div className="flex flex-row items-center gap-1">
                         <DatePicker
-                            doInfo={modTask.doInfo!}
+                            doInfo={modTask.doInfo ?? null}
                             onChange={handleDoDateChange}
                         />
                         <p>for</p>

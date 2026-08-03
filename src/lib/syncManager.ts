@@ -49,7 +49,6 @@ export const initSyncManager = () => {
     supabase.auth.onAuthStateChange((event, session) => {
         if(event === "SIGNED_IN" && session?.user) {
             startRealtimeSync(session.user.id);
-            console.log("synced?");
         }
         if(event === "SIGNED_OUT") {
             stopRealtimeSync();

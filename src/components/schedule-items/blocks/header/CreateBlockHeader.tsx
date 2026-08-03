@@ -54,7 +54,7 @@ const CreateBlockHeader = ({ id, startBlock, onChangeBlock, onClose }: {
                 </div> */}
             </div>
 
-            <Divider />
+            <Divider color="gray-800" />
 
             {/* footer, e.g. parent project, cancel/create */}
             <div className="flex flex-row p-3">

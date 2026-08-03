@@ -1,7 +1,7 @@
 import { useState } from "react";
 import ItemList from "../ItemList";
 import CreateTaskBlock from "../tasks/CreateTaskBlock";
-import { defaultTask } from "@/utils/taskUtils";
+import { defaultTask } from "@/utils/constants";
 import { Block, BlockActions, PartialTask } from "@/types";
 import { useScheduleItems } from "@/context/ScheduleItemContext";
 import useSubtasks from "@/hooks/useSubtasks";

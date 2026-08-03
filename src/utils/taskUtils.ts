@@ -2,16 +2,6 @@ import { PartialTask, ScheduleItem, Task } from "@/types";
 import { nowISO } from "./dateUtils";
 import { getDeviceId } from "./backend/device";
 
-export const defaultTask: PartialTask = {
-  name: "",
-  parentId: "",
-  description: "",
-  tags: [],
-  doInfo: null,
-  checked: false,
-  variant: "task"
-}
-
 export const createTaskFromDraft = (id: string, draftTask: PartialTask): Task => (
     {
         id: id,

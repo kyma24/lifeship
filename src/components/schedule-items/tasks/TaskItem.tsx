@@ -84,7 +84,7 @@ const TaskItem = ({ task, onComplete, withDate, isSubtask }: {
             </div>
             { (!isSubtask && subtasks && (subtasks.length > 0)) && 
                 <>
-                    <Divider />
+                    <Divider color="gray-800" />
                     <SubtaskDropdown
                         subtasks={subtasks}
                         checkedCount={checkedSubtaskCount ?? 0}
