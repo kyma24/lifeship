@@ -1,15 +1,11 @@
-import { DropdownOption, TimePeriod } from "@/types";
+import { TimePeriod } from "@/types";
 import { formatTimePeriod, getTimezone, parseTimeString } from "@/utils/dateUtils";
 import { autoUpdate, flip, offset, useClick, useDismiss, useFloating, useInteractions, useRole } from "@floating-ui/react";
 import { Clock, X } from "lucide-react";
 import { useState } from "react";
 import Divider from "../Divider";
 import Dropdown from "../Dropdown";
-
-const timezoneDropdown = (setCurrentOption: (option: number)=>void): DropdownOption[] => ([
-  { label: "Floating time", description: "Time stays the same across time zones", onClick: ()=>setCurrentOption(0) },
-  { label: `${getTimezone()}`, description: "Your current time zone", onClick: ()=>setCurrentOption(1) }
-]);
+import { timezoneDropdown } from "@/utils/constants";
 
 const TimeSelector = ({ timePeriod, duration, timezone, onRemoveTime, onChange }: {
     timePeriod: TimePeriod | null,
@@ -56,8 +52,7 @@ const TimeSelector = ({ timePeriod, duration, timezone, onRemoveTime, onChange }
     }
 
     const handleTimezoneChange = (ind: number) => {
-        if(ind===0) setCurTimezone(null);
-        else setCurTimezone(getTimezone());
+        setCurTimezone(timezoneDropdown[ind]?.meta ?? null);
     }
 
     // floating ui
@@ -169,7 +164,8 @@ const TimeSelector = ({ timePeriod, duration, timezone, onRemoveTime, onChange }
                         <p className="font-bold">Timezone</p>
                         <Dropdown
                             currentOption={getCurTimezoneInd()}
-                            options={timezoneDropdown(handleTimezoneChange)}
+                            options={timezoneDropdown}
+                            onOptionClick={handleTimezoneChange}
                         />
                     </div>
 

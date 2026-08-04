@@ -11,6 +11,5 @@ export interface MenuItemInfo {
 export interface DropdownOption {
     label: string;
     description?: string;
-    onClick: ()=>void;
     meta?: string | null;
 }

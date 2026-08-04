@@ -2,9 +2,10 @@ import { DropdownOption } from "@/types"
 import { autoUpdate, flip, offset, useClick, useDismiss, useFloating, useInteractions, useRole } from "@floating-ui/react";
 import { useState } from "react";
 
-export default function Dropdown({ currentOption, options }: {
+export default function Dropdown({ currentOption, options, onOptionClick }: {
     currentOption: number,
-    options: DropdownOption[]
+    options: DropdownOption[],
+    onOptionClick: (ind: number) => void
 }) {
     const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
 
@@ -15,11 +16,15 @@ export default function Dropdown({ currentOption, options }: {
     const { refs, floatingStyles, context } = useFloating({
         open: dropdownOpen,
         onOpenChange: toggleDropdownOpen,
-        placement: "bottom",
+        placement: "bottom-start",
         middleware: [
-            offset(10),
+            offset(5),
             flip({
-                fallbackPlacements: ["top"],
+                fallbackPlacements: [
+                    "bottom-end",
+                    "top-start",
+                    "top-end"
+                ],
                 padding: 5
             })
         ],
@@ -54,6 +59,7 @@ export default function Dropdown({ currentOption, options }: {
                         <DropdownItem
                             key={ind}
                             info={option}
+                            onClick={() => onOptionClick(ind)}
                             isCurrent={ind===currentOption}
                         />
                     ))}
@@ -63,14 +69,15 @@ export default function Dropdown({ currentOption, options }: {
     )
 }
 
-function DropdownItem({ info, isCurrent }: {
-    info: DropdownOption
+function DropdownItem({ info, onClick, isCurrent }: {
+    info: DropdownOption,
+    onClick: ()=>void,
     isCurrent: boolean
 }) {
     return (
         <li>
             <button
-                onClick={info.onClick}
+                onClick={onClick}
                 className={`flex flex-col w-full rounded-md p-2
                     ${isCurrent ? "bg-gray-700" : ""} text-left`}
             >

@@ -1,9 +1,7 @@
 import { NavLink } from "react-router-dom";
 import AddTaskButton from "../buttons/AddTaskButton";
 
-const BottomNav = ({ onAddTaskClick }: {
-    onAddTaskClick: () => void,
-}) => {
+const BottomNav = () => {
     
     const activeStyle = (isActive: boolean) => {
         return (`
@@ -48,7 +46,7 @@ const BottomNav = ({ onAddTaskClick }: {
                     </NavLink>
                 </li>
             </ul>
-            <AddTaskButton onClick={onAddTaskClick} />
+            <AddTaskButton />
         </nav>
     )
 }

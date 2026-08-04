@@ -7,39 +7,36 @@ import DayView from './pages/DayView'
 import WeekView from './pages/WeekView'
 import SettingsPage from './pages/SettingsPage'
 import TaskView from './pages/TaskView'
-import { ScheduleItemProvider } from './context/ScheduleItemContext'
 import { LoginScreen } from './pages/auth/LoginScreen'
-import { AuthProvider } from './context/AuthContext'
 import RequireAuth from './components/wrappers/RequireAuth'
 import RedirectOnAuth from './components/wrappers/RedirectOnAuth'
+import Providers from './context/Providers'
 
 function App() {
 
   return (
-    <AuthProvider>
-      <ScheduleItemProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route element={<RedirectOnAuth />}>
-              <Route path="/login" element={<LoginScreen />} />
-            </Route>
-            <Route element={<RequireAuth />}>
-              <Route element={<AppShell />}>
-                <Route path="/" element={ <Navigate to="/plan" replace /> } />
-                <Route path="/todo" element={ <TodoView /> } />
-                <Route path="/plan" element={ <DayView /> } />
-                <Route path="/week" element={ <WeekView /> } />
-                <Route path="/settings" element={ <SettingsPage /> } />
-                <Route path="/task" element={ <TaskView /> }>
-                  <Route path=":id" element={ <TaskView /> } />
-                </Route>
-                <Route path="*" element={<Navigate to="/" replace />} />
+    <Providers>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<RedirectOnAuth />}>
+            <Route path="/login" element={<LoginScreen />} />
+          </Route>
+          <Route element={<RequireAuth />}>
+            <Route element={<AppShell />}>
+              <Route path="/" element={ <Navigate to="/plan" replace /> } />
+              <Route path="/todo" element={ <TodoView /> } />
+              <Route path="/plan" element={ <DayView /> } />
+              <Route path="/week" element={ <WeekView /> } />
+              <Route path="/settings" element={ <SettingsPage /> } />
+              <Route path="/task" element={ <TaskView /> }>
+                <Route path=":id" element={ <TaskView /> } />
               </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
-          </Routes>
-        </BrowserRouter>
-      </ScheduleItemProvider>
-    </AuthProvider>
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </Providers>
   )
 }
 

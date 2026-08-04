@@ -5,8 +5,7 @@ import { DoInfo, PartialBlock, PartialScheduleItem, PartialTask, RecurrenceRule 
 import Divider from '@/components/Divider';
 import { defaultTask, defaultBlock } from '@/utils/constants';
 
-const CreateItemSheet = ({ isOpen, onCreate }: {
-    isOpen: boolean,
+const CreateItemSheet = ({ onCreate }: {
     onCreate: (draft: PartialScheduleItem) => void,
 }) => {
   const [variant, setVariant] = useState<string>("");
@@ -26,15 +25,7 @@ const CreateItemSheet = ({ isOpen, onCreate }: {
     setVariant(curVariant);
   }
   
-  return (
-    <div
-      className={`fixed inset-x-0 bottom-0 ${isOpen ? "translate-y-0" : "translate-y-[101%]"} transition duration-400 ease-in-out
-                  flex flex-col gap-3
-                  z-100 w-full h-fit bg-[#1f2028] rounded-t-4xl p-8`}
-    >
-      {renderContent(variant)}
-    </div>
-  )
+  return renderContent(variant);
 }
 
 const ChooseVariantDisplay = ({ onClickVariant }: {
