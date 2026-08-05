@@ -1,11 +1,11 @@
 import { TimePeriod } from "@/types";
-import { formatTimePeriod, getTimezone, parseTimeString } from "@/utils/dateUtils";
-import { autoUpdate, flip, offset, useClick, useDismiss, useFloating, useInteractions, useRole } from "@floating-ui/react";
+import { formatTimePeriod, parseTimeString } from "@/utils/dateUtils";
+import { autoUpdate, flip, FloatingNode, offset, useClick, useDismiss, useFloating, useFloatingNodeId, useInteractions, useRole } from "@floating-ui/react";
 import { Clock, X } from "lucide-react";
 import { useState } from "react";
 import Divider from "../Divider";
 import Dropdown from "../Dropdown";
-import { timezoneDropdown } from "@/utils/constants";
+import { getTimezoneDropdown } from "@/utils/constants";
 
 const TimeSelector = ({ timePeriod, duration, timezone, onRemoveTime, onChange }: {
     timePeriod: TimePeriod | null,
@@ -46,6 +46,8 @@ const TimeSelector = ({ timePeriod, duration, timezone, onRemoveTime, onChange }
     }
 
     // dropdown
+    const timezoneDropdown = getTimezoneDropdown();
+
     const getCurTimezoneInd = (): number => {
         if(!curTimezone) return 0;
         return 1;
@@ -56,7 +58,10 @@ const TimeSelector = ({ timePeriod, duration, timezone, onRemoveTime, onChange }
     }
 
     // floating ui
+    const nodeId = useFloatingNodeId();
+
     const { refs, floatingStyles, context } = useFloating({
+        nodeId,
         open: popupOpen,
         onOpenChange: setPopupOpen,
         placement: "bottom",
@@ -79,6 +84,7 @@ const TimeSelector = ({ timePeriod, duration, timezone, onRemoveTime, onChange }
 
     const click = useClick(context);
     const dismiss = useDismiss(context, {
+        bubbles: false,
         outsidePress: (event) => !(event.target as HTMLElement).closest("#bottom-sheet-root"),
     });
     const role = useRole(context);
@@ -86,7 +92,7 @@ const TimeSelector = ({ timePeriod, duration, timezone, onRemoveTime, onChange }
     const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss, role]);
     
     return (
-        <>
+        <FloatingNode id={nodeId}>
             <div
                 onClick={togglePopupOpen}
                 ref={refs.setReference} {...getReferenceProps}
@@ -188,7 +194,7 @@ const TimeSelector = ({ timePeriod, duration, timezone, onRemoveTime, onChange }
                     </div>
                 </div>
             )}
-        </>
+        </FloatingNode>
     );
 };
 

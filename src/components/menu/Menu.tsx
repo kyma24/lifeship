@@ -1,6 +1,6 @@
 import { useState } from "react";
 import MenuItem from "./MenuItem";
-import { autoUpdate, flip, FloatingPortal, offset, shift, useClick, useDismiss, useFloating, useInteractions, useRole } from "@floating-ui/react";
+import { autoUpdate, flip, FloatingNode, FloatingPortal, FloatingTree, offset, shift, useClick, useDismiss, useFloating, useFloatingNodeId, useInteractions, useRole } from "@floating-ui/react";
 import { EllipsisVertical } from "lucide-react";
 import { MenuItemInfo } from "@/types";
 
@@ -9,7 +9,10 @@ const Menu = ({ items }: {
 }) => {
     const [isOpen, setIsOpen] = useState(false);
 
+    const nodeId = useFloatingNodeId();
+
     const { refs, floatingStyles, context } = useFloating({
+        nodeId,
         open: isOpen,
         onOpenChange: setIsOpen,
         placement: "bottom-end",
@@ -19,6 +22,7 @@ const Menu = ({ items }: {
 
     const click = useClick(context);
     const dismiss = useDismiss(context, {
+        bubbles: false,
         outsidePress: (event) => !(event.target as HTMLElement).closest("#bottom-sheet-root"),
     });
     const role = useRole(context, { role: "menu" });
@@ -28,7 +32,8 @@ const Menu = ({ items }: {
     const floatingRoot = document.getElementById("floating-root");
 
     return (
-        <>
+        <FloatingTree>
+            <FloatingNode id={nodeId}>
             <button 
                 className="flex bg-gray-800 py-1 rounded-full"
                 ref={refs.setReference} {...getReferenceProps()}
@@ -62,7 +67,8 @@ const Menu = ({ items }: {
                     </div>
                 </FloatingPortal>
             )}
-        </>
+            </FloatingNode>
+        </FloatingTree>
     );
 };
 

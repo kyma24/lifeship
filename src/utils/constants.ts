@@ -26,7 +26,7 @@ export const blockMenu = (block: Block, actions: BlockActions): MenuItemInfo[] =
     { id: "delete", label: "delete", icon: Trash2, onClick: actions.delete, danger: true},
 ]);
 
-export const timezoneDropdown: DropdownOption[] = [
+export const getTimezoneDropdown = (): DropdownOption[] => [
   { label: "Floating time", description: "Time stays the same across time zones", meta: null },
   { label: `${getTimezone()}`, description: "Your current time zone", meta: getTimezone() }
 ];

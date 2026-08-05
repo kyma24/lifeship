@@ -1,6 +1,7 @@
 import { RRule } from "rrule";
 import { DateComponents, DateString, DoInfo, ISOString, RecurrenceRule, RemoteItem, Task, TimeOfDay, TimePeriod } from "../types"
 import { toZonedTime } from "date-fns-tz";
+import { rruleWeekdays } from "./constants";
 
 // default info
 export const getBaseDoInfo = (): DoInfo => ({
@@ -37,6 +38,12 @@ export const getPrevOccurrence = (task: Task): DateString | null => {
 
     return (prev) ? toDateStr(prev) : null;
 };
+
+export const createWeeklyRRule = (byDayArr: boolean[], everyXWeeks: number) => {
+    if(everyXWeeks<0) return null;
+    const byDayList = byDayArr.map((isOn,ind) => (isOn) ? rruleWeekdays[ind] : "").filter((val,_) => (val !== ""));
+    return `FREQ=WEEKLY;INTERVAL=${everyXWeeks};${(byDayList.length > 0) ? `BYDAY=${byDayList.join(',')}` : ""}`;
+}
 
 // basic conversions
 export const toDateStr = (utcDate: Date, timezone?: string): DateString => {
@@ -162,6 +169,33 @@ export const parseTimeString = (tstr: string): TimePeriod | null => {
     return null;
 }
 
+// only weekly for now
+export const parseRRuleString = (rstr: string | null) => {
+    const noDayArr = new Array<boolean>(7).fill(false);
+    const defaultX = 1;
+
+    if(!rstr) {
+        return { byDayArr: noDayArr, everyXWeeks: defaultX };
+    }
+
+    const rrule = RRule.fromString(rstr);
+    const type = rrule.options.freq;
+
+    if(type === RRule.WEEKLY) {
+        const rawInds: number[] = rrule.options.byweekday;
+        let byDayArr = noDayArr;
+        for(const dayNo of rawInds) {
+            byDayArr[dayNo]=true;
+        }
+
+        const everyXWeeks = rrule.options.interval;
+
+        return { byDayArr, everyXWeeks };
+    }
+
+    return { byDayArr: noDayArr, everyXWeeks: defaultX };
+};
+
 // revise with current date later
 export const getTodayString = () => {
     return toDateStr(getToday());
@@ -236,11 +270,14 @@ export const formatTimePeriod = (timePeriod: TimePeriod): string => {
     return "";
 }
 
-export const formatRecurrence = (recurrence: RecurrenceRule): string => {
-    if(recurrence?.rrule === "FREQ=DAILY") {
+export const formatRRule = (rrule: string | null): string => {
+    if(!rrule) return "repeat";
+
+    if(rrule === "FREQ=DAILY") {
         return "every day";
     }
-    return "";
+    
+    return "custom";
 }
 
 // to be reprocessed

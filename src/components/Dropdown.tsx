@@ -1,11 +1,14 @@
 import { DropdownOption } from "@/types"
-import { autoUpdate, flip, offset, useClick, useDismiss, useFloating, useInteractions, useRole } from "@floating-ui/react";
+import { autoUpdate, flip, FloatingNode, offset, useClick, useDismiss, useFloating, useFloatingNodeId, useInteractions, useRole } from "@floating-ui/react";
+import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
-export default function Dropdown({ currentOption, options, onOptionClick }: {
+export default function Dropdown({ currentOption, options, onOptionClick, className="", listClassName="" }: {
     currentOption: number,
     options: DropdownOption[],
-    onOptionClick: (ind: number) => void
+    onOptionClick: (ind: number) => void,
+    className?: string,
+    listClassName?: string
 }) {
     const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
 
@@ -13,7 +16,10 @@ export default function Dropdown({ currentOption, options, onOptionClick }: {
         setDropdownOpen(!dropdownOpen);
     };
 
+    const nodeId = useFloatingNodeId();
+
     const { refs, floatingStyles, context } = useFloating({
+        nodeId,
         open: dropdownOpen,
         onOpenChange: toggleDropdownOpen,
         placement: "bottom-start",
@@ -33,6 +39,7 @@ export default function Dropdown({ currentOption, options, onOptionClick }: {
 
     const click = useClick(context);
     const dismiss = useDismiss(context, {
+        bubbles: false,
         outsidePress: (event) => !(event.target as HTMLElement).closest("#bottom-sheet-root"),
     });
     const role = useRole(context);
@@ -40,14 +47,19 @@ export default function Dropdown({ currentOption, options, onOptionClick }: {
     const { getFloatingProps, getReferenceProps } = useInteractions([click, dismiss, role]);
 
     return (
-        <>
+        <FloatingNode id={nodeId}>
             <button
                 ref={refs.setReference} {...getReferenceProps}
                 onClick={toggleDropdownOpen}
-                className="flex flex-row w-full items-center justify-between p-1
-                            border border-gray-600 rounded-md"
+                className={`flex flex-row w-full items-center justify-between p-1
+                            border border-gray-600 rounded-md
+                            ${className}`}
             >
                 <p>{options[currentOption]?.label ?? ""}</p>
+                <ChevronDown
+                    strokeWidth={2}
+                    className="size-6"
+                />
             </button>
 
             {dropdownOpen && (
@@ -58,9 +70,10 @@ export default function Dropdown({ currentOption, options, onOptionClick }: {
                     floatingRef={refs.setFloating}
                     floatingStyles={floatingStyles}
                     getFloatingProps={getFloatingProps}
+                    className={listClassName}
                 />
             )}
-        </>
+        </FloatingNode>
     )
 }
 

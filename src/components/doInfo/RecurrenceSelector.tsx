@@ -1,19 +1,21 @@
 import { RecurrenceRule } from "@/types";
 import { recurrenceDropdown } from "@/utils/constants";
-import { formatRecurrence } from "@/utils/dateUtils";
+import { createWeeklyRRule, formatRRule } from "@/utils/dateUtils";
 import { flip, offset, shift } from "@floating-ui/dom";
-import { autoUpdate, useClick, useDismiss, useFloating, useInteractions, useRole } from "@floating-ui/react";
+import { autoUpdate, FloatingNode, useClick, useDismiss, useFloating, useFloatingNodeId, useInteractions, useRole } from "@floating-ui/react";
 import { Repeat, X } from "lucide-react";
 import { useState } from "react";
 import { DropdownList } from "../Dropdown";
 import { useBottomSheet } from "@/context/BottomSheetContext";
 import CustomRecurSheet from "./CustomRecurSheet";
 
-export default function RecurrenceSelector({ recurrence }: {
-    recurrence: RecurrenceRule | null
+export default function RecurrenceSelector({ recurrence, onChange }: {
+    recurrence: RecurrenceRule | null,
+    onChange: (rrule: string | null) => void
 }) {
     const [popupOpen, setPopupOpen] = useState<boolean>(false);
 
+    const [recurDisplay, setRecurDisplay] = useState<string>(recurrence ? formatRRule(recurrence.rrule) : "repeat");
     const [curRRule, setCurRRule] = useState<string | null>(recurrence?.rrule ?? null);
 
     const { openSheet, closeSheet } = useBottomSheet();
@@ -22,8 +24,13 @@ export default function RecurrenceSelector({ recurrence }: {
         setPopupOpen(!popupOpen);
     };
 
-    const tempOnSubmit = (byDayArr: boolean[]) => {
-        return null;
+    const handleCustomSubmit = (byDayArr: boolean[], everyXWeeks: number) => {
+        const newRRule = createWeeklyRRule(byDayArr, everyXWeeks);
+        setCurRRule(newRRule);
+        onChange(newRRule);
+        
+        setRecurDisplay(formatRRule(newRRule));
+        togglePopupOpen();
     }
 
     const handleRecurChange = (ind: number) => {
@@ -31,14 +38,22 @@ export default function RecurrenceSelector({ recurrence }: {
         if(recurrenceDropdown[ind].label==="Custom") {
             openSheet(
                 CustomRecurSheet,
-                { onSubmit: tempOnSubmit, onClose: closeSheet }
+                { 
+                    curRRule: recurrence?.rrule ?? null,
+                    onSubmit: handleCustomSubmit, 
+                    onClose: closeSheet 
+                }
             );
         } else {
-            setCurRRule(recurrenceDropdown[ind].meta ?? null); 
+            setCurRRule(recurrenceDropdown[ind].meta ?? null);
+            togglePopupOpen();
         }
     };
 
+    const nodeId = useFloatingNodeId();
+
     const { refs, floatingStyles, context } = useFloating({
+        nodeId,
         open: popupOpen,
         onOpenChange: setPopupOpen,
         placement: "bottom",
@@ -61,6 +76,7 @@ export default function RecurrenceSelector({ recurrence }: {
 
     const click = useClick(context);
     const dismiss = useDismiss(context, {
+        bubbles: false,
         outsidePress: (event) => !(event.target as HTMLElement).closest("#bottom-sheet-root"),
     });
     const role = useRole(context);
@@ -68,7 +84,7 @@ export default function RecurrenceSelector({ recurrence }: {
     const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss, role]);
     
     return (
-        <>
+        <FloatingNode id={nodeId}>
             <div
                 onClick={togglePopupOpen}
                 ref={refs.setReference} {...getReferenceProps}
@@ -80,10 +96,8 @@ export default function RecurrenceSelector({ recurrence }: {
                         strokeWidth={2} 
                         className="size-4"
                     />
-                    { (!recurrence?.rrule)
-                        ? "repeat"
-                        : formatRecurrence(recurrence)
-                    }
+                    
+                    { recurDisplay }
                 </div>
 
                 { recurrence?.rrule && (
@@ -107,6 +121,6 @@ export default function RecurrenceSelector({ recurrence }: {
                     className="w-60"
                 />
             )}
-        </>
+        </FloatingNode>
     );
 }

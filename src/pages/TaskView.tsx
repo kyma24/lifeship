@@ -1,7 +1,6 @@
 import { useScheduleItems } from '@/context/ScheduleItemContext';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom'
-import { formatTimePeriod, addDurationTPFormatted } from '@/utils/dateUtils';
 import DatePicker from '@/components/doInfo/DatePicker';
 
 import { Trash2, UndoDot, Save, Ellipsis, X } from 'lucide-react';
@@ -40,11 +39,9 @@ const TaskView = () => {
     }, [task]);
 
     const handleRevert = () => {
-        if(!task) return;
-        if(task.variant === "task") {
-            const {id, ...partialTask} = task;
-            setModTask(partialTask);
-        }
+        if((!task) || (task.variant !== "task")) return;
+        const {id, ...partialTask} = task;
+        setModTask(partialTask);
     }
     
     const handleSubmit = () => {
@@ -56,26 +53,13 @@ const TaskView = () => {
         setModTask({...modTask, checked: !modTask.checked});
     }
 
-    const handleDoDateChange = (doInfo: DoInfo | null) => {
+    const handleDoInfoChange = (doInfo: DoInfo | null) => {
         setModTask({...modTask, doInfo});
-    }
-
-    const handleDurationChange = (duration: number) => {
-        setModTask({...modTask, doInfo: {...modTask.doInfo!, duration}});
     }
 
     const handleCreateSubtask = (draftTask: PartialTask) => {
         createTask({...draftTask, parentId: id});
     }
-
-    /*const handleEndTimeChange = (date) => {
-    const duration = (toMs(date) - toMs(modTask.startTime))/60000;
-    handleDurationChange = (Math.max(0,duration));
-    }
-
-    const handleDeadlineChange = (deadline) => {
-        setModTask({...modTask, deadline: toMs(deadline)});
-    }*/
 
     const handleTaskDelete = async () => {
         if(window.confirm('Delete this task?')) {
@@ -136,32 +120,10 @@ const TaskView = () => {
             </h1>
             <div className="w-full flex flex-col items-center gap-3">
                 <div className="flex flex-col">
-                    <div className="flex flex-row items-center gap-1">
-                        <DatePicker
-                            doInfo={modTask.doInfo ?? null}
-                            onChange={handleDoDateChange}
-                        />
-                        <p>for</p>
-                        <div className="flex flex-row items-center gap-0.5">
-                            <input
-                                type="number"
-                                value={modTask.doInfo?.duration ?? 0}
-                                onChange={(e) => handleDurationChange(Number(e.target.value))}
-                                className="relative h-fit w-fit field-sizing-content border border-gray-700 px-1"
-                            />
-                            <p>m</p>
-                        </div>
-                    </div>
-                    <p>{ modTask.doInfo ? (
-                            `${formatTimePeriod(modTask.doInfo?.timePeriod)} ${(modTask.doInfo.timePeriod?.type === "exact") ? (
-                                (modTask.doInfo.duration) && `→ ${addDurationTPFormatted(modTask.doInfo.timePeriod, modTask.doInfo.duration)}`
-                            ) : (
-                                <p>{modTask.doInfo.timePeriod?.timeOfDay}: {modTask.doInfo.duration}m</p>
-                            )}`
-                        ) : (
-                            `--:--`
-                        )
-                    }</p>
+                    <DatePicker
+                        doInfo={modTask.doInfo ?? null}
+                        onChange={handleDoInfoChange}
+                    />
                 </div>
                 <textarea
                     value={modTask.description}

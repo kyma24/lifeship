@@ -1,7 +1,7 @@
 import { DoInfo, TimePeriod } from "@/types";
 import { useState } from "react";
 import TaskDoDateDisplay from "../schedule-items/tasks/TaskDoDateDisplay";
-import { autoUpdate, flip, FloatingPortal, offset, shift, useClick, useDismiss, useFloating, useInteractions, useRole } from "@floating-ui/react";
+import { autoUpdate, flip, FloatingNode, FloatingPortal, FloatingTree, offset, shift, useClick, useDismiss, useFloating, useFloatingNodeId, useInteractions, useRole } from "@floating-ui/react";
 import Divider from "../Divider";
 import TimeSelector from "./TimeSelector";
 import RecurrenceSelector from "./RecurrenceSelector";
@@ -13,7 +13,6 @@ const DatePicker = ({doInfo, onChange}: {
     onChange: (doInfo: DoInfo | null) => void
 }) => {
     const [popupOpen, setPopupOpen] = useState<boolean>(false);
-    const [modDoInfo, setModDoInfo] = useState<DoInfo | null>(doInfo);
 
     const togglePopupOpen = () => {
         setPopupOpen(!popupOpen);
@@ -21,41 +20,59 @@ const DatePicker = ({doInfo, onChange}: {
 
     // schedule suggestions
     const handleToToday = () => {
-        const newDoInfo: DoInfo = modDoInfo ?? getBaseDoInfo();
-        setModDoInfo({...newDoInfo, date: getTodayString()});
+        const oldDoInfo: DoInfo = doInfo ?? getBaseDoInfo();
+        const newDoInfo: DoInfo = {...oldDoInfo, date: getTodayString()};
+
+        onChange(newDoInfo);
         setPopupOpen(false);
-        onChange(modDoInfo);
     };
 
     const handleToTomorrow = () => {
-        const newDoInfo: DoInfo = modDoInfo ?? getBaseDoInfo();
-        setModDoInfo({...newDoInfo, date: getTomorrowString()});
+        const oldDoInfo: DoInfo = doInfo ?? getBaseDoInfo();
+        const newDoInfo: DoInfo = {...oldDoInfo, date: getTomorrowString()};
+
+        onChange(newDoInfo);
         setPopupOpen(false);
-        onChange(modDoInfo);
     };
 
     const handleToNoDate = () => {
-        setModDoInfo(null);
+        onChange(null);
         setPopupOpen(false);
-        onChange(modDoInfo);
     }
 
     // time
     const handleRemoveTime = () => {
-        const newDoInfo: DoInfo = modDoInfo ?? getBaseDoInfo();
-        setModDoInfo({...newDoInfo, timePeriod: null});
-        onChange(modDoInfo);
+        const oldDoInfo: DoInfo = doInfo ?? getBaseDoInfo();
+        const newDoInfo: DoInfo = {...oldDoInfo, timePeriod: null};
+
+        onChange(newDoInfo);
     }
 
     const handleUpdateTime = (timePeriod: TimePeriod, duration: number, timezone: string | null) => {
-        const newDoInfo: DoInfo = modDoInfo ?? getBaseDoInfo();
-        setModDoInfo({...newDoInfo,
+        const oldDoInfo: DoInfo = doInfo ?? getBaseDoInfo();
+        const newDoInfo: DoInfo = {...oldDoInfo,
             timePeriod, duration, timezone
-        });
-        onChange(modDoInfo);
+        };
+
+        onChange(newDoInfo);
     }
 
+    // recurrence
+    const handleUpdateRecurrence = (rrule: string | null) => {
+        if(!rrule) return;
+        const oldDoInfo: DoInfo = doInfo ?? getBaseDoInfo();
+        const newDoInfo: DoInfo = {...oldDoInfo, recurrence: {
+            ...oldDoInfo.recurrence,
+            rrule
+        }};
+
+        onChange(newDoInfo);
+    }
+
+    const nodeId = useFloatingNodeId();
+
     const { refs, floatingStyles, context } = useFloating({
+        nodeId,
         open: popupOpen,
         onOpenChange: setPopupOpen,
         placement: "top-end",
@@ -76,6 +93,7 @@ const DatePicker = ({doInfo, onChange}: {
 
     const click = useClick(context);
     const dismiss = useDismiss(context, {
+        bubbles: false,
         outsidePress: (event) => !(event.target as HTMLElement).closest("#bottom-sheet-root"),
     });
     const role = useRole(context, { role: "combobox" });
@@ -85,74 +103,77 @@ const DatePicker = ({doInfo, onChange}: {
     const floatingRoot = document.getElementById("floating-root");
 
     return (
-        <>
-            <button
-                onClick={togglePopupOpen}
-                ref={refs.setReference} {...getReferenceProps}
-                className="relative flex items-center w-fit 
-                    px-3 py-1.5 rounded-full border border-gray-700"
-            >
-                { !modDoInfo
-                    ? "none" 
-                    : (
-                        <TaskDoDateDisplay
-                            doInfo={modDoInfo}
-                            withDate={true}
-                        />
-                    )
-                }
-            </button>
+        <FloatingTree>
+            <FloatingNode id={nodeId}>
+                <button
+                    onClick={togglePopupOpen}
+                    ref={refs.setReference} {...getReferenceProps}
+                    className="relative flex items-center w-fit 
+                        px-3 py-1.5 rounded-full border border-gray-700"
+                >
+                    { !doInfo
+                        ? "none" 
+                        : (
+                            <TaskDoDateDisplay
+                                doInfo={doInfo}
+                                withDate={true}
+                            />
+                        )
+                    }
+                </button>
 
-            { popupOpen && (
-                <FloatingPortal root={floatingRoot}>
-                    <div
-                        ref={refs.setFloating} {...getFloatingProps}
-                        style={floatingStyles}
-                        className="flex flex-col w-max min-w-50
-                                    bg-gray-800 border border-gray-700 rounded-lg"
-                    >
-                        {/* current date / text rep */}
-                        <div className="p-3">
-                            { !modDoInfo
-                                ? "select a date" 
-                                : (
-                                    <TaskDoDateDisplay
-                                        doInfo={modDoInfo}
-                                        withDate={true}
-                                    />
-                                )
-                            }
-                        </div>
+                { popupOpen && (
+                    <FloatingPortal root={floatingRoot}>
+                        <div
+                            ref={refs.setFloating} {...getFloatingProps}
+                            style={floatingStyles}
+                            className="flex flex-col w-max min-w-50
+                                        bg-gray-800 border border-gray-700 rounded-lg"
+                        >
+                            {/* current date / text rep */}
+                            <div className="p-3">
+                                { !doInfo
+                                    ? "select a date" 
+                                    : (
+                                        <TaskDoDateDisplay
+                                            doInfo={doInfo}
+                                            withDate={true}
+                                        />
+                                    )
+                                }
+                            </div>
 
-                        <Divider color="gray-700" />
-                        {/* common options (today/tmrw/no date) */}
-                        <ScheduleSuggestList
-                            date={modDoInfo?.date ?? null}
-                            onToday={handleToToday}
-                            onTomorrow={handleToTomorrow}
-                            onNoDate={handleToNoDate}
-                        />
-
-                        <Divider color="gray-700" />
-                        <div className="flex flex-col p-3 gap-2">
-                            {/* time selector (another menu) */}
-                            <TimeSelector
-                                timePeriod={modDoInfo?.timePeriod ?? null}
-                                duration={modDoInfo?.duration ?? null}
-                                timezone={modDoInfo?.timezone ?? null}
-                                onRemoveTime={handleRemoveTime}
-                                onChange={handleUpdateTime}
+                            <Divider color="gray-700" />
+                            {/* common options (today/tmrw/no date) */}
+                            <ScheduleSuggestList
+                                date={doInfo?.date ?? null}
+                                onToday={handleToToday}
+                                onTomorrow={handleToTomorrow}
+                                onNoDate={handleToNoDate}
                             />
 
-                            {/* recurrence selector (another menu) */}
-                            <RecurrenceSelector 
-                                recurrence={modDoInfo?.recurrence ?? null}
-                            />
+                            <Divider color="gray-700" />
+                            <div className="flex flex-col p-3 gap-2">
+                                {/* time selector (another menu) */}
+                                <TimeSelector
+                                    timePeriod={doInfo?.timePeriod ?? null}
+                                    duration={doInfo?.duration ?? null}
+                                    timezone={doInfo?.timezone ?? null}
+                                    onRemoveTime={handleRemoveTime}
+                                    onChange={handleUpdateTime}
+                                />
+
+                                {/* recurrence selector (another menu) */}
+                                <RecurrenceSelector 
+                                    recurrence={doInfo?.recurrence ?? null}
+                                    onChange={handleUpdateRecurrence}
+                                />
+                            </div>
                         </div>
-                    </div>
-                </FloatingPortal>
-            )}
-        </>
+                    </FloatingPortal>
+                )}
+            </FloatingNode>
+        </FloatingTree>
     );
 }
 
