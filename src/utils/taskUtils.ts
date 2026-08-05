@@ -34,6 +34,16 @@ export const compareItemsByDate = (a: ScheduleItem, b: ScheduleItem): number => 
 
 export const isPartialTaskDifferent = (task: Task, modTask: PartialTask): boolean => {
     if(!task || !modTask) return false;
-    const {id, ...noIdTask} = task;
-    return JSON.stringify(noIdTask) !== JSON.stringify(modTask);
+    
+    return (
+        (task.name !== modTask.name) ||
+        (task.description !== modTask.description) ||
+        (task.tags !== modTask.tags) ||
+        (task.doInfo !== modTask.doInfo) ||
+        (task.color !== modTask.color) ||
+        (task.icon !== modTask.icon)
+    );
+    
+    /*const {id, ...noIdTask} = task;
+    return JSON.stringify(noIdTask) !== JSON.stringify(modTask);*/
 }
