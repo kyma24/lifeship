@@ -1,31 +1,39 @@
 import { RecurrenceRule } from "@/types";
-import { recurrenceDropdown, weekdays } from "@/utils/constants";
+import { recurrenceDropdown } from "@/utils/constants";
 import { formatRecurrence } from "@/utils/dateUtils";
 import { flip, offset, shift } from "@floating-ui/dom";
 import { autoUpdate, useClick, useDismiss, useFloating, useInteractions, useRole } from "@floating-ui/react";
 import { Repeat, X } from "lucide-react";
 import { useState } from "react";
-import Dropdown from "../Dropdown";
-import Divider from "../Divider";
+import { DropdownList } from "../Dropdown";
+import { useBottomSheet } from "@/context/BottomSheetContext";
+import CustomRecurSheet from "./CustomRecurSheet";
 
 export default function RecurrenceSelector({ recurrence }: {
     recurrence: RecurrenceRule | null
 }) {
     const [popupOpen, setPopupOpen] = useState<boolean>(false);
-    const [customOpen, setCustomOpen] = useState<boolean>(false);
-    
+
     const [curRRule, setCurRRule] = useState<string | null>(recurrence?.rrule ?? null);
+
+    const { openSheet, closeSheet } = useBottomSheet();
 
     const togglePopupOpen = () => {
         setPopupOpen(!popupOpen);
     };
 
+    const tempOnSubmit = (byDayArr: boolean[]) => {
+        return null;
+    }
+
     const handleRecurChange = (ind: number) => {
         if(!recurrenceDropdown[ind]) return;
         if(recurrenceDropdown[ind].label==="Custom") {
-            setCustomOpen(true);
+            openSheet(
+                CustomRecurSheet,
+                { onSubmit: tempOnSubmit, onClose: closeSheet }
+            );
         } else {
-            setCustomOpen(false);
             setCurRRule(recurrenceDropdown[ind].meta ?? null); 
         }
     };
@@ -52,7 +60,9 @@ export default function RecurrenceSelector({ recurrence }: {
     });
 
     const click = useClick(context);
-    const dismiss = useDismiss(context);
+    const dismiss = useDismiss(context, {
+        outsidePress: (event) => !(event.target as HTMLElement).closest("#bottom-sheet-root"),
+    });
     const role = useRole(context);
 
     const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss, role]);
@@ -87,18 +97,15 @@ export default function RecurrenceSelector({ recurrence }: {
             </div>
 
             {popupOpen && (
-                <div
-                    ref={refs.setFloating} {...getFloatingProps}
-                    style={floatingStyles}
-                    className="flex flex-col w-60 p-3 gap-3
-                                bg-gray-800 border border-gray-700 rounded-lg"
-                >
-                    <Dropdown
-                        currentOption={0}
-                        options={recurrenceDropdown}
-                        onOptionClick={handleRecurChange}
-                    />
-                </div>
+                <DropdownList
+                    currentOption={-1}
+                    options={recurrenceDropdown}
+                    onOptionClick={handleRecurChange}
+                    floatingRef={refs.setFloating}
+                    floatingStyles={floatingStyles}
+                    getFloatingProps={getFloatingProps}
+                    className="w-60"
+                />
             )}
         </>
     );

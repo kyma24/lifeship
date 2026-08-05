@@ -2,7 +2,7 @@ import { weekdays } from "@/utils/constants";
 import { X } from "lucide-react";
 import { useState } from "react";
 
-export default function CustomRecurModal({ onSubmit, onClose }: {
+export default function CustomRecurSheet({ onSubmit, onClose }: {
     onSubmit: (byDayArr: boolean[]) => void,
     onClose: () => void,
 }) {
@@ -14,8 +14,7 @@ export default function CustomRecurModal({ onSubmit, onClose }: {
 
     return (
         <div 
-            className="flex flex-col w-90 gap-2
-                        border-2 border-gray-700 rounded-lg"
+            className="flex flex-col gap-2"
         >
             <div className="flex flex-row w-full h-10 justify-end">
                 <button

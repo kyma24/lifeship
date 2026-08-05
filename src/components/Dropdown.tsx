@@ -32,7 +32,9 @@ export default function Dropdown({ currentOption, options, onOptionClick }: {
     });
 
     const click = useClick(context);
-    const dismiss = useDismiss(context);
+    const dismiss = useDismiss(context, {
+        outsidePress: (event) => !(event.target as HTMLElement).closest("#bottom-sheet-root"),
+    });
     const role = useRole(context);
 
     const { getFloatingProps, getReferenceProps } = useInteractions([click, dismiss, role]);
@@ -49,24 +51,46 @@ export default function Dropdown({ currentOption, options, onOptionClick }: {
             </button>
 
             {dropdownOpen && (
-                <ul
-                    ref={refs.setFloating} {...getFloatingProps}
-                    style={floatingStyles}
-                    className="flex flex-col w-50 p-2 gap-2
-                                bg-gray-800 border border-gray-700 rounded-lg"
-                >
-                    {options.map((option, ind) => (
-                        <DropdownItem
-                            key={ind}
-                            info={option}
-                            onClick={() => onOptionClick(ind)}
-                            isCurrent={ind===currentOption}
-                        />
-                    ))}
-                </ul>
+                <DropdownList
+                    currentOption={currentOption}
+                    options={options}
+                    onOptionClick={onOptionClick}
+                    floatingRef={refs.setFloating}
+                    floatingStyles={floatingStyles}
+                    getFloatingProps={getFloatingProps}
+                />
             )}
         </>
     )
+}
+
+export function DropdownList({ currentOption, options, onOptionClick, floatingRef, floatingStyles, getFloatingProps, className }: {
+    currentOption: number,
+    options: DropdownOption[],
+    onOptionClick: (ind: number) => void,
+    floatingRef: React.Ref<HTMLUListElement>,
+    floatingStyles: React.CSSProperties,
+    getFloatingProps: ()=>Record<string,unknown>,
+    className?: string
+}) {
+    return (
+        <ul
+            ref={floatingRef} {...getFloatingProps}
+            style={floatingStyles}
+            className={`flex flex-col w-50 p-2 gap-2
+                        bg-gray-800 border border-gray-700 rounded-lg
+                        ${className ?? ""}`}
+        >
+            {options.map((option, ind) => (
+                <DropdownItem
+                    key={ind}
+                    info={option}
+                    onClick={() => onOptionClick(ind)}
+                    isCurrent={ind===currentOption}
+                />
+            ))}
+        </ul>
+    );
 }
 
 function DropdownItem({ info, onClick, isCurrent }: {

@@ -18,10 +18,14 @@ const Menu = ({ items }: {
     });
 
     const click = useClick(context);
-    const dismiss = useDismiss(context);
+    const dismiss = useDismiss(context, {
+        outsidePress: (event) => !(event.target as HTMLElement).closest("#bottom-sheet-root"),
+    });
     const role = useRole(context, { role: "menu" });
 
     const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss, role]);
+
+    const floatingRoot = document.getElementById("floating-root");
 
     return (
         <>
@@ -37,7 +41,7 @@ const Menu = ({ items }: {
             </button>
 
             {isOpen && (
-                <FloatingPortal>
+                <FloatingPortal root={floatingRoot}>
                     <div 
                         ref={refs.setFloating}
                         style={floatingStyles}
