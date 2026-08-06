@@ -1,4 +1,4 @@
-import { DoInfo, TimePeriod } from "@/types";
+import { DateString, DoInfo, TimePeriod } from "@/types";
 import { useState } from "react";
 import TaskDoDateDisplay from "../schedule-items/tasks/TaskDoDateDisplay";
 import { autoUpdate, flip, FloatingNode, FloatingPortal, FloatingTree, offset, shift, useClick, useDismiss, useFloating, useFloatingNodeId, useInteractions, useRole } from "@floating-ui/react";
@@ -7,6 +7,8 @@ import TimeSelector from "./TimeSelector";
 import RecurrenceSelector from "./RecurrenceSelector";
 import ScheduleSuggestList from "./ScheduleSuggestList";
 import { getBaseDoInfo, getTodayString, getTomorrowString } from "@/utils/dateUtils";
+import { useBottomSheet } from "@/context/BottomSheetContext";
+import CustomDateSheet from "./CustomDateSheet";
 
 const DatePicker = ({doInfo, onChange}: {
     doInfo: DoInfo | null,
@@ -18,27 +20,42 @@ const DatePicker = ({doInfo, onChange}: {
         setPopupOpen(!popupOpen);
     };
 
-    // schedule suggestions
-    const handleToToday = () => {
+    // date change
+    const handleUpdateDate = (dateStr: DateString) => {
         const oldDoInfo: DoInfo = doInfo ?? getBaseDoInfo();
-        const newDoInfo: DoInfo = {...oldDoInfo, date: getTodayString()};
+        const newDoInfo: DoInfo = {...oldDoInfo, date: dateStr };
 
         onChange(newDoInfo);
         setPopupOpen(false);
+    }
+
+    // schedule suggestions
+    const handleToToday = () => {
+        handleUpdateDate(getTodayString());
     };
 
     const handleToTomorrow = () => {
-        const oldDoInfo: DoInfo = doInfo ?? getBaseDoInfo();
-        const newDoInfo: DoInfo = {...oldDoInfo, date: getTomorrowString()};
-
-        onChange(newDoInfo);
-        setPopupOpen(false);
+        handleUpdateDate(getTomorrowString());
     };
 
     const handleToNoDate = () => {
         onChange(null);
         setPopupOpen(false);
-    }
+    };
+
+    // custom date sheet
+    const { openSheet, closeSheet } = useBottomSheet();
+
+    const handleCustomDate = () => {
+        openSheet(
+            CustomDateSheet,
+            { 
+                dateStr: doInfo?.date ?? null,
+                onSubmit: handleUpdateDate,
+                onClose: closeSheet
+            }
+        );
+    };
 
     // time
     const handleRemoveTime = () => {
@@ -69,6 +86,7 @@ const DatePicker = ({doInfo, onChange}: {
         onChange(newDoInfo);
     }
 
+    // floating ui
     const nodeId = useFloatingNodeId();
 
     const { refs, floatingStyles, context } = useFloating({
@@ -150,6 +168,7 @@ const DatePicker = ({doInfo, onChange}: {
                                 onToday={handleToToday}
                                 onTomorrow={handleToTomorrow}
                                 onNoDate={handleToNoDate}
+                                onCustomDate={handleCustomDate}
                             />
 
                             <Divider color="gray-700" />

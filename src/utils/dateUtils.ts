@@ -123,6 +123,53 @@ export const toNativeDate = (dateString: DateString, minutesDayStart?: number): 
     return ret;
 };
 
+// checks
+const isTimePeriodEqual = (timep1: TimePeriod | null, timep2: TimePeriod | null) => {
+    if(!timep1 && !timep2) return true;
+
+    if((timep1?.type === "exact") && (timep2?.type === "exact")) {
+        return (timep1.minutesDayStart === timep2.minutesDayStart);
+    }
+
+    if((timep1?.type === "tod") && (timep2?.type === "tod")) {
+        return (timep1.timeOfDay === timep2.timeOfDay);
+    }
+
+    return false;
+}
+
+const isRecurrenceEqual = (recur1: RecurrenceRule | null, recur2: RecurrenceRule | null): boolean => {
+    return (
+        (recur1?.rrule === recur2?.rrule) &&
+        (recur1?.endDate === recur2?.endDate)
+    );
+};
+
+export const isDoInfoEqual = (doInfo1: DoInfo | null, doInfo2: DoInfo | null): boolean => {
+    return (
+        (doInfo1?.date === doInfo2?.date) &&
+        (doInfo1?.duration == doInfo2?.duration) &&
+        isRecurrenceEqual(doInfo1?.recurrence ?? null, doInfo2?.recurrence ?? null) &&
+        isTimePeriodEqual(doInfo1?.timePeriod ?? null, doInfo2?.timePeriod ?? null) &&
+        (doInfo1?.timezone === doInfo2?.timezone)
+    );
+}
+
+export const isValidDateComp = (year: number, month: number, day: number): boolean => {
+    if(year<2026) return false;
+    if((month<=0) || (month>12)) return false;
+    if((day<=0) || (day>31)) return false;
+
+    const date = new Date(year,month-1,day);
+
+    return (
+        date.getFullYear() === year &&
+        date.getMonth() === month-1 &&
+        date.getDate() === day &&
+        !isNaN(date.getTime())
+    );
+};
+
 const isValidTimeOfDay = (str: string): boolean => {
     return (str==="morning") || (str==="afternoon") || (str==="evening");
 }
@@ -256,7 +303,7 @@ export const formatDateString = (dateString: DateString): string => {
 }
 
 const formatTimeComponent = (comp: number | null): string => {
-    if(!comp) return "";
+    if(comp === null) return "";
     return String(comp).padStart(2,'0');
 }
 

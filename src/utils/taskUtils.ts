@@ -1,5 +1,5 @@
 import { PartialTask, ScheduleItem, Task } from "@/types";
-import { nowISO } from "./dateUtils";
+import { isDoInfoEqual, nowISO } from "./dateUtils";
 import { getDeviceId } from "./backend/device";
 
 export const createTaskFromDraft = (id: string, draftTask: PartialTask): Task => (
@@ -34,12 +34,12 @@ export const compareItemsByDate = (a: ScheduleItem, b: ScheduleItem): number => 
 
 export const isPartialTaskDifferent = (task: Task, modTask: PartialTask): boolean => {
     if(!task || !modTask) return false;
-    
+
     return (
         (task.name !== modTask.name) ||
         (task.description !== modTask.description) ||
-        (task.tags !== modTask.tags) ||
-        (task.doInfo !== modTask.doInfo) ||
+        (JSON.stringify(task.tags) !== JSON.stringify(modTask.tags)) ||
+        (!isDoInfoEqual(task.doInfo ?? null, modTask.doInfo ?? null)) ||
         (task.color !== modTask.color) ||
         (task.icon !== modTask.icon)
     );

@@ -1,12 +1,13 @@
 import { DateString } from "@/types"
 import { formatDateString, getTodayString, getTomorrowString, toWeekdayAbbrFormat } from "@/utils/dateUtils";
-import { Calendar, CircleSlash, SkipForward } from "lucide-react"
+import { Calendar, CircleSlash, Forward, SkipForward } from "lucide-react"
 
-const ScheduleSuggestList = ({ date, onToday, onTomorrow, onNoDate }: {
+const ScheduleSuggestList = ({ date, onToday, onTomorrow, onNoDate, onCustomDate }: {
     date: DateString | null,
     onToday: () => void,
     onTomorrow: () => void,
-    onNoDate: () => void
+    onNoDate: () => void,
+    onCustomDate: () => void,
 }) => {
 
     const isNotToday = (): boolean => {
@@ -27,7 +28,7 @@ const ScheduleSuggestList = ({ date, onToday, onTomorrow, onNoDate }: {
                         onClick={onToday}
                         className="flex flex-row w-full items-center justify-between p-1"
                     >
-                        <div className="flex flex-row items-center justify-center gap-1">
+                        <div className="flex flex-row items-center justify-center gap-2">
                             <Calendar
                                 strokeWidth={2}
                                 className="size-4"
@@ -46,7 +47,7 @@ const ScheduleSuggestList = ({ date, onToday, onTomorrow, onNoDate }: {
                         onClick={onTomorrow}
                         className="flex flex-row w-full items-center justify-between p-1"
                     >
-                        <div className="flex flex-row items-center justify-center gap-1">
+                        <div className="flex flex-row items-center justify-center gap-2">
                             <SkipForward
                                 strokeWidth={2}
                                 className="size-4"
@@ -65,7 +66,7 @@ const ScheduleSuggestList = ({ date, onToday, onTomorrow, onNoDate }: {
                         onClick={onNoDate}
                         className="flex flex-row w-full items-center justify-between p-1"
                     >
-                        <div className="flex flex-row items-center justify-center gap-1">
+                        <div className="flex flex-row items-center justify-center gap-2">
                             <CircleSlash
                                 strokeWidth={2}
                                 className="size-4"
@@ -75,6 +76,21 @@ const ScheduleSuggestList = ({ date, onToday, onTomorrow, onNoDate }: {
                     </button>
                 </li>
             )}
+
+            <li>
+                <button
+                    onClick={onCustomDate}
+                    className="flex flex-row w-full items-center justify-between p-1"
+                >
+                    <div className="flex flex-row items-center justify-center gap-2">
+                        <Forward
+                            strokeWidth={2}
+                            className="size-4"
+                        />
+                        <p>Reschedule</p>
+                    </div>
+                </button>
+            </li>
         </ul>
     );
 };
