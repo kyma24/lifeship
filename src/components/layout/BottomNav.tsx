@@ -23,18 +23,18 @@ const BottomNav = () => {
                 </li>
                 <li>
                     <NavLink
-                        to="/plan"
+                        to="/day"
                         className={({ isActive }) => activeStyle(isActive)}
                     >
-                        plan
+                        day
                     </NavLink>
                 </li>
                 <li>
                     <NavLink
-                        to="/week"
+                        to="/plan"
                         className={({ isActive }) => activeStyle(isActive)}
                     >
-                        week
+                        plan
                     </NavLink>
                 </li>
                 <li>

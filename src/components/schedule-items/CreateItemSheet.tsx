@@ -150,15 +150,6 @@ const CreateTaskDisplay = ({ onCreate }: {
     }});
   }
 
-  /*const handleEndTimeChange = (date) => {
-    const duration = (toMs(date) - toMs(draftTask.startTime))/60000;
-    handleDurationChange = (Math.max(0,duration));
-  }
-
-  const handleDeadlineChange = (deadline) => {
-    setDraftTask({...draftTask, deadline: toMs(deadline)});
-  }*/
-
   const draftIsValid = (draft: PartialTask) => {
     return draft.name?.trim() !== "";
   }

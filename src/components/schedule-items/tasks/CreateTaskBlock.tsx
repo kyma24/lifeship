@@ -1,9 +1,8 @@
 import Divider from "@/components/Divider";
 import PropertyTag from "@/components/PropertyTag";
 import DatePicker from "@/components/doInfo/DatePicker";
-import { DoInfo, PartialTask, RecurrenceRule } from "@/types";
+import { DoInfo, PartialTask } from "@/types";
 import { useState } from "react";
-import { Repeat, RepeatOff } from "lucide-react";
 
 const CreateTaskBlock = ({ defaultTask, onCreateTask }: {
     defaultTask: PartialTask,
@@ -11,6 +10,11 @@ const CreateTaskBlock = ({ defaultTask, onCreateTask }: {
 }) => {
     const [isCreating, setIsCreating] = useState<boolean>(false);
     const [draftTask, setDraftTask] = useState<PartialTask>(defaultTask);
+
+    const handleCancel = () => {
+        setDraftTask(defaultTask);
+        setIsCreating(false);
+    };
     
     const handleSubmit = () => {
         if(draftTask.name?.trim() === "") return;
@@ -22,18 +26,6 @@ const CreateTaskBlock = ({ defaultTask, onCreateTask }: {
     const handleDoDateChange = (doInfo: DoInfo | null) => {
         setDraftTask({...draftTask, doInfo});
     }
-
-    const handleToggleRecurrence = () => {
-        setDraftTask({...draftTask, doInfo: {...draftTask.doInfo!, recurrence:
-          (draftTask.doInfo?.recurrence 
-            ? null 
-            : {
-                rrule: 'FREQ=DAILY',
-                endDate: "",
-              } as RecurrenceRule
-          )
-        }});
-      }
 
     return (
         (isCreating) ? (
@@ -62,15 +54,6 @@ const CreateTaskBlock = ({ defaultTask, onCreateTask }: {
                             doInfo={draftTask.doInfo!}
                             onChange={handleDoDateChange}
                         />
-
-                        <button
-                            className="flex justify-center items-center p-2 aspect-square rounded-full border border-gray-700"
-                            onClick={handleToggleRecurrence}
-                        > 
-                            {draftTask.doInfo?.recurrence 
-                            ? <Repeat className="size-4" strokeWidth={2} />
-                            : <RepeatOff className="size-4" strokeWidth={2} />}
-                        </button>
                     </div>
                 </div>
 
@@ -84,7 +67,7 @@ const CreateTaskBlock = ({ defaultTask, onCreateTask }: {
                     <div className="ml-auto flex flex-row gap-3">
                         <button
                             className="flex align-center justify-center p-2 bg-gray-800 rounded-md"
-                            onClick={() => setIsCreating(false)}
+                            onClick={handleCancel}
                         >
                             <p className="leading-5">cancel</p>
                         </button>

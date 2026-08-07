@@ -1,5 +1,5 @@
 import useCurrentDate from '@/hooks/useCurrentDate';
-import { toDateStr, toMonthDayFormat, toWeekdayFormat } from '@/utils/dateUtils';
+import { getTodayString, toMonthDayFormat, toWeekdayFormat } from '@/utils/dateUtils';
 import ItemList from '@/components/schedule-items/ItemList';
 import { useScheduleItems } from '@/context/ScheduleItemContext';
 import { PartialTask } from '@/types';
@@ -9,7 +9,7 @@ import { defaultTask } from '@/utils/constants';
 
 const defaultTodayTask: PartialTask = {...defaultTask, 
   doInfo: {
-    date: toDateStr(new Date()),
+    date: getTodayString(),
     timePeriod: null,
     duration: null,
     timezone: null,
@@ -28,8 +28,8 @@ const DayView = () => {
         <div className="flex flex-col justify-center items-center">
             <div className="sticky top-0 z-50 flex flex-row w-full justify-center align-center">
                 <div className="flex flex-col font-dongle">
-                <h2>{toWeekdayFormat(date)}</h2>
-                <div className="font-dongle font-bold text-2xl">{toMonthDayFormat(date)}</div>
+                    <h2>{toWeekdayFormat(date)}</h2>
+                    <div className="font-dongle font-bold text-2xl">{toMonthDayFormat(date)}</div>
                 </div>
             </div>
             <div className="flex flex-col w-full max-w-3xl overflow-y-auto p-3 gap-3">

@@ -107,6 +107,21 @@ export const toDateComponents = (dateString: DateString): DateComponents => {
     return { year, month, day } as DateComponents;
 };
 
+export const getDayComponent = (dateString: DateString): number => {
+    const { day } = toDateComponents(dateString);
+    return day;
+};
+
+export const getMonthComponent = (dateString: DateString): string => {
+    const date = toNativeDate(dateString);
+    return getMonthAbbr(date);
+};
+
+export const getYearComponent = (dateString: DateString): number => {
+    const { year } = toDateComponents(dateString);
+    return year;
+};
+
 export const toTimeComponents = (rawMinutes: number) => {
     const hrs = Math.floor(rawMinutes/60);
     const mins = rawMinutes % 60;
@@ -271,11 +286,45 @@ export const addDurationTPFormatted = (timePeriod: TimePeriod, duration: number)
 }
 
 // transformations
-export const getEndOfWeekDS = (dateString: DateString): DateString => {
-    const startDate = toNativeDate(dateString);
-    const endDate = getEndOfWeek(startDate);
+export const getStartOfWeekStr = (dateString: DateString): DateString => {
+    const date = toNativeDate(dateString);
+    const startDate = getStartOfWeek(date);
+    const ret = toDateStr(startDate);
+    return ret;
+}
+
+export const getEndOfWeekStr = (dateString: DateString): DateString => {
+    const date = toNativeDate(dateString);
+    const endDate = getEndOfWeek(date);
     const ret = toDateStr(endDate);
     return ret;
+}
+
+export const getFullWeekStrs = (dateString: DateString): DateString[] => {
+    const date = toNativeDate(dateString);
+
+    const curDate = getStartOfWeek(date);
+    const endDate = getEndOfWeek(date);
+
+    const retDateStrs: DateString[] = [];
+    while(curDate <= endDate) {
+        retDateStrs.push(toDateStr(curDate));
+        curDate.setDate(curDate.getDate() + 1);
+    }
+
+    return retDateStrs;
+}
+
+export const getBackOneWeekStr = (dateString: DateString): DateString => {
+    const date = toNativeDate(dateString);
+    date.setDate(date.getDate() - 7);
+    return toDateStr(date);
+}
+
+export const getForwardOneWeekStr = (dateString: DateString): DateString => {
+    const date = toNativeDate(dateString);
+    date.setDate(date.getDate() + 7);
+    return toDateStr(date);
 }
 
 // formatting
@@ -337,39 +386,43 @@ export const nowISO = (): ISOString => {
 export const getTimezone = (task?: Task): string => 
     task?.doInfo?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-export const toDate = (ms: number): Date => new Date(ms);
-export const toMs = (date: Date): number => date.getTime();
 
-export const getToday = (): Date => new Date();
-export const getTomorrow = (): Date => {
+const getToday = (): Date => new Date();
+const getTomorrow = (): Date => {
     const tmrw = new Date();
     tmrw.setDate(tmrw.getDate()+1);
     return tmrw;
 };
-export const getYesterday = (): Date => {
+const getYesterday = (): Date => {
     const ystr = new Date();
     ystr.setDate(ystr.getDate()-1);
     return ystr;
 };
 
-export const getStartOfDay = (today: Date): Date => new Date(new Date(today).setHours(0,0,0,0));
-export const getEndOfDay = (today: Date): Date => new Date(new Date(today).setHours(23,59,59,999));
+const getStartOfDay = (today: Date): Date => new Date(new Date(today).setHours(0,0,0,0));
 
-export const getWeekday = (date: Date): string => date.toLocaleDateString("en-US", { weekday: "long" });
-export const getMonth = (date: Date): string => date.toLocaleDateString("en-US", { month: "long" });
-export const getMonthAbbr = (date: Date): string => date.toLocaleDateString("en-US", { month: "short" });
-export const getDay = (date: Date): string => date.toLocaleDateString("en-US", { day: "numeric" });
+const getWeekday = (date: Date): string => date.toLocaleDateString("en-US", { weekday: "long" });
+const getMonthAbbr = (date: Date): string => date.toLocaleDateString("en-US", { month: "short" });
+const getDay = (date: Date): string => date.toLocaleDateString("en-US", { day: "numeric" });
 
-export const getEndOfWeek = (date: Date): Date => {
+const getStartOfWeek = (date: Date): Date => {
+    const weekday = date.getDay();
     const retDate = getStartOfDay(date);
-    retDate.setDate(date.getDate() + 6);
+    retDate.setDate(date.getDate() - weekday);
+    retDate.setHours(0,0,0,0);
+    return retDate;
+};
+
+const getEndOfWeek = (date: Date): Date => {
+    const retDate = getStartOfWeek(date);
+    retDate.setDate(retDate.getDate() + 6);
     retDate.setHours(23,59,59,999);
     return retDate;
 };
 
-export const isSameDay = (today: Date, date: Date): boolean =>
+const isSameDay = (today: Date, date: Date): boolean =>
     (date.getDate() === today.getDate()) && (date.getMonth() === today.getMonth()) && (date.getFullYear() === today.getFullYear());
-export const isSameWeek = (today: Date, date: Date): boolean => {
+const isSameWeek = (today: Date, date: Date): boolean => {
     const startOfWeek = getStartOfDay(today);
     const endOfWeek = getEndOfWeek(startOfWeek);
 

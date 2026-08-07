@@ -1,27 +1,29 @@
 import { getTasksByDateRangeAPI } from "@/db";
-import { DateString, Task } from "@/types";
-import { getEndOfWeekDS } from "@/utils/dateUtils";
+import { DateString, ScheduleItem } from "@/types";
+import { getEndOfWeekStr, getStartOfWeekStr } from "@/utils/dateUtils";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useMemo } from "react";
 
-const useWeekTasks = (startDate: DateString) => {
-    const endDate = getEndOfWeekDS(startDate);
-    const tasks = useLiveQuery(
+const useWeekTasks = (date: DateString) => {
+    const startDate = getStartOfWeekStr(date);
+    const endDate = getEndOfWeekStr(date);
+
+    const items = useLiveQuery(
         () => getTasksByDateRangeAPI(startDate, endDate),
-        [startDate]
+        [date]
     );
 
-    const tasksByDay = useMemo(() => {
-        return (tasks ?? []).reduce((acc, task) => {
-            if(task.doInfo?.date) {
-                const date: DateString = task.doInfo.date;
-                acc.set(date, [...(acc.get(date) || []), task]);
+    const itemsByDay = useMemo(() => {
+        return (items ?? []).reduce((acc, item) => {
+            if(item.doInfo?.date) {
+                const date: DateString = item.doInfo.date;
+                acc.set(date, [...(acc.get(date) || []), item]);
             }
             return acc;
-        }, new Map<DateString, Task[]>());
-    }, [tasks]);
+        }, new Map<DateString, ScheduleItem[]>());
+    }, [items]);
 
-    return { tasksByDay };
+    return itemsByDay;
 }
 
 export default useWeekTasks;
