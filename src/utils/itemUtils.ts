@@ -1,6 +1,44 @@
-import { ISOString, RemoteItem, ScheduleItem } from "@/types";
-import { toLocalDoInfo } from "./dateUtils";
+import { DayItemBuckets, ISOString, RemoteItem, ScheduleItem, TimePeriod } from "@/types";
+import { getTodayString, toLocalDoInfo } from "./dateUtils";
 
+export const sortToDayItemBuckets = (items: ScheduleItem[]): DayItemBuckets => {
+    const itemBuckets: DayItemBuckets = {
+        overdue: [],
+        unsorted: [],
+        scheduled: [],
+        /*morning: [],
+        afternoon: [],
+        evening: [],*/
+        completed: []
+    };
+
+    for(const item of items) {
+        if((item.variant === "task") && item.checked) 
+            itemBuckets.completed.push(item);
+        else if((item.doInfo?.date ?? "") < getTodayString())
+            itemBuckets.overdue.push(item);
+        else if(item.doInfo?.timePeriod)
+            itemBuckets.scheduled.push(item);
+        /*else if(item.doInfo?.timePeriod && (item.doInfo.timePeriod.type === "exact")) {
+            const minutesDayStart = item.doInfo.timePeriod.minutesDayStart;
+            // before 12PM
+            if(minutesDayStart <= 720) itemBuckets.morning.push(item);
+            // before 6PM
+            else if(minutesDayStart < 1080) itemBuckets.afternoon.push(item);
+            // after 6PM
+            else itemBuckets.evening.push(item);
+        }
+        else if(item.doInfo?.timePeriod && (item.doInfo.timePeriod.type === "tod")) {
+            const timeOfDay = item.doInfo.timePeriod.timeOfDay;
+            if(timeOfDay === "morning") itemBuckets.morning.push(item);
+            else if(timeOfDay === "afternoon") itemBuckets.afternoon.push(item);
+            else itemBuckets.evening.push(item);
+        }*/
+        else itemBuckets.unsorted.push(item);
+    }
+
+    return itemBuckets;
+}
 
 export const toRemoteShape = (item: ScheduleItem): RemoteItem => (
     {

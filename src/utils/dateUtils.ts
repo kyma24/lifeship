@@ -1,7 +1,8 @@
-import { RRule } from "rrule";
-import { DateComponents, DateString, DoInfo, ISOString, RecurrenceRule, RemoteItem, Task, TimeOfDay, TimePeriod } from "../types"
+import { RRule, rrulestr } from "rrule";
+import { DateComponents, DateString, DoInfo, ISOString, RecurrenceRule, RemoteItem, ScheduleItem, Task, TimeOfDay, TimePeriod } from "../types"
 import { toZonedTime } from "date-fns-tz";
 import { rruleWeekdays } from "./constants";
+import { addDays } from "date-fns";
 
 // default info
 export const getBaseDoInfo = (): DoInfo => ({
@@ -13,6 +14,23 @@ export const getBaseDoInfo = (): DoInfo => ({
 });
 
 // recurrence
+export const willOccurOn = (item: ScheduleItem, date: DateString): boolean => {
+    if(!item.doInfo) return false;
+    if(!item.doInfo.recurrence?.rrule) return item.doInfo.date === date;
+
+    const rrule = rrulestr(item.doInfo.recurrence.rrule, {
+        dtstart: toNativeDate(item.doInfo.date)
+    });
+
+    console.log(rrule);
+
+    const targetStart = getStartOfDay(toNativeDate(date));
+    const targetEnd = getEndOfDay(targetStart);
+
+    const matches = rrule.between(targetStart, targetEnd, true);
+    return matches.length > 0;
+}
+
 export const getNextOccurrence = (task: Task): DateString | null => {
     if(!task.doInfo?.recurrence) return null;
 
@@ -400,6 +418,7 @@ const getYesterday = (): Date => {
 };
 
 const getStartOfDay = (today: Date): Date => new Date(new Date(today).setHours(0,0,0,0));
+const getEndOfDay = (today: Date): Date => new Date(new Date(today).setHours(23,59,59,999));
 
 const getWeekday = (date: Date): string => date.toLocaleDateString("en-US", { weekday: "long" });
 const getMonthAbbr = (date: Date): string => date.toLocaleDateString("en-US", { month: "short" });

@@ -149,6 +149,17 @@ export const getTasksByDayAPI = async (today: DateString): Promise<ScheduleItem[
     }
 };
 
+export const getItemsBeforeDateAPI = async (endDate: DateString): Promise<ScheduleItem[]> => {
+    try {
+        return await db.items
+            .where("doInfo.date")
+            .belowOrEqual(endDate)
+            .toArray();
+    } catch (err) {
+        throw new Error(`Failed to fetch items: ${err}`);
+    }
+}
+
 // don't get deleted
 export const getTasksByDateRangeAPI = async (startDate: DateString, endDate: DateString): Promise<ScheduleItem[]> => {
     try {

@@ -1,85 +1,30 @@
-import Divider from "@/components/Divider";
-import PropertyTag from "@/components/PropertyTag";
-import DatePicker from "@/components/doInfo/DatePicker";
-import { DoInfo, PartialTask } from "@/types";
+import { PartialScheduleItem, PartialTask } from "@/types";
 import { useState } from "react";
+import ExpandedCreateItemBlock from "../ExpandedCreateItemBlock";
 
-const CreateTaskBlock = ({ defaultTask, onCreateTask }: {
+const CreateTaskBlock = ({ defaultTask, onCreateTask, isCondensed=false }: {
     defaultTask: PartialTask,
-    onCreateTask: (draftTask: PartialTask) => void
+    onCreateTask: (draftTask: PartialTask) => void,
+    isCondensed?: boolean
 }) => {
     const [isCreating, setIsCreating] = useState<boolean>(false);
-    const [draftTask, setDraftTask] = useState<PartialTask>(defaultTask);
 
-    const handleCancel = () => {
-        setDraftTask(defaultTask);
-        setIsCreating(false);
-    };
-    
-    const handleSubmit = () => {
-        if(draftTask.name?.trim() === "") return;
-        onCreateTask(draftTask);
-        setDraftTask(defaultTask);
-        setIsCreating(false);
-    }
-
-    const handleDoDateChange = (doInfo: DoInfo | null) => {
-        setDraftTask({...draftTask, doInfo});
+    const handleCreate = (draftItem: PartialScheduleItem) => {
+        if(draftItem.variant === "task") {
+            onCreateTask(draftItem);
+        } else {
+            throw new Error("Incorrect item variant");
+        }
     }
 
     return (
         (isCreating) ? (
-            <li className="flex flex-col w-full border border-gray-700 rounded-2xl">
-                <div className="flex flex-col px-4 p-3 gap-2">
-                    {/* task name / description */}
-                    <div className="flex flex-col">
-                        <input
-                            value={draftTask.name}
-                            onChange={e => setDraftTask({...draftTask, name: e.target.value})}
-                            placeholder="task name"
-                            className={`outline-none font-bold text-xl ${(draftTask.name !== "") ? "text-[#f3f4f6]" : ""}`}
-                        />
-                        
-                        <textarea
-                            value={draftTask.description}
-                            onChange={e => setDraftTask({...draftTask, description: e.target.value})}
-                            placeholder="description"
-                            className={`outline-none field-sizing-content text-lg ${(draftTask.name !== "") ? "text-[#f3f4f6]" : ""}`}
-                        />
-                    </div>
-
-                    {/* property tags, e.g. doInfo/priority/tags */}
-                    <div className="flex flex-row gap-2">
-                        <DatePicker 
-                            doInfo={draftTask.doInfo!}
-                            onChange={handleDoDateChange}
-                        />
-                    </div>
-                </div>
-
-                <Divider color="gray-800" />
-
-                {/* footer, e.g. parent project, cancel/create */}
-                <div className="flex flex-row p-3">
-
-                    {/* INSERT PARENT PROJECT SELECTOR */}
-
-                    <div className="ml-auto flex flex-row gap-3">
-                        <button
-                            className="flex align-center justify-center p-2 bg-gray-800 rounded-md"
-                            onClick={handleCancel}
-                        >
-                            <p className="leading-5">cancel</p>
-                        </button>
-                        <button
-                            className="flex align-center justify-center p-2 bg-gray-800 rounded-md"
-                            onClick={handleSubmit}
-                        >
-                            <p className="leading-5">add task</p>
-                        </button>
-                    </div>
-                </div>
-            </li>
+            <ExpandedCreateItemBlock
+                variant="task"
+                defaultItem={defaultTask}
+                onCreateItem={handleCreate}
+                onClose={() => setIsCreating(false)}
+            />
         ) : (
             <li
                 className="flex flex-row items-center w-full h-15 p-3 gap-3 border border-gray-800 rounded-2xl"

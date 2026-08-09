@@ -2,9 +2,19 @@ import { useScheduleItems } from '@/context/ScheduleItemContext';
 import CreateTaskBlock from '@/components/schedule-items/tasks/CreateTaskBlock';
 import ItemList from '@/components/schedule-items/ItemList';
 import { defaultTask } from '@/utils/constants';
+import CreateItemBlock from '@/components/schedule-items/CreateItemBlock';
+import { useState } from 'react';
+import { PartialScheduleItem } from '@/types';
 
 const TodoView = () => {
-  const { rootItems, createTask, toggleChecked } = useScheduleItems();
+  const [isCreating, setIsCreating] = useState<boolean>(false);
+
+  const { rootItems, createTask, createBlock, toggleChecked } = useScheduleItems();
+
+  const handleCreateItem = (draftItem: PartialScheduleItem) => {
+    if(draftItem.variant==="task") createTask(draftItem);
+    if(draftItem.variant==="block") createBlock(draftItem);
+  }
 
   return (
     <div className="flex flex-col justify-center items-center">
@@ -20,9 +30,11 @@ const TodoView = () => {
             onCompleteTask={toggleChecked} 
             withDate={true}
           />
-        <CreateTaskBlock 
-            defaultTask={defaultTask} 
-            onCreateTask={createTask}
+        <CreateItemBlock 
+          isCreating={isCreating}
+          onToggleCreating={() => setIsCreating(!isCreating)}
+          onCreateItem={handleCreateItem}
+          isCondensed={true}
         />
         </div>
     </div>

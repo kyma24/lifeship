@@ -1,4 +1,4 @@
-import { Block, BlockActions, MenuItemInfo, PartialTask, PartialBlock, DropdownOption, DateString } from "@/types";
+import { Block, BlockActions, MenuItemInfo, PartialTask, PartialBlock, DropdownOption, DateString, DayItemBuckets } from "@/types";
 import { SquarePen, Trash2 } from "lucide-react";
 import { getTimezone } from "./dateUtils";
 
@@ -32,6 +32,28 @@ export const defaultDayTask = (day: DateString): PartialTask => (
     }
   }
 );
+
+export const defaultDayBlock = (day: DateString): PartialBlock => (
+  {...defaultBlock,
+    doInfo: {
+      date: day,
+      timePeriod: null,
+      duration: null,
+      timezone: null,
+      recurrence: null
+    }
+  }
+);
+
+export const defaultDayItemBuckets: DayItemBuckets = {
+  overdue: [],
+  unsorted: [],
+  scheduled: [],
+  /*morning: [],
+  afternoon: [],
+  evening: [],*/
+  completed: []
+};
 
 export const blockMenu = (block: Block, actions: BlockActions): MenuItemInfo[] => ([
     { id: "edit", label: "edit", icon: SquarePen, onClick: actions.edit},
