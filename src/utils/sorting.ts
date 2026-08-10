@@ -16,12 +16,12 @@ function chainComparators<T>(...comparators: Comparator<T>[]): Comparator<T> {
 const byChildOrder: Comparator<ScheduleItem> = (a,b) => a.childOrder - b.childOrder;
 
 const byDoDate: Comparator<ScheduleItem> = (a,b) => {
-    if(!a.doInfo || !b.doInfo) return Number(!a.doInfo) - Number(!b.doInfo);
+    if(!a.doInfo || !b.doInfo) return Number(!b.doInfo) - Number(!a.doInfo);
     return a.doInfo.date.localeCompare(b.doInfo.date);
 };
 
 const byTimePeriod: Comparator<ScheduleItem> = (a,b) => {
-    if(!a.doInfo?.timePeriod || !b.doInfo?.timePeriod) return Number(!a.doInfo?.timePeriod) - Number(!b.doInfo?.timePeriod);
+    if(!a.doInfo?.timePeriod || !b.doInfo?.timePeriod) return Number(!b.doInfo?.timePeriod) - Number(!a.doInfo?.timePeriod);
 
     const aTP = a.doInfo.timePeriod;
     const bTP = b.doInfo.timePeriod;
