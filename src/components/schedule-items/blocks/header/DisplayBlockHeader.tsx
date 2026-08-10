@@ -12,7 +12,7 @@ const DisplayBlockHeader = ({ block, subtasks, isExpanded, onClick, actions }: {
 }) => {
 
     return (
-        <div className="flex flex-row w-full items-center">
+        <div className="flex flex-row w-full gap-2 items-center">
             {/* menu */}
             {!block.fixed && 
                 <Menu 
@@ -21,7 +21,7 @@ const DisplayBlockHeader = ({ block, subtasks, isExpanded, onClick, actions }: {
             }
 
             {/* main section */}
-            <div className="flex flex-row w-full p-3 justify-between items-center">
+            <div className="flex flex-row w-full p-1 justify-between items-center">
                 <div 
                     className="flex flex-row gap-3 items-center
                                 bg-gray-700 rounded-full"

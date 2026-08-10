@@ -7,10 +7,13 @@ const BucketHeader = ({ name, isExpanded, onExpandClick }: {
 }) => {
 
     return (
-        <div className="flex flex-row w-full items-center justify-between px-3">
+        <button
+            onClick={onExpandClick}
+            className="flex flex-row w-full items-center justify-between px-3"
+        >
             <p className="text-lg font-semibold text-left">{name}</p>
 
-            <button onClick={onExpandClick}>
+            <div>
                 { (isExpanded)
                     ? (
                         <ChevronUp
@@ -24,8 +27,8 @@ const BucketHeader = ({ name, isExpanded, onExpandClick }: {
                         />
                     )
                 }
-            </button>
-        </div>
+            </div>
+        </button>
     );
 };
 

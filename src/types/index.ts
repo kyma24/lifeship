@@ -66,6 +66,7 @@ export interface RemoteItem {
     // task
     priority?: number;
     checked: boolean;
+    checked_at?: ISOString;
 
     // block
     fixed: boolean;

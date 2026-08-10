@@ -13,6 +13,7 @@ export const createTaskFromDraft = (id: string, draftTask: PartialTask): Task =>
         tags: draftTask.tags ?? [],
         doInfo: draftTask.doInfo ?? null,
         checked: draftTask.checked ?? false,
+        checkedAt: draftTask.checkedAt ?? null,
         variant: draftTask.variant ?? "task",
         
         deletedAt: draftTask.deletedAt ?? "",

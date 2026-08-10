@@ -1,7 +1,5 @@
 import { useScheduleItems } from '@/context/ScheduleItemContext';
-import CreateTaskBlock from '@/components/schedule-items/tasks/CreateTaskBlock';
 import ItemList from '@/components/schedule-items/ItemList';
-import { defaultTask } from '@/utils/constants';
 import CreateItemBlock from '@/components/schedule-items/CreateItemBlock';
 import { useState } from 'react';
 import { PartialScheduleItem } from '@/types';

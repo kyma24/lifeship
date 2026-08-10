@@ -63,6 +63,7 @@ const CreateItemBlock = ({ date, isCreating, onToggleCreating, onCreateItem, isC
                     currentOption={(variant==="task") ? 0 : 1}
                     options={variantDropdown}
                     onOptionClick={(ind: number) => setVariant(indToVariant(ind))}
+                    closeOnClick={true}
                     className="text-gray-600"
                 />
             </div>

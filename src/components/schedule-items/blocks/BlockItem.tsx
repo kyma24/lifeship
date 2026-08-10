@@ -35,7 +35,7 @@ const BlockItem = ({ block }: {
     };
 
     return (
-        <li className="flex flex-col p-3 w-full">
+        <li className="flex flex-col px-3 w-full">
             {(isModifying)
                 ? (
                     <CreateBlockHeader
@@ -57,7 +57,7 @@ const BlockItem = ({ block }: {
             }
 
             {isExpanded && (
-                <ul className="flex flex-col w-full gap-3">
+                <ul className="flex flex-col w-full gap-2">
                     <ItemList
                         items={subtasks ?? []}
                         onCompleteTask={toggleChecked}

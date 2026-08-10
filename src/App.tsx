@@ -3,7 +3,6 @@ import "./App.css"
 
 import AppShell from './components/layout/AppShell'
 import TodoView from './pages/TodoView'
-import DayView from './pages/DayView'
 import PlanView from './pages/PlanView'
 import SettingsPage from './pages/SettingsPage'
 import TaskView from './pages/TaskView'
@@ -23,9 +22,8 @@ function App() {
           </Route>
           <Route element={<RequireAuth />}>
             <Route element={<AppShell />}>
-              <Route path="/" element={ <Navigate to="/day" replace /> } />
+              <Route path="/" element={ <Navigate to="/plan" replace /> } />
               <Route path="/todo" element={ <TodoView /> } />
-              <Route path="/day" element={ <DayView /> } />
               <Route path="/plan" element={ <PlanView /> } />
               <Route path="/settings" element={ <SettingsPage /> } />
               <Route path="/task" element={ <TaskView /> }>

@@ -64,6 +64,7 @@ export const toRemoteShape = (item: ScheduleItem): RemoteItem => (
 
         priority: (item.variant === "task") ? (item.priority ?? null) : null,
         checked: (item.variant === "task") ? item.checked : null,
+        checked_at: (item.variant === "task") ? item.checkedAt : null,
 
         fixed: (item.variant === "block") ? item.fixed : null,
 
@@ -101,7 +102,8 @@ export const toLocalShape = (remoteItem: RemoteItem): ScheduleItem => {
         return {...retItem,
             variant: "task",
             priority: remoteItem.priority,
-            checked: remoteItem.checked
+            checked: remoteItem.checked,
+            checkedAt: remoteItem.checked_at ?? null
         };
     } else {
         return {...retItem,

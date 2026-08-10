@@ -1,6 +1,6 @@
 import Dexie, { Table } from "dexie";
 import { Block, DateString, PartialBlock, PartialScheduleItem, PartialTask, ScheduleItem, Task } from "@/types";
-import { getNextOccurrence, getPrevOccurrence, nowISO } from "@/utils/dateUtils";
+import { getNextOccurrence, getPrevOccurrence, ISOToDateStr, nowISO } from "@/utils/dateUtils";
 import { useLiveQuery } from "dexie-react-hooks";
 import { compareItemsByDate } from "@/utils/taskUtils";
 import { supabase } from "@/lib/supabase";
@@ -84,42 +84,12 @@ export const toggleCheckedAPI = async (id: string) => {
     if(!task) throw new Error(`Item ${id} not found`);
     if(task.variant !== "task") throw new Error(`Item ${id} cannot be checked`);
 
-    if(!task.doInfo?.recurrence) {
-        await db.items.update(id, { 
-            checked: !task.checked,
-            updatedAt: nowISO(),
-            dirty: true
-        } as PartialTask);
-        debouncedSync();
-        return;
-    }
-
-    // check off, advance to next occurrence
-    if(!task.checked) {
-        const next = getNextOccurrence(task);
-        if(!next) return;
-
-        await db.items.update(id, {
-            doInfo: {...task.doInfo, date: next},
-            checked: false,
-            updatedAt: nowISO(),
-            dirty: true
-        } as PartialTask);
-        debouncedSync();
-    } 
-    // uncheck, return to last occurrence
-    else {
-        const prev = getPrevOccurrence(task);
-        if(!prev) return;
-
-        await db.items.update(id, {
-            doInfo: {...task.doInfo, date: prev},
-            checked: false,
-            updatedAt: nowISO(),
-            dirty: true
-        } as PartialTask);
-        debouncedSync();
-    }
+    await db.items.update(id, {
+        checked: !task.checked,
+        checkedAt: (task.checked) ? null : nowISO(),
+        updatedAt: nowISO(),
+        dirty: true
+    } as PartialTask);
 }
 
 // queries
@@ -201,6 +171,37 @@ export const getSubtaskCheckedCountAPI = (parentId: string) => (
     .and(item => (item.variant==="task" && item.checked))
     .count()
 );
+
+// on new day
+export const processCheckedAPI = async (today: DateString) => {
+    const checkedItems = await db.items.filter(it => (it.variant==="task")&&(it.checked)).toArray();
+
+    for(const task of checkedItems) {
+        if(task.variant !== "task") continue;
+        if(!task.checkedAt) continue;
+        if(ISOToDateStr(task.checkedAt) >= today) continue;
+        
+        // soft delete
+        if(!task.doInfo?.recurrence) {
+            await db.items.delete(task.id);
+            debouncedSync();
+            return;
+        }
+
+        // move to next occurrence
+        const next = getNextOccurrence(task);
+        if(!next) return;
+
+        await db.items.update(task.id, {
+            doInfo: {...task.doInfo, date: next},
+            checked: false,
+            checkedAt: null,
+            updatedAt: nowISO(),
+            dirty: true
+        } as PartialTask);
+        debouncedSync();
+    }
+}
 
 // remote
 export const pushChangesAPI = async () => {

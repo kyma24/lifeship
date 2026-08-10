@@ -3,10 +3,11 @@ import { autoUpdate, flip, FloatingNode, offset, useClick, useDismiss, useFloati
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
-export default function Dropdown({ currentOption, options, onOptionClick, className="", listClassName="" }: {
+export default function Dropdown({ currentOption, options, onOptionClick, closeOnClick=false, className="", listClassName="" }: {
     currentOption: number,
     options: DropdownOption[],
     onOptionClick: (ind: number) => void,
+    closeOnClick?: boolean,
     className?: string,
     listClassName?: string
 }) {
@@ -15,6 +16,11 @@ export default function Dropdown({ currentOption, options, onOptionClick, classN
     const toggleDropdownOpen = () => {
         setDropdownOpen(!dropdownOpen);
     };
+
+    const handleOptionClick = (ind: number) => {
+        onOptionClick(ind);
+        if(closeOnClick) toggleDropdownOpen();
+    }
 
     const nodeId = useFloatingNodeId();
 
@@ -66,7 +72,7 @@ export default function Dropdown({ currentOption, options, onOptionClick, classN
                 <DropdownList
                     currentOption={currentOption}
                     options={options}
-                    onOptionClick={onOptionClick}
+                    onOptionClick={handleOptionClick}
                     floatingRef={refs.setFloating}
                     floatingStyles={floatingStyles}
                     getFloatingProps={getFloatingProps}

@@ -2,7 +2,6 @@ import { RRule, rrulestr } from "rrule";
 import { DateComponents, DateString, DoInfo, ISOString, RecurrenceRule, RemoteItem, ScheduleItem, Task, TimeOfDay, TimePeriod } from "../types"
 import { toZonedTime } from "date-fns-tz";
 import { rruleWeekdays } from "./constants";
-import { addDays } from "date-fns";
 
 // default info
 export const getBaseDoInfo = (): DoInfo => ({
@@ -75,6 +74,11 @@ export const toDateStr = (utcDate: Date, timezone?: string): DateString => {
 
     return formattedStr as DateString;
 };
+
+export const ISOToDateStr = (isoStr: ISOString): DateString => {
+    const nativeDate = new Date(isoStr as string);
+    return toDateStr(nativeDate);
+}
 
 export const toLocalDoInfo = (remoteItem: RemoteItem): DoInfo => {
     const retInfo = {

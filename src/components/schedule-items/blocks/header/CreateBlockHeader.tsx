@@ -36,22 +36,9 @@ const CreateBlockHeader = ({ id, startBlock, onChangeBlock, onClose }: {
                     />
                 </div>
 
-                {/* property tags, e.g. doInfo/priority/tags
+                {/* property tags, e.g. tags 
                 <div className="flex flex-row gap-2">
-                    <DatePicker 
-                        doInfo={draftBlock.doInfo!}
-                        onChange={handleDoDateChange}
-                    />
-
-                    <button
-                        className="flex justify-center items-center p-2 aspect-square rounded-full border border-gray-700"
-                        onClick={handleToggleRecurrence}
-                    > 
-                        {draftBlock.doInfo?.recurrence 
-                        ? <Repeat className="size-4" strokeWidth={2} />
-                        : <RepeatOff className="size-4" strokeWidth={2} />}
-                    </button>
-                </div> */}
+                </div>*/}
             </div>
 
             <Divider color="gray-800" />

@@ -1,4 +1,4 @@
-import BucketHeader from "@/components/BucketHeader";
+import Bucket from "@/components/buckets/Bucket";
 import CreateItemBlock from "@/components/schedule-items/CreateItemBlock";
 import ItemList from "@/components/schedule-items/ItemList";
 import { useScheduleItems } from "@/context/ScheduleItemContext";
@@ -72,7 +72,7 @@ const DayView = ({ today, displayDate, fullWeekDates, fullDaySchedule, onChangeD
     const [isOverdueExpanded, setIsOverdueExpanded] = useState<boolean>(true);
     const [isAnyTimeExpanded, setIsAnyTimeExpanded] = useState<boolean>(true);
     const [isScheduledExpanded, setIsScheduledExpanded] = useState<boolean>(true);
-    const [isCompletedExpanded, setIsCompletedExpanded] = useState<boolean>(false);
+    const [isCompletedExpanded, setIsCompletedExpanded] = useState<boolean>(true);
 
     const [isAnyTimeCreating, setIsAnyTimeCreating] = useState<boolean>(false);
     const [isScheduledCreating, setIsScheduledCreating] = useState<boolean>(false);
@@ -97,77 +97,75 @@ const DayView = ({ today, displayDate, fullWeekDates, fullDaySchedule, onChangeD
             {/* scheduling */}
             <div className="flex flex-col w-full max-w-3xl overflow-y-auto p-3 gap-6">
                 { ((displayDate === today) && (fullDaySchedule.overdue.length > 0)) &&
-                    <div>
-                        <BucketHeader
-                            name={`overdue (${fullDaySchedule.overdue.length})`}
-                            isExpanded={isOverdueExpanded}
-                            onExpandClick={() => setIsOverdueExpanded(!isOverdueExpanded)}
-                        />
+                    <Bucket
+                        name={`overdue (${fullDaySchedule.overdue.length})`}
+                        isExpanded={isOverdueExpanded}
+                        onExpandToggle={() => setIsOverdueExpanded(!isOverdueExpanded)}
+                    >
                         <ItemList
                             items={fullDaySchedule.overdue}
                             onCompleteTask={toggleChecked} 
                             withDate={true}
                         />
-                    </div>
+                    </Bucket>
                 }
 
-                <div className="flex flex-col gap-1">
-                    <BucketHeader
-                        name={`any time (${fullDaySchedule.unsorted.length})`}
-                        isExpanded={isAnyTimeExpanded}
-                        onExpandClick={() => setIsAnyTimeExpanded(!isAnyTimeExpanded)}
-                    />
-                    <ItemList
-                        items={fullDaySchedule.unsorted}
-                        onCompleteTask={toggleChecked} 
-                        withDate={false}
-                    />
-                    { (fullDaySchedule.unsorted.length === 0) &&
-                        <CreateItemBlock
-                            date={displayDate}
-                            isCreating={isAnyTimeCreating}
-                            onToggleCreating={() => setIsAnyTimeCreating(!isAnyTimeCreating)}
-                            onCreateItem={handleCreateItem}
-                            isCondensed={true}
+                <Bucket
+                    name={`any time (${fullDaySchedule.unsorted.length})`}
+                    isExpanded={isAnyTimeExpanded}
+                    onExpandToggle={() => setIsAnyTimeExpanded(!isAnyTimeExpanded)}
+                    className="flex flex-col gap-2"
+                >
+                    { (fullDaySchedule.unsorted.length > 0) &&
+                        <ItemList
+                            items={fullDaySchedule.unsorted}
+                            onCompleteTask={toggleChecked} 
+                            withDate={false}
                         />
                     }
-                </div>
+                    <CreateItemBlock
+                        date={displayDate}
+                        isCreating={isAnyTimeCreating}
+                        onToggleCreating={() => setIsAnyTimeCreating(!isAnyTimeCreating)}
+                        onCreateItem={handleCreateItem}
+                        isCondensed={true}
+                    />
+                </Bucket>
 
-                <div className="flex flex-col gap-1">
-                    <BucketHeader
-                        name={`scheduled (${fullDaySchedule.scheduled.length})`}
-                        isExpanded={isScheduledExpanded}
-                        onExpandClick={() => setIsScheduledExpanded(!isScheduledExpanded)}
-                    />
-                    <ItemList
-                        items={fullDaySchedule.scheduled}
-                        onCompleteTask={toggleChecked} 
-                        withDate={false}
-                    />
-                    { (fullDaySchedule.scheduled.length === 0) &&
-                        <CreateItemBlock
-                            date={displayDate}
-                            isCreating={isScheduledCreating}
-                            onToggleCreating={() => setIsScheduledCreating(!isScheduledCreating)}
-                            onCreateItem={handleCreateItem}
-                            isCondensed={true}
+                <Bucket
+                    name={`scheduled (${fullDaySchedule.scheduled.length})`}
+                    isExpanded={isScheduledExpanded}
+                    onExpandToggle={() => setIsScheduledExpanded(!isScheduledExpanded)}
+                    className="flex flex-col gap-2"
+                >
+                    { (fullDaySchedule.scheduled.length > 0) &&
+                        <ItemList
+                            items={fullDaySchedule.scheduled}
+                            onCompleteTask={toggleChecked} 
+                            withDate={false}
                         />
                     }
-                </div>
+                    <CreateItemBlock
+                        date={displayDate}
+                        isCreating={isScheduledCreating}
+                        onToggleCreating={() => setIsScheduledCreating(!isScheduledCreating)}
+                        onCreateItem={handleCreateItem}
+                        isCondensed={true}
+                    />
+                </Bucket>
 
                 { (fullDaySchedule.completed.length > 0) &&
-                    <div>
-                        <BucketHeader
-                            name={"completed"}
-                            isExpanded={isCompletedExpanded}
-                            onExpandClick={() => setIsCompletedExpanded(!isCompletedExpanded)}
-                        />
+                    <Bucket
+                        name={"completed"}
+                        isExpanded={isCompletedExpanded}
+                        onExpandToggle={() => setIsCompletedExpanded(!isCompletedExpanded)}
+                    >
                         <ItemList
                             items={fullDaySchedule.completed}
                             onCompleteTask={toggleChecked} 
                             withDate={true}
                         />
-                    </div>
+                    </Bucket>
                 }
             </div>
         </>
