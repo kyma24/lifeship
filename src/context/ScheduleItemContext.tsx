@@ -6,6 +6,7 @@ import { createTaskFromDraft } from "@/utils/taskUtils";
 import { useLiveQuery } from "dexie-react-hooks";
 import { createBlockFromDraft } from "@/utils/blockUtils";
 import { useAuth } from "./AuthContext";
+import { todoComparator } from "@/utils/sorting";
 
 interface ItemContextProps {
     //tasks: Task[],
@@ -29,7 +30,7 @@ export const ScheduleItemProvider = ({ children }: React.PropsWithChildren) => {
 
     const rootItems = useLiveQuery(() => (
         getItemsToDisplayAPI()
-    ), []) ?? [];
+    ), [])?.sort(todoComparator) ?? [];
 
     const itemsAPI = {
         deleteItem: (id: string): void => {

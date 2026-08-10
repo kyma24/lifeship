@@ -1,5 +1,5 @@
 import { RRule, rrulestr } from "rrule";
-import { DateComponents, DateString, DoInfo, ISOString, RecurrenceRule, RemoteItem, ScheduleItem, Task, TimeOfDay, TimePeriod } from "../types"
+import { AllTimesOfDay, DateComponents, DateString, DoInfo, ISOString, RecurrenceRule, RemoteItem, ScheduleItem, Task, TimeOfDay, TimePeriod } from "../types"
 import { toZonedTime } from "date-fns-tz";
 import { rruleWeekdays } from "./constants";
 
@@ -149,6 +149,13 @@ export const toTimeComponents = (rawMinutes: number) => {
     const mins = rawMinutes % 60;
     return { hrs, mins };
 }
+
+export const getNumberTOD = (tod: TimeOfDay): number => {
+    AllTimesOfDay.forEach((val: string, ind: number) => {
+        if(val === tod) return ind;
+    });
+    return -1;
+};
 
 export const toNativeDate = (dateString: DateString, minutesDayStart?: number): Date => {
     const {year, month, day} = toDateComponents(dateString);

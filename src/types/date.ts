@@ -15,7 +15,8 @@ export type TimePeriod = null
     | { type: "exact"; minutesDayStart: number }
     | { type: "tod"; timeOfDay: TimeOfDay };
 
-export type TimeOfDay = "morning" | "afternoon" | "evening";
+export const AllTimesOfDay = ["morning", "afternoon", "evening"] as const;
+export type TimeOfDay = typeof AllTimesOfDay[number];
 
 export type DateString = string & {__brand: "DateString"};
 
