@@ -84,6 +84,12 @@ const DayView = ({ today, displayDate, fullWeekDates, fullDaySchedule, onChangeD
         if(draftItem.variant === "block") createBlock(draftItem);
     }
 
+    const handleChangeDate = (date: DateString) => {
+        onChangeDate(date);
+        setIsAnyTimeCreating(false);
+        setIsScheduledCreating(false);
+    }
+
     return (
         <>
             {/* week nav */}
@@ -91,7 +97,7 @@ const DayView = ({ today, displayDate, fullWeekDates, fullDaySchedule, onChangeD
                 today={today}
                 displayDate={displayDate}
                 fullWeekDates={fullWeekDates}
-                onChangeDate={onChangeDate}
+                onChangeDate={handleChangeDate}
             />
 
             {/* scheduling */}
@@ -126,7 +132,10 @@ const DayView = ({ today, displayDate, fullWeekDates, fullDaySchedule, onChangeD
                     <CreateItemBlock
                         date={displayDate}
                         isCreating={isAnyTimeCreating}
-                        onToggleCreating={() => setIsAnyTimeCreating(!isAnyTimeCreating)}
+                        onToggleCreating={() => {
+                            setIsAnyTimeCreating(!isAnyTimeCreating);
+                            setIsScheduledCreating(false);
+                        }}
                         onCreateItem={handleCreateItem}
                         isCondensed={true}
                     />
@@ -148,7 +157,10 @@ const DayView = ({ today, displayDate, fullWeekDates, fullDaySchedule, onChangeD
                     <CreateItemBlock
                         date={displayDate}
                         isCreating={isScheduledCreating}
-                        onToggleCreating={() => setIsScheduledCreating(!isScheduledCreating)}
+                        onToggleCreating={() => {
+                            setIsAnyTimeCreating(false);
+                            setIsScheduledCreating(!isScheduledCreating);
+                        }}
                         onCreateItem={handleCreateItem}
                         isCondensed={true}
                     />
