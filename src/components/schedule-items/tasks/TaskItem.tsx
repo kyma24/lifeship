@@ -79,7 +79,7 @@ const TaskItem = ({ task, onComplete, withDate, isSubtask }: {
                         e.stopPropagation();
                         onComplete(task.id);
                     }} 
-                    styles="ml-auto"
+                    className="ml-auto"
                 />
             </div>
             { (!isSubtask && subtasks && (subtasks.length > 0)) && 

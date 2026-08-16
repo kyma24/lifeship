@@ -16,7 +16,6 @@ export default function RecurrenceSelector({ recurrence, onChange }: {
     const [popupOpen, setPopupOpen] = useState<boolean>(false);
 
     const [recurDisplay, setRecurDisplay] = useState<string>(recurrence ? formatRRule(recurrence.rrule) : "repeat");
-    const [curRRule, setCurRRule] = useState<string | null>(recurrence?.rrule ?? null);
 
     const { openSheet, closeSheet } = useBottomSheet();
 
@@ -26,7 +25,6 @@ export default function RecurrenceSelector({ recurrence, onChange }: {
 
     const handleCustomSubmit = (byDayArr: boolean[], everyXWeeks: number) => {
         const newRRule = createWeeklyRRule(byDayArr, everyXWeeks);
-        setCurRRule(newRRule);
         onChange(newRRule);
         
         setRecurDisplay(formatRRule(newRRule));
@@ -45,7 +43,7 @@ export default function RecurrenceSelector({ recurrence, onChange }: {
                 }
             );
         } else {
-            setCurRRule(recurrenceDropdown[ind].meta ?? null);
+            onChange(recurrenceDropdown[ind].meta ?? null);
             togglePopupOpen();
         }
     };

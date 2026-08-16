@@ -90,6 +90,8 @@ const DayView = ({ today, displayDate, fullWeekDates, fullDaySchedule, onChangeD
         setIsScheduledCreating(false);
     }
 
+    console.log(fullDaySchedule);
+
     return (
         <>
             {/* week nav */}

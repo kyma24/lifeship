@@ -1,5 +1,5 @@
 import { RRule, rrulestr } from "rrule";
-import { AllTimesOfDay, DateComponents, DateString, DoInfo, ISOString, RecurrenceRule, RemoteItem, ScheduleItem, Task, TimeOfDay, TimePeriod } from "../types"
+import { AllTimesOfDay, DateComponents, DateString, DoInfo, ISOString, RecurrenceRule, RemoteException, RemoteItem, ScheduleItem, Task, TimeOfDay, TimePeriod } from "../types"
 import { toZonedTime } from "date-fns-tz";
 import { rruleWeekdays } from "./constants";
 
@@ -21,8 +21,6 @@ export const willOccurOn = (item: ScheduleItem, date: DateString): boolean => {
         dtstart: toNativeDate(item.doInfo.date)
     });
 
-    console.log(rrule);
-
     const targetStart = getStartOfDay(toNativeDate(date));
     const targetEnd = getEndOfDay(targetStart);
 
@@ -31,14 +29,20 @@ export const willOccurOn = (item: ScheduleItem, date: DateString): boolean => {
 }
 
 export const getNextOccurrence = (task: Task): DateString | null => {
-    if(!task.doInfo?.recurrence) return null;
+    if(!task.doInfo?.recurrence?.rrule) return null;
 
     const ruleString = RRule.parseString(task.doInfo.recurrence.rrule);
     const date = toNativeDate(task.doInfo.date);
     ruleString.dtstart = date;
     
     const rule = new RRule(ruleString);
-    const next = rule.after(date);
+
+    // account for overdue
+    const today = getTodayString();
+    const next = rule.after((task.doInfo.date < today)
+        ? getToday()
+        : date
+    );
 
     return (next) ? toDateStr(next) : null;
 };
@@ -80,7 +84,7 @@ export const ISOToDateStr = (isoStr: ISOString): DateString => {
     return toDateStr(nativeDate);
 }
 
-export const toLocalDoInfo = (remoteItem: RemoteItem): DoInfo => {
+export const toLocalDoInfo = (remoteItem: RemoteItem | RemoteException): DoInfo => {
     const retInfo = {
         date: remoteItem.do_date,
         duration: remoteItem.duration ?? null,

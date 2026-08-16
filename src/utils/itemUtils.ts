@@ -1,7 +1,7 @@
-import { DayItemBuckets, ISOString, RemoteItem, ScheduleItem, TimePeriod } from "@/types";
+import { DateString, DayItemBuckets, ISOString, RemoteItem, ScheduleItem, TimePeriod } from "@/types";
 import { getTodayString, toLocalDoInfo } from "./dateUtils";
 
-export const sortToDayItemBuckets = (items: ScheduleItem[]): DayItemBuckets => {
+export const sortToDayItemBuckets = (date: DateString, items: ScheduleItem[]): DayItemBuckets => {
     const itemBuckets: DayItemBuckets = {
         overdue: [],
         unsorted: [],
@@ -12,11 +12,16 @@ export const sortToDayItemBuckets = (items: ScheduleItem[]): DayItemBuckets => {
         completed: []
     };
 
+    const today = getTodayString();
+
     for(const item of items) {
+        // checked
         if((item.variant === "task") && item.checked) 
             itemBuckets.completed.push(item);
-        else if((item.doInfo?.date ?? "") < getTodayString())
+        // overdue
+        else if((date === today) && ((item.doInfo?.date ?? "") < today))
             itemBuckets.overdue.push(item);
+        // time period
         else if(item.doInfo?.timePeriod)
             itemBuckets.scheduled.push(item);
         /*else if(item.doInfo?.timePeriod && (item.doInfo.timePeriod.type === "exact")) {
@@ -34,13 +39,14 @@ export const sortToDayItemBuckets = (items: ScheduleItem[]): DayItemBuckets => {
             else if(timeOfDay === "afternoon") itemBuckets.afternoon.push(item);
             else itemBuckets.evening.push(item);
         }*/
+        // unsorted
         else itemBuckets.unsorted.push(item);
     }
 
     return itemBuckets;
 }
 
-export const toRemoteShape = (item: ScheduleItem): RemoteItem => (
+export const toRemoteItemShape = (item: ScheduleItem): RemoteItem => (
     {
         id: item.id,
         variant: item.variant,
@@ -76,7 +82,7 @@ export const toRemoteShape = (item: ScheduleItem): RemoteItem => (
     } as RemoteItem
 );
 
-export const toLocalShape = (remoteItem: RemoteItem): ScheduleItem => {
+export const toLocalItemShape = (remoteItem: RemoteItem): ScheduleItem => {
     const retItem = {
         id: remoteItem.id,
         name: remoteItem.name,

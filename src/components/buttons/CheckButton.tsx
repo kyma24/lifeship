@@ -1,14 +1,14 @@
 import { MouseEventHandler } from "react";
 
-const CheckButton = ({checked, onChange, styles}: {
+const CheckButton = ({checked, onChange, className}: {
     checked: boolean,
     onChange: MouseEventHandler<HTMLButtonElement>,
-    styles: string
+    className?: string
 }) => {
     return (
         <button
             onClick={onChange}
-            className={`flex justify-center items-center p-4 ${styles}`}
+            className={`flex justify-center items-center p-4 ${className ?? ""}`}
         >
             <div
                 className={

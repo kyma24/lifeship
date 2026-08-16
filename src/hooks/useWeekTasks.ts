@@ -30,9 +30,11 @@ const useWeekTasks = (date: DateString) => {
         const itemsByDay: Record<DateString, DayItemBuckets> = {};
 
         for(const date of weekDates) {
-            itemsByDay[date] = sortToDayItemBuckets(items.filter(
+            itemsByDay[date] = sortToDayItemBuckets(date, items.filter(
                 item => (!item.deletedAt) && (item.doInfo?.date) && (
+                    // overdue
                     ((date === getTodayString()) && (item.doInfo.date < date))
+                    // recurring
                     || willOccurOn(item, date)
                 )
             ));

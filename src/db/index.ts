@@ -1,12 +1,13 @@
 import Dexie, { Table } from "dexie";
-import { Block, DateString, PartialBlock, PartialScheduleItem, PartialTask, ScheduleItem, Task } from "@/types";
+import { Block, DateString, PartialBlock, PartialScheduleItem, PartialTask, RecurrenceException, ScheduleItem, Task } from "@/types";
 import { getNextOccurrence, getPrevOccurrence, ISOToDateStr, nowISO } from "@/utils/dateUtils";
 import { useLiveQuery } from "dexie-react-hooks";
 import { compareItemsByDate } from "@/utils/taskUtils";
 import { supabase } from "@/lib/supabase";
-import { toLocalShape, toRemoteShape } from "@/utils/itemUtils";
+import { toLocalItemShape, toRemoteItemShape } from "@/utils/itemUtils";
 import { debouncedSync, setLastSyncedAt } from "@/utils/backend/sync";
 import { getCurrentUserId } from "@/utils/backend/auth";
+import { toLocalExceptionShape, toRemoteExceptionShape } from "@/utils/exceptionUtils";
 
 interface SyncStateRec {
     key: string;
@@ -15,12 +16,14 @@ interface SyncStateRec {
 
 class AppDatabase extends Dexie {
     items!: Table<ScheduleItem, string>;
+    exceptions!: Table<RecurrenceException, string>;
     syncState!: Table<SyncStateRec, string>;
 
     constructor() {
         super("AppDatabase");
         this.version(1).stores ({
             items: "id, parentId, doInfo.date, variant, [variant+checked], [parentId+deletedAt], [doInfo.date+deletedAt]",
+            exceptions: "id, itemId, effectDate",
             syncState: "key"
         });
     }
@@ -72,6 +75,14 @@ export const deleteItemAPI = async (id: string) => {
         .anyOf(toDeleteIds)
         //.delete();
         .modify({ 
+            updatedAt: nowISO(),
+            deletedAt: nowISO(),
+            dirty: true
+        });
+    await db.exceptions
+        .where("itemId")
+        .anyOf(toDeleteIds)
+        .modify({
             updatedAt: nowISO(),
             deletedAt: nowISO(),
             dirty: true
@@ -182,7 +193,7 @@ export const processCheckedAPI = async (today: DateString) => {
         if(ISOToDateStr(task.checkedAt) >= today) continue;
         
         // soft delete
-        if(!task.doInfo?.recurrence) {
+        if(!task.doInfo?.recurrence?.rrule) {
             await db.items.delete(task.id);
             debouncedSync();
             return;
@@ -205,11 +216,13 @@ export const processCheckedAPI = async (today: DateString) => {
 
 // remote
 export const pushChangesAPI = async () => {
-    const dirtyItems = await db.items.filter(it => it.dirty).toArray();
     const userId = await getCurrentUserId();
 
+    // items
+    const dirtyItems = await db.items.filter(it => it.dirty).toArray();
+
     for(const item of dirtyItems) {
-        const remoteItem = { ...toRemoteShape(item), user_id: userId };
+        const remoteItem = { ...toRemoteItemShape(item), user_id: userId };
 
         const { error } = await supabase
             .from("items")
@@ -222,11 +235,30 @@ export const pushChangesAPI = async () => {
             console.log(error);
         }
     }
+
+    // exceptions
+    const dirtyExceptions = await db.exceptions.filter(it => it.dirty).toArray();
+
+    for(const ex of dirtyExceptions) {
+        const remoteException = { ...toRemoteExceptionShape(ex), user_id: userId};
+
+        const { error } = await supabase
+            .from("exceptions")
+            .upsert(remoteException);
+        
+        if(!error) {
+            await db.exceptions.update(ex.id, { dirty: false });
+            console.log("success");
+        } else {
+            console.log(error);
+        }
+    }
 }
 
 export const pullChangesAPI = async (lastSyncedAt: string) => {
     const userId = await getCurrentUserId();
 
+    // items
     const { data: remoteItems } = await supabase
         .from("items")
         .select("*")
@@ -243,7 +275,28 @@ export const pullChangesAPI = async (lastSyncedAt: string) => {
         const local = await db.items.get(remote.id);
         // last write wins: local less recent
         if(!local || (remote.updated_at > local.updatedAt)) {
-            await db.items.put(toLocalShape(remote)!);
+            await db.items.put(toLocalItemShape(remote)!);
+        }
+    }
+
+    // exceptions
+    const { data: remoteExceptions } = await supabase
+        .from("exceptions")
+        .select("*")
+        .eq("user_id", userId)
+        .gt("updated_at", lastSyncedAt);
+
+    for(const remote of (remoteExceptions ?? [])) {
+        // remove dead rows
+        if(remote.deleted_at) {
+            await db.exceptions.delete(remote.id);
+            continue;
+        }
+
+        const local = await db.exceptions.get(remote.id);
+        // last write wins: local less recent
+        if(!local || (remote.updated_at > local.updatedAt)) {
+            await db.exceptions.put(toLocalExceptionShape(remote)!);
         }
     }
 }
@@ -251,19 +304,37 @@ export const pullChangesAPI = async (lastSyncedAt: string) => {
 export const hardPullAPI = async () => {
     const userId = await getCurrentUserId();
 
-    const { data: allRemoteItems, error } = await supabase
+    // items
+    const { data: allRemoteItems, error: itemsError } = await supabase
         .from("items")
         .select("*")
         .eq("user_id", userId)
         // don't repull deleted items
         .is("deleted_at", null);
     
-    if(error) throw error;
+    if(itemsError) throw itemsError;
 
     await db.transaction("rw", db.items, async () => {
         await db.items.clear();
         await db.items.bulkPut(
-            allRemoteItems.map(item => toLocalShape(item))
+            allRemoteItems.map(item => toLocalItemShape(item))
+        );
+    });
+
+    // exceptions
+    const { data: allRemoteExceptions, error: exceptionsError } = await supabase
+        .from("exceptions")
+        .select("*")
+        .eq("user_id", userId)
+        // don't repull deleted items
+        .is("deleted_at", null);
+    
+    if(exceptionsError) throw exceptionsError;
+    
+    await db.transaction("rw", db.exceptions, async () => {
+        await db.exceptions.clear();
+        await db.exceptions.bulkPut(
+            allRemoteExceptions.map(ex => toLocalExceptionShape(ex))
         );
     });
 

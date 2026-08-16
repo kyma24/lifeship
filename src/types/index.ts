@@ -32,16 +32,6 @@ export interface BaseItem {
 export type ScheduleItem = Task | Block;
 export type PartialScheduleItem = PartialTask | PartialBlock;
 
-export interface DayItemBuckets {
-    overdue: ScheduleItem[];
-    unsorted: ScheduleItem[];
-    scheduled: ScheduleItem[];
-    morning?: ScheduleItem[];
-    afternoon?: ScheduleItem[];
-    evening?: ScheduleItem[];
-    completed: ScheduleItem[];
-}
-
 export interface RemoteItem {
     id: string;
     variant: "task" | "block";
