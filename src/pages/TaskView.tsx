@@ -3,15 +3,16 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom'
 import DatePicker from '@/components/doInfo/DatePicker';
 
-import { Trash2, UndoDot, Save, Ellipsis, X } from 'lucide-react';
-import CheckButton from '@/components/buttons/CheckButton';
-import { DoInfo, PartialTask } from '@/types';
+import { Trash2, UndoDot, Ellipsis, X } from 'lucide-react';
+import CheckTaskButton from '@/components/buttons/CheckTaskButton';
+import { DateString, DoInfo, PartialTask } from '@/types';
 import { isPartialTaskDifferent } from '@/utils/taskUtils';
 import { defaultTask } from '@/utils/constants';
 import ItemList from '@/components/schedule-items/ItemList';
 import useSubtasks from '@/hooks/useSubtasks';
 import CreateTaskBlock from '@/components/schedule-items/tasks/CreateTaskBlock';
 import { useLiveQuery } from 'dexie-react-hooks';
+import SaveButton from '@/components/buttons/SaveButton';
 
 const TaskView = () => {
     const [modTask, setModTask] = useState<PartialTask>(null!);
@@ -25,7 +26,7 @@ const TaskView = () => {
     
     const navigate = useNavigate();
 
-    const { createTask, editTask, deleteItem, toggleChecked, getItemById } = useScheduleItems();
+    const { createTask, editTaskAll, deleteItem, toggleChecked, getItemById } = useScheduleItems();
 
     const { subtasks } = useSubtasks(id!);
 
@@ -47,7 +48,7 @@ const TaskView = () => {
     // plan: open dropdown to change single/all
     const handleSubmit = () => {
         if(modTask.name?.trim() === "") return;
-        editTask(id!, modTask);
+        editTaskAll(id!,modTask);
     }
 
     const handleNameChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -141,7 +142,7 @@ const TaskView = () => {
                     </div>
 
                     {/* check button */}
-                    <CheckButton
+                    <CheckTaskButton
                         checked={modTask.checked ?? false}
                         onChange={(e) => {
                             e.stopPropagation();
@@ -183,12 +184,10 @@ const TaskView = () => {
                     <UndoDot strokeWidth={2} />
                 </button>
                 {/* save */}
-                <button
-                    className={`px-3 py-1.5 border-2 rounded-full transition-colors duration-200 ease-in-out ${hasChanged ? "bg-green-600 text-[#f3f4f6] border-green-500" : "bg-gray-700 border-gray-600"}`}
-                    onClick={hasChanged ? handleSubmit : undefined}
-                >
-                    <Save strokeWidth={2} />
-                </button>
+                <SaveButton
+                    onSubmit={handleSubmit}
+                    isActive={hasChanged}
+                />
             </div>
 
             {/* subtasks */}

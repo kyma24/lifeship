@@ -1,47 +1,45 @@
-import { getItemsBeforeDateAPI, getTasksByDateRangeAPI } from "@/db";
-import { DateString, DayItemBuckets, ScheduleItem } from "@/types";
+import { useScheduleItems } from "@/context/ScheduleItemContext";
+import { DateString, DayItemBuckets, Task } from "@/types";
 import { getEndOfWeekStr, getFullWeekStrs, getStartOfWeekStr, getTodayString, willOccurOn } from "@/utils/dateUtils";
+import { mergeItemsWithExceptions } from "@/utils/exceptionUtils";
 import { sortToDayItemBuckets } from "@/utils/itemUtils";
-import { useLiveQuery } from "dexie-react-hooks";
 import { useMemo } from "react";
 
 const useWeekTasks = (date: DateString) => {
-    const startDate = getStartOfWeekStr(date);
+    const startOfWeek = getStartOfWeekStr(date);
+    const today = getTodayString();
+
+    const startDate = (today > startOfWeek) ? today : startOfWeek;
     const endDate = getEndOfWeekStr(date);
 
-    const weekItems = useLiveQuery(
-        () => getTasksByDateRangeAPI(startDate, endDate),
-        [date]
-    );
+    // get all items & exceptions from context
+    const { rootItems, rootExceptions } = useScheduleItems();
 
-    /*const itemsByDay = useMemo(() => {
-        return (weekItems ?? []).reduce((acc, item) => {
-            if(item.doInfo?.date) {
-                const date: DateString = item.doInfo.date;
-                acc.set(date, [...(acc.get(date) || []), item]);
-            }
-            return acc;
-        }, new Map<DateString, ScheduleItem[]>());
-    }, [weekItems]);*/
+    const displayItemsInRange: Task[] = useMemo(() => 
+        mergeItemsWithExceptions(rootItems, rootExceptions, startDate, endDate, today)
+    , [rootItems, rootExceptions, startDate, endDate, today]);
 
-    const itemsByDay: Record<DateString, DayItemBuckets> = useLiveQuery(async () => {
+    const itemsByDay: Record<DateString, DayItemBuckets> = useMemo(() => {
         const weekDates = getFullWeekStrs(startDate);
-        const items = await getItemsBeforeDateAPI(endDate);
-        const itemsByDay: Record<DateString, DayItemBuckets> = {};
+        const res: Record<DateString, DayItemBuckets> = {};
 
         for(const date of weekDates) {
-            itemsByDay[date] = sortToDayItemBuckets(date, items.filter(
-                item => (!item.deletedAt) && (item.doInfo?.date) && (
-                    // overdue
-                    ((date === getTodayString()) && (item.doInfo.date < date))
-                    // recurring
-                    || willOccurOn(item, date)
+            res[date] = sortToDayItemBuckets(date, 
+                // filter out for date
+                displayItemsInRange.filter(
+                    item => (!item.deletedAt) && (item.doInfo?.date) && (
+                        // overdue
+                        ((date === today) && (item.doInfo.date < date))
+                        /* recurring
+                        || willOccurOn(item, date)*/
+                        || (item.doInfo.date === date)
+                    )
                 )
-            ));
+            );
         }
 
-        return itemsByDay;
-    }, [startDate]) ?? {};
+        return res;
+    }, [displayItemsInRange]) ?? {};
 
     return itemsByDay;
 }

@@ -42,7 +42,8 @@ export const isPartialTaskDifferent = (task: Task, modTask: PartialTask): boolea
         (JSON.stringify(task.tags) !== JSON.stringify(modTask.tags)) ||
         (!isDoInfoEqual(task.doInfo ?? null, modTask.doInfo ?? null)) ||
         (task.color !== modTask.color) ||
-        (task.icon !== modTask.icon)
+        (task.icon !== modTask.icon) ||
+        (task.checked !== modTask.checked)
     );
     
     /*const {id, ...noIdTask} = task;

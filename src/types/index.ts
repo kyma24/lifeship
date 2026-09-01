@@ -6,6 +6,7 @@ export * from "./task";
 export * from "./date";
 export * from "./block";
 export * from "./misc";
+export * from "./exception";
 
 export interface BaseItem {
     id: string;

@@ -14,7 +14,7 @@ const ItemList = ({ items, onCompleteTask, withDate=true, isSubtask=false }: {
       case "task":
         return (
           <TaskItem
-            key={item.id} 
+            key={`${item.id}::${item.exceptionId}`} 
             task={item}
             onComplete={onCompleteTask} 
             withDate={withDate}

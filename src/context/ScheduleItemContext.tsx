@@ -1,6 +1,6 @@
-import { createContext, useContext } from "react";
-import { createItemAPI, deleteItemAPI, getItemByIdAPI, getItemsToDisplayAPI, getTasksByDateRangeAPI, getTasksByDayAPI, toggleCheckedAPI, updateItemAPI } from "@/db";
-import { Block, DateString, PartialBlock, PartialTask, ScheduleItem, Task } from "@/types";
+import { createContext, useContext, useMemo } from "react";
+import { createItemAPI, deleteItemAPI, getItemByIdAPI, getItemsToDisplayAPI, getTasksByDateRangeAPI, getTasksByDayAPI, toggleCheckedAPI, toggleCheckedEXAPI, updateItemAPI, updateTaskAPI, useExceptionsQueryAll } from "@/db";
+import { Block, DateString, PartialBlock, PartialTask, RecurrenceException, ScheduleItem, Task } from "@/types";
 import { nanoid } from "nanoid";
 import { createTaskFromDraft } from "@/utils/taskUtils";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -11,12 +11,15 @@ import { todoComparator } from "@/utils/sorting";
 interface ItemContextProps {
     //tasks: Task[],
     rootItems: ScheduleItem[],
+    rootExceptions: RecurrenceException[],
     createTask: (task: PartialTask) => void,
     createBlock: (block: PartialBlock) => void,
-    editTask: (id: string, modTask: PartialTask) => void,
+    editTaskAll: (id: string, modTask: PartialTask) => void,
+    editTaskOne: (id: string, exceptionId: string, effectDate: DateString, modTask: PartialTask) => void,
     editBlock: (id: string, modBlock: PartialBlock) => void,
     deleteItem: (id: string) => void,
     toggleChecked: (id: string) => void,
+    toggleCheckedEX: (id: string, date: DateString) => void,
     getItemById: (id: string) => Promise<ScheduleItem | undefined>,
     getTasksByDay: (day: DateString) => Promise<ScheduleItem[]>,
     getTasksByDateRange: (startDate: DateString, endDate: DateString) => Promise<ScheduleItem[]>,
@@ -31,6 +34,8 @@ export const ScheduleItemProvider = ({ children }: React.PropsWithChildren) => {
     const rootItems = useLiveQuery(() => (
         getItemsToDisplayAPI()
     ), [])?.sort(todoComparator) ?? [];
+
+    const rootExceptions = useExceptionsQueryAll() ?? [];
 
     const itemsAPI = {
         deleteItem: (id: string): void => {
@@ -48,12 +53,26 @@ export const ScheduleItemProvider = ({ children }: React.PropsWithChildren) => {
             createItemAPI(validTask);
         },
 
-        editTask: (id: string, modTask: PartialTask): void => {
-            updateItemAPI(id, modTask);
+        editTaskAll: (id: string, modTask: PartialTask): void => {
+            updateTaskAPI(id, modTask);
+        },
+
+        editTaskOne: (id: string, exceptionId: string, effectDate: DateString, modTask: PartialTask): void => {
+            // no exception on display task?
+            if(!exceptionId) {
+                const newExId: string = nanoid();
+                updateTaskAPI(id, modTask, newExId, effectDate);
+            } else {
+                updateTaskAPI(id, modTask, exceptionId, effectDate);
+            }
         },
 
         toggleChecked: (id: string): void => {
             toggleCheckedAPI(id);
+        },
+
+        toggleCheckedEX: (id: string, date: DateString): void => {
+            toggleCheckedEXAPI(id, date);
         },
 
         getTasksByDay: (day: DateString): Promise<ScheduleItem[]> => getTasksByDayAPI(day),
@@ -75,7 +94,7 @@ export const ScheduleItemProvider = ({ children }: React.PropsWithChildren) => {
     }
 
     return (
-        <ItemContext.Provider value={{rootItems, ...itemsAPI, ...tasksAPI, ...blocksAPI}}>
+        <ItemContext.Provider value={{rootItems, rootExceptions, ...itemsAPI, ...tasksAPI, ...blocksAPI}}>
             {children}
         </ItemContext.Provider>
     );

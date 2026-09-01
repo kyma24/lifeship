@@ -10,8 +10,12 @@ import { LoginScreen } from './pages/auth/LoginScreen'
 import RequireAuth from './components/wrappers/RequireAuth'
 import RedirectOnAuth from './components/wrappers/RedirectOnAuth'
 import Providers from './context/Providers'
+import useCurrentDate from './hooks/useCurrentDate'
 
 function App() {
+
+  // get current date on load
+  const today = useCurrentDate();
 
   return (
     <Providers>

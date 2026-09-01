@@ -82,9 +82,14 @@ export const toDateStr = (utcDate: Date, timezone?: string): DateString => {
 export const ISOToDateStr = (isoStr: ISOString): DateString => {
     const nativeDate = new Date(isoStr as string);
     return toDateStr(nativeDate);
-}
+};
 
-export const toLocalDoInfo = (remoteItem: RemoteItem | RemoteException): DoInfo => {
+export const dateStrToISO = (str: DateString): ISOString => {
+    const nativeDate = toNativeDate(str);
+    return nativeDate.toISOString() as ISOString;
+};
+
+export const toLocalDoInfo = (remoteItem: RemoteItem): DoInfo => {
     const retInfo = {
         date: remoteItem.do_date,
         duration: remoteItem.duration ?? null,
@@ -432,8 +437,8 @@ const getYesterday = (): Date => {
     return ystr;
 };
 
-const getStartOfDay = (today: Date): Date => new Date(new Date(today).setHours(0,0,0,0));
-const getEndOfDay = (today: Date): Date => new Date(new Date(today).setHours(23,59,59,999));
+export const getStartOfDay = (today: Date): Date => new Date(new Date(today).setHours(0,0,0,0));
+export const getEndOfDay = (today: Date): Date => new Date(new Date(today).setHours(23,59,59,999));
 
 const getWeekday = (date: Date): string => date.toLocaleDateString("en-US", { weekday: "long" });
 const getMonthAbbr = (date: Date): string => date.toLocaleDateString("en-US", { month: "short" });

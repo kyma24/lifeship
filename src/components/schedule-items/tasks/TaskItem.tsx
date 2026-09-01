@@ -1,4 +1,4 @@
-import CheckButton from "@/components/buttons/CheckButton";
+import CheckTaskButton from "@/components/buttons/CheckTaskButton";
 import Divider from "@/components/Divider";
 import SubtaskDropdown from "@/components/schedule-items/SubtaskDropdown";
 import useSubtaskCompletion from "@/hooks/useSubtaskCompletion";
@@ -73,7 +73,7 @@ const TaskItem = ({ task, onComplete, withDate, isSubtask }: {
                         }
                     </div>
                 </div>
-                <CheckButton
+                <CheckTaskButton
                     checked={task.checked ?? false} 
                     onChange={(e) => {
                         e.stopPropagation();

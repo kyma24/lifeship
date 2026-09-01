@@ -77,7 +77,7 @@ const DayView = ({ today, displayDate, fullWeekDates, fullDaySchedule, onChangeD
     const [isAnyTimeCreating, setIsAnyTimeCreating] = useState<boolean>(false);
     const [isScheduledCreating, setIsScheduledCreating] = useState<boolean>(false);
 
-    const { createTask, createBlock, toggleChecked } = useScheduleItems();
+    const { createTask, createBlock, toggleChecked, toggleCheckedEX } = useScheduleItems();
 
     const handleCreateItem = (draftItem: PartialScheduleItem) => {
         if(draftItem.variant === "task") createTask(draftItem);
@@ -90,7 +90,9 @@ const DayView = ({ today, displayDate, fullWeekDates, fullDaySchedule, onChangeD
         setIsScheduledCreating(false);
     }
 
-    console.log(fullDaySchedule);
+    const handleToggleChecked = (id: string) => {
+        toggleCheckedEX(id, displayDate);
+    }
 
     return (
         <>
@@ -112,7 +114,7 @@ const DayView = ({ today, displayDate, fullWeekDates, fullDaySchedule, onChangeD
                     >
                         <ItemList
                             items={fullDaySchedule.overdue}
-                            onCompleteTask={toggleChecked} 
+                            onCompleteTask={handleToggleChecked} 
                             withDate={true}
                         />
                     </Bucket>
@@ -127,7 +129,7 @@ const DayView = ({ today, displayDate, fullWeekDates, fullDaySchedule, onChangeD
                     { (fullDaySchedule.unsorted.length > 0) &&
                         <ItemList
                             items={fullDaySchedule.unsorted}
-                            onCompleteTask={toggleChecked} 
+                            onCompleteTask={handleToggleChecked} 
                             withDate={false}
                         />
                     }
@@ -152,7 +154,7 @@ const DayView = ({ today, displayDate, fullWeekDates, fullDaySchedule, onChangeD
                     { (fullDaySchedule.scheduled.length > 0) &&
                         <ItemList
                             items={fullDaySchedule.scheduled}
-                            onCompleteTask={toggleChecked} 
+                            onCompleteTask={handleToggleChecked} 
                             withDate={false}
                         />
                     }
@@ -176,7 +178,7 @@ const DayView = ({ today, displayDate, fullWeekDates, fullDaySchedule, onChangeD
                     >
                         <ItemList
                             items={fullDaySchedule.completed}
-                            onCompleteTask={toggleChecked} 
+                            onCompleteTask={handleToggleChecked} 
                             withDate={true}
                         />
                     </Bucket>

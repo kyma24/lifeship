@@ -1,0 +1,19 @@
+
+alter table exceptions
+    drop column name,
+    drop column description,
+    drop column parent_id,
+    drop column child_order,
+    drop column tags,
+    drop column do_date,
+    drop column duration,
+    drop column timezone,
+    drop column time_period_type,
+    drop column exact_mins_date_start,
+    drop column time_of_day,
+    drop column rrule,
+    drop column end_date,
+    drop column color,
+    drop column icon,
+    drop column priority,
+    drop column checked;

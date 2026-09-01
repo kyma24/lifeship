@@ -1,5 +1,5 @@
 import Dexie, { Table } from "dexie";
-import { Block, DateString, PartialBlock, PartialScheduleItem, PartialTask, RecurrenceException, ScheduleItem, Task } from "@/types";
+import { Block, DateString, ItemOverrides, PartialBlock, PartialScheduleItem, PartialTask, RecurrenceException, ScheduleItem, Task } from "@/types";
 import { getNextOccurrence, getPrevOccurrence, ISOToDateStr, nowISO } from "@/utils/dateUtils";
 import { useLiveQuery } from "dexie-react-hooks";
 import { compareItemsByDate } from "@/utils/taskUtils";
@@ -8,6 +8,9 @@ import { toLocalItemShape, toRemoteItemShape } from "@/utils/itemUtils";
 import { debouncedSync, setLastSyncedAt } from "@/utils/backend/sync";
 import { getCurrentUserId } from "@/utils/backend/auth";
 import { toLocalExceptionShape, toRemoteExceptionShape } from "@/utils/exceptionUtils";
+import { nanoid } from "nanoid";
+import { getDeviceId } from "@/utils/backend/device";
+import { isEqual } from "lodash";
 
 interface SyncStateRec {
     key: string;
@@ -23,13 +26,21 @@ class AppDatabase extends Dexie {
         super("AppDatabase");
         this.version(1).stores ({
             items: "id, parentId, doInfo.date, variant, [variant+checked], [parentId+deletedAt], [doInfo.date+deletedAt]",
-            exceptions: "id, itemId, effectDate",
+            exceptions: "id, itemId, effectDate, [itemId+effectDate]",
             syncState: "key"
         });
     }
 }
 
 export const db = new AppDatabase();
+
+const idNotInExceptions = async (id: string) => {
+    const { count, error } = await supabase
+        .from("exceptions")
+        .select("id", { count: "exact", head: true })
+        .eq("id", id);
+    return error || count==0;
+};
 
 // local
 
@@ -42,12 +53,48 @@ export const createItemAPI = async (item: ScheduleItem) => {
     debouncedSync();
 }
 
-export const updateItemAPI = async (id: string, modItem: PartialScheduleItem) => {
+export const updateItemAPI = async (
+    id: string, 
+    modItem: PartialScheduleItem
+) => {
     await db.items.update(id, {...modItem,
         updatedAt: nowISO(),
         dirty: true
     });
+
     debouncedSync();
+}
+
+export const updateTaskAPI = async (
+    id: string, 
+    modItem: PartialScheduleItem, 
+    exceptionId?: string,
+    effectDate?: DateString
+) => {
+    // handle exception
+    if(exceptionId) {
+        if(!effectDate) return;
+
+        const item = await db.items.get(id);
+        const overrides: Record<string, unknown> = {};
+        if(item) {
+            // get changed properties
+            for(const prop in Object.keys(modItem)) {
+                if(isEqual(
+                    modItem[prop as keyof PartialScheduleItem],
+                    item[prop as keyof ScheduleItem]
+                )) continue;
+
+                overrides[prop as keyof ItemOverrides]=(modItem as Record<string, unknown>)[prop];
+            }
+        }
+
+        // create or update exception
+        const isNewException = await idNotInExceptions(exceptionId);
+        if(isNewException) createExceptionAPI(effectDate,id,"modified",overrides);
+        else updateExceptionAPI(exceptionId, "modified", overrides);
+    }
+    else updateItemAPI(id, modItem);
 }
 
 const getDescendantIds = async (rootId: string) => {
@@ -90,6 +137,85 @@ export const deleteItemAPI = async (id: string) => {
     debouncedSync();
 }
 
+const createExceptionAPI = async (date: DateString, taskId: string, variant: "modified" | "deleted", overrides?: ItemOverrides) => {
+    const userId = await getCurrentUserId();
+    if(!userId) return;
+
+    const id: string = nanoid();
+    await db.exceptions.add({
+        id,
+        itemId: taskId,
+        effectDate: date,
+        overrides: overrides ?? {},
+
+        occurrenceIndex: 0,
+        variant,
+
+        deletedAt: null,
+        createdAt: nowISO(),
+        updatedAt: nowISO(),
+        deviceId: getDeviceId(),
+        userId,
+        
+        dirty: true,
+    });
+    debouncedSync();
+};
+
+const updateExceptionAPI = async (id: string, variant: "modified" | "deleted", overrides?: ItemOverrides) => {
+    if(variant === "modified")
+        await db.exceptions.update(id, { 
+            overrides: overrides,
+            updatedAt: nowISO(),
+            dirty: true
+        });
+    if(variant === "deleted") {
+        await db.exceptions.update(id, {
+            variant: "deleted",
+            updatedAt: nowISO(),
+            dirty: true
+        });
+    }
+    debouncedSync();
+};
+
+const deleteExceptionAPI = async (id: string) => {
+    await db.exceptions.update(id, {
+        updatedAt: nowISO(),
+        deletedAt: nowISO(),
+        dirty: true
+    });
+}
+
+export const toggleCheckedEXAPI = async (taskId: string, date: DateString) => {
+    const curExceptions = await db.exceptions
+        .where("[itemId+effectDate]")
+        .equals([taskId,date])
+        .toArray();
+    // TO BE IMPROVED: assumes only one exception
+    const taskException = (curExceptions.length > 0) ? curExceptions[0] : null;
+
+    const task = await db.items.get(taskId);
+    if(!task) throw new Error(`Item ${taskId} not found`);
+    if(task.variant !== "task") throw new Error(`Item ${taskId} cannot be checked`);
+
+    if(!taskException) {
+        // create if no exception exists yet
+        await createExceptionAPI(date, taskId, "modified", {
+            checked: !task.checked,
+            checkedAt: (task.checked) ? null : nowISO(),
+        });
+    } else {
+        // modify existing exception
+        const ogOverrides = taskException.overrides;
+        await updateExceptionAPI(taskException.id, "modified", {
+            ...ogOverrides,
+            checked: !ogOverrides.checked,
+            checkedAt: (ogOverrides.checked) ? null : nowISO(),
+        });
+    }
+}
+
 export const toggleCheckedAPI = async (id: string) => {
     const task = await db.items.get(id);
     if(!task) throw new Error(`Item ${id} not found`);
@@ -101,19 +227,26 @@ export const toggleCheckedAPI = async (id: string) => {
         updatedAt: nowISO(),
         dirty: true
     } as PartialTask);
+    debouncedSync();
 }
 
 // queries
-
 export const useTasksQueryAll = (): ScheduleItem[] =>
     useLiveQuery(async () => {
         const items = await db.items.toArray();
         return items.sort(compareItemsByDate);
     }, []) ?? [];
 
+export const useExceptionsQueryAll = (): RecurrenceException[] => 
+    useLiveQuery(async () => {
+        const exceptions = await db.exceptions.toArray();
+        return exceptions;
+    }, []) ?? [];
+
 export const getItemByIdAPI = async (id: string): Promise<ScheduleItem | undefined> => {
     try {
-        return db.items.get(id);
+        const rawBaseItem = db.items.get(id);
+        return rawBaseItem;
     } catch (err) {
         throw new Error(`Failed to fetch task: ${err}`);
     }
@@ -121,10 +254,11 @@ export const getItemByIdAPI = async (id: string): Promise<ScheduleItem | undefin
 
 export const getTasksByDayAPI = async (today: DateString): Promise<ScheduleItem[]> => {
     try {
-        return await db.items
+        const rawBaseItems= await db.items
             .where("[doInfo.date+deletedAt]")
             .equals([today,""])
             .toArray();
+        return rawBaseItems;
     } catch (err) {
         throw new Error(`Failed to fetch items: ${err}`);
     }
@@ -132,17 +266,19 @@ export const getTasksByDayAPI = async (today: DateString): Promise<ScheduleItem[
 
 export const getItemsBeforeDateAPI = async (endDate: DateString): Promise<ScheduleItem[]> => {
     try {
-        return await db.items
+        const rawBaseItems= await db.items
             .where("doInfo.date")
             .belowOrEqual(endDate)
             .toArray();
+        // go thru exceptions w/ final doDate before endDate, collect
+        return rawBaseItems;
     } catch (err) {
         throw new Error(`Failed to fetch items: ${err}`);
     }
 }
 
-// don't get deleted
 export const getTasksByDateRangeAPI = async (startDate: DateString, endDate: DateString): Promise<ScheduleItem[]> => {
+    // NOT IN USE
     try {
         return await db.items
             .where("doInfo.date")
@@ -155,10 +291,11 @@ export const getTasksByDateRangeAPI = async (startDate: DateString, endDate: Dat
 
 export const getTasksByParentIdAPI = async (parentId: string): Promise<ScheduleItem[]> => {
     try {
-        return await db.items
+        const rawBaseTasks = await db.items
             .where("[parentId+deletedAt]")
             .equals([parentId,""])
             .toArray();
+        return rawBaseTasks;
     } catch (err) {
         throw new Error(`Failed to fetch items: ${err}`);
     }
@@ -166,10 +303,11 @@ export const getTasksByParentIdAPI = async (parentId: string): Promise<ScheduleI
 
 export const getItemsToDisplayAPI = async (): Promise<ScheduleItem[]> => {
     try {
-        return await db.items  
+        const rawBaseItems = await db.items  
             .where("[parentId+deletedAt]")
             .equals(["",""])
             .toArray();
+        return rawBaseItems;
     } catch (err) {
         throw new Error(`Failed to fetch items: ${err}`);
     }
@@ -183,21 +321,32 @@ export const getSubtaskCheckedCountAPI = (parentId: string) => (
     .count()
 );
 
-// on new day
+// runs on new day
 export const processCheckedAPI = async (today: DateString) => {
-    const checkedItems = await db.items.filter(it => (it.variant==="task")&&(it.checked)).toArray();
+    const checkedExceptions = await db.exceptions.filter(ex => (ex.overrides?.checked || false)).toArray();
 
-    for(const task of checkedItems) {
-        if(task.variant !== "task") continue;
-        if(!task.checkedAt) continue;
-        if(ISOToDateStr(task.checkedAt) >= today) continue;
+    for(const exc of checkedExceptions) {
+        const task = await db.items.get(exc.itemId);
+        if(task?.variant !== "task") continue;
         
-        // soft delete
+        const overrides = exc.overrides;
+        // shouldn't happen, filtered out non-checked
+        if(!overrides.checkedAt) continue;
+        
+        // checked off future task -> don't process yet
+        if(ISOToDateStr(overrides.checkedAt) >= today) continue;
+
+        // tentative; assumes no recurrence in subtasks
+        if(task.parentId) continue;
+        
+        // no recurrence: soft delete
         if(!task.doInfo?.recurrence?.rrule) {
-            await db.items.delete(task.id);
-            debouncedSync();
+            deleteItemAPI(task.id);
             return;
         }
+
+        // tombstone exception
+        await deleteExceptionAPI(exc.id);
 
         // move to next occurrence
         const next = getNextOccurrence(task);

@@ -109,7 +109,8 @@ export const toLocalItemShape = (remoteItem: RemoteItem): ScheduleItem => {
             variant: "task",
             priority: remoteItem.priority,
             checked: remoteItem.checked,
-            checkedAt: remoteItem.checked_at ?? null
+            checkedAt: remoteItem.checked_at ?? null,
+            exceptionId: ""
         };
     } else {
         return {...retItem,

@@ -1,6 +1,6 @@
 import { MouseEventHandler } from "react";
 
-const CheckButton = ({checked, onChange, className}: {
+const CheckTaskButton = ({checked, onChange, className}: {
     checked: boolean,
     onChange: MouseEventHandler<HTMLButtonElement>,
     className?: string
@@ -25,4 +25,4 @@ const CheckButton = ({checked, onChange, className}: {
     );
 }
 
-export default CheckButton;
+export default CheckTaskButton;
