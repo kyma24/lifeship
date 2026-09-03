@@ -27,13 +27,16 @@ const useWeekTasks = (date: DateString) => {
             res[date] = sortToDayItemBuckets(date, 
                 // filter out for date
                 displayItemsInRange.filter(
-                    item => (!item.deletedAt) && (item.doInfo?.date) && (
+                    item => {
+                        if(date===today) console.log(item.id, item.doInfo?.date, date);
+                        return (!item.deletedAt) && (item.doInfo?.date) && (
                         // overdue
                         ((date === today) && (item.doInfo.date < date))
                         /* recurring
                         || willOccurOn(item, date)*/
                         || (item.doInfo.date === date)
-                    )
+                    );
+                }
                 )
             );
         }

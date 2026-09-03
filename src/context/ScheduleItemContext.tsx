@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo } from "react";
-import { createItemAPI, deleteItemAPI, getItemByIdAPI, getItemsToDisplayAPI, getTasksByDateRangeAPI, getTasksByDayAPI, toggleCheckedAPI, toggleCheckedEXAPI, updateItemAPI, updateTaskAPI, useExceptionsQueryAll } from "@/db";
+import { createItemAPI, deleteItemAPI, getItemByIdAPI, getItemsToDisplayAPI, getTasksByDateRangeAPI, getTasksByDayAPI, toggleCheckedAPI, updateItemAPI, updateTaskAPI, useExceptionsQueryAll } from "@/db";
 import { Block, DateString, PartialBlock, PartialTask, RecurrenceException, ScheduleItem, Task } from "@/types";
 import { nanoid } from "nanoid";
 import { createTaskFromDraft } from "@/utils/taskUtils";
@@ -72,7 +72,7 @@ export const ScheduleItemProvider = ({ children }: React.PropsWithChildren) => {
         },
 
         toggleCheckedEX: (id: string, date: DateString): void => {
-            toggleCheckedEXAPI(id, date);
+            toggleCheckedAPI(id, date);
         },
 
         getTasksByDay: (day: DateString): Promise<ScheduleItem[]> => getTasksByDayAPI(day),

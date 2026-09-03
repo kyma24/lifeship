@@ -187,7 +187,19 @@ const deleteExceptionAPI = async (id: string) => {
     });
 }
 
-export const toggleCheckedEXAPI = async (taskId: string, date: DateString) => {
+const deleteAllExceptionsOfItemAPI = async (itemId: string) => {
+    const toDeleteIds = (await db.exceptions
+        .where("itemId")
+        .equals(itemId)
+        .toArray())
+        .map((exc) => exc.id);
+
+    for(const id of toDeleteIds) {
+        await deleteExceptionAPI(id);
+    }
+}
+
+const toggleCheckedEXAPI = async (taskId: string, date: DateString) => {
     const curExceptions = await db.exceptions
         .where("[itemId+effectDate]")
         .equals([taskId,date])
@@ -216,17 +228,23 @@ export const toggleCheckedEXAPI = async (taskId: string, date: DateString) => {
     }
 }
 
-export const toggleCheckedAPI = async (id: string) => {
+export const toggleCheckedAPI = async (id: string, date?: DateString) => {
     const task = await db.items.get(id);
     if(!task) throw new Error(`Item ${id} not found`);
     if(task.variant !== "task") throw new Error(`Item ${id} cannot be checked`);
 
-    await db.items.update(id, {
-        checked: !task.checked,
-        checkedAt: (task.checked) ? null : nowISO(),
-        updatedAt: nowISO(),
-        dirty: true
-    } as PartialTask);
+    const isRecurring = task.doInfo?.recurrence?.rrule || false;
+
+    if(isRecurring && date) toggleCheckedEXAPI(task.id, date);
+    else {
+        await db.items.update(id, {
+            checked: !task.checked,
+            checkedAt: (task.checked) ? null : nowISO(),
+            updatedAt: nowISO(),
+            dirty: true
+        } as PartialTask);
+    }
+
     debouncedSync();
 }
 
@@ -323,8 +341,28 @@ export const getSubtaskCheckedCountAPI = (parentId: string) => (
 
 // runs on new day
 export const processCheckedAPI = async (today: DateString) => {
+    const checkedTasks = await db.items.filter(task => (task.variant === "task") && (task.checked || false)).toArray();
     const checkedExceptions = await db.exceptions.filter(ex => (ex.overrides?.checked || false)).toArray();
 
+    // process checked tasks
+    for(const task of checkedTasks) {
+        if(task?.variant !== "task") continue;
+        if(!task.checked || !task.checkedAt) continue;
+
+        // checked off future task -> don't process yet
+        if(ISOToDateStr(task.checkedAt) >= today) continue;
+
+        // tentative; assumes no recurrence in subtasks
+        if(task.parentId) continue;
+
+        // tombstone task
+        await deleteItemAPI(task.id);
+
+        // tombstone all exceptions connected to task
+        await deleteAllExceptionsOfItemAPI(task.id);
+    }
+
+    // process checked exceptions
     for(const exc of checkedExceptions) {
         const task = await db.items.get(exc.itemId);
         if(task?.variant !== "task") continue;
@@ -347,19 +385,6 @@ export const processCheckedAPI = async (today: DateString) => {
 
         // tombstone exception
         await deleteExceptionAPI(exc.id);
-
-        // move to next occurrence
-        const next = getNextOccurrence(task);
-        if(!next) return;
-
-        await db.items.update(task.id, {
-            doInfo: {...task.doInfo, date: next},
-            checked: false,
-            checkedAt: null,
-            updatedAt: nowISO(),
-            dirty: true
-        } as PartialTask);
-        debouncedSync();
     }
 }
 

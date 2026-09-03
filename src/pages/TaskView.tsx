@@ -13,6 +13,7 @@ import useSubtasks from '@/hooks/useSubtasks';
 import CreateTaskBlock from '@/components/schedule-items/tasks/CreateTaskBlock';
 import { useLiveQuery } from 'dexie-react-hooks';
 import SaveButton from '@/components/buttons/SaveButton';
+import { nowISO } from '@/utils/dateUtils';
 
 const TaskView = () => {
     const [modTask, setModTask] = useState<PartialTask>(null!);
@@ -64,7 +65,10 @@ const TaskView = () => {
     }
 
     const handleCheckedChange = () => {
-        const newTask: PartialTask = {...modTask, checked: !modTask.checked};
+        const newTask: PartialTask = {...modTask,
+            checked: !modTask.checked, 
+            checkedAt: (modTask.checked) ? null : nowISO()
+        };
         setModTask(newTask);
     }
 

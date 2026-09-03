@@ -51,7 +51,7 @@ export const mergeItemsWithExceptions = (
             }
             // account for normal task within range
             else if ((curDate >= startDate) && (curDate <= endDate)) {
-                displayTasks.push({...item, exceptionId: ""})
+                displayTasks.push({...item, exceptionId: ""});
             }
             continue;
         }
