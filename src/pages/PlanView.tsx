@@ -77,7 +77,7 @@ const DayView = ({ today, displayDate, fullWeekDates, fullDaySchedule, onChangeD
     const [isAnyTimeCreating, setIsAnyTimeCreating] = useState<boolean>(false);
     const [isScheduledCreating, setIsScheduledCreating] = useState<boolean>(false);
 
-    const { createTask, createBlock, toggleChecked, toggleCheckedEX } = useScheduleItems();
+    const { createTask, createBlock, toggleChecked } = useScheduleItems();
 
     const handleCreateItem = (draftItem: PartialScheduleItem) => {
         if(draftItem.variant === "task") createTask(draftItem);
@@ -91,7 +91,7 @@ const DayView = ({ today, displayDate, fullWeekDates, fullDaySchedule, onChangeD
     }
 
     const handleToggleChecked = (id: string) => {
-        toggleCheckedEX(id, displayDate);
+        toggleChecked(id, displayDate);
     }
 
     return (
@@ -207,7 +207,6 @@ const WeekSelector = ({ today, displayDate, fullWeekDates, onChangeDate }: {
 
     const handleBackOneWeek = () => {
         const newDate = getBackOneWeekStr(displayDate);
-        console.log(newDate, today);
 
         if(newDate < today) onChangeDate(today);
         else onChangeDate(newDate);

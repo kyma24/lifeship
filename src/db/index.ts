@@ -204,6 +204,7 @@ const toggleCheckedEXAPI = async (taskId: string, date: DateString) => {
         .where("[itemId+effectDate]")
         .equals([taskId,date])
         .toArray();
+        
     // TO BE IMPROVED: assumes only one exception
     const taskException = (curExceptions.length > 0) ? curExceptions[0] : null;
 

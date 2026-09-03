@@ -43,7 +43,6 @@ export const mergeItemsWithExceptions = (
             if(exc.length>0) {
                 const overrides = exc[0]?.overrides ?? {};
                 displayTasks.push({...item, ...overrides, exceptionId: ""});
-                console.log(item.id);
             }
             // account for overdue
             else if((startDate === today) && (curDate < today)) {
@@ -57,14 +56,20 @@ export const mergeItemsWithExceptions = (
         }
 
         if(exceptionsByTaskId[item.id]) {
-            // go thru all exceptions with taskId=item.id:
             countTaskOnDate.clear();
+
+            // go thru all exceptions with taskId=item.id:
             for(const exc of exceptionsByTaskId[item.id] ?? []) {
                 const newDate = exc.overrides?.doInfo?.date;
 
                 // if modifying without date
                 if(!newDate) {
-                    const newTask: Task = {...item, ...exc.overrides, exceptionId: exc.id};
+                    const newTask: Task = {
+                        ...item, 
+                        ...exc.overrides, 
+                        doInfo: {...item.doInfo, date: exc.effectDate },
+                        exceptionId: exc.id
+                    };
                     displayTasks.push(newTask);
 
                     const curCount = countTaskOnDate.get(exc.effectDate) ?? 0;

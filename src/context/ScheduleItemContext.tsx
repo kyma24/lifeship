@@ -18,8 +18,7 @@ interface ItemContextProps {
     editTaskOne: (id: string, exceptionId: string, effectDate: DateString, modTask: PartialTask) => void,
     editBlock: (id: string, modBlock: PartialBlock) => void,
     deleteItem: (id: string) => void,
-    toggleChecked: (id: string) => void,
-    toggleCheckedEX: (id: string, date: DateString) => void,
+    toggleChecked: (id: string, date?: DateString) => void,
     getItemById: (id: string) => Promise<ScheduleItem | undefined>,
     getTasksByDay: (day: DateString) => Promise<ScheduleItem[]>,
     getTasksByDateRange: (startDate: DateString, endDate: DateString) => Promise<ScheduleItem[]>,
@@ -67,11 +66,7 @@ export const ScheduleItemProvider = ({ children }: React.PropsWithChildren) => {
             }
         },
 
-        toggleChecked: (id: string): void => {
-            toggleCheckedAPI(id);
-        },
-
-        toggleCheckedEX: (id: string, date: DateString): void => {
+        toggleChecked: (id: string, date?: DateString): void => {
             toggleCheckedAPI(id, date);
         },
 

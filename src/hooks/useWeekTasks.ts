@@ -28,7 +28,6 @@ const useWeekTasks = (date: DateString) => {
                 // filter out for date
                 displayItemsInRange.filter(
                     item => {
-                        if(date===today) console.log(item.id, item.doInfo?.date, date);
                         return (!item.deletedAt) && (item.doInfo?.date) && (
                         // overdue
                         ((date === today) && (item.doInfo.date < date))
