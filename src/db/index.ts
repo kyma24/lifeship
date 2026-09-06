@@ -351,7 +351,9 @@ export const processCheckedAPI = async (today: DateString) => {
         if(!task.checked || !task.checkedAt) continue;
 
         // checked off future task -> don't process yet
-        if(ISOToDateStr(task.checkedAt) >= today) continue;
+        if((ISOToDateStr(task.checkedAt) >= today)
+            || ((task.doInfo?.date ?? "") >= today))
+            continue;
 
         // tentative; assumes no recurrence in subtasks
         if(task.parentId) continue;
@@ -366,14 +368,16 @@ export const processCheckedAPI = async (today: DateString) => {
     // process checked exceptions
     for(const exc of checkedExceptions) {
         const task = await db.items.get(exc.itemId);
-        if(task?.variant !== "task") continue;
+        if(exc.deletedAt || (task?.variant !== "task")) continue;
         
         const overrides = exc.overrides;
         // shouldn't happen, filtered out non-checked
         if(!overrides.checkedAt) continue;
         
         // checked off future task -> don't process yet
-        if(ISOToDateStr(overrides.checkedAt) >= today) continue;
+        if((ISOToDateStr(overrides.checkedAt) >= today)
+            || ((overrides.doInfo?.date ?? exc.effectDate) >= today))
+            continue;
 
         // tentative; assumes no recurrence in subtasks
         if(task.parentId) continue;

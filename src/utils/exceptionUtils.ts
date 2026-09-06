@@ -67,7 +67,7 @@ export const mergeItemsWithExceptions = (
                     const newTask: Task = {
                         ...item, 
                         ...exc.overrides, 
-                        doInfo: {...item.doInfo, date: exc.effectDate },
+                        doInfo: {...item.doInfo, date: exc.effectDate},
                         exceptionId: exc.id
                     };
                     displayTasks.push(newTask);
