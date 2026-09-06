@@ -6,14 +6,20 @@ import useCurrentDate from "@/hooks/useCurrentDate";
 import useWeekTasks from "@/hooks/useWeekTasks";
 import { DateString, DayItemBuckets, PartialScheduleItem } from "@/types";
 import { defaultDayItemBuckets, weekdays } from "@/utils/constants";
-import { getBackOneWeekStr, getDayComponent, getForwardOneWeekStr, getFullWeekStrs, getMonthComponent, getYearComponent, toMonthDayFormat, toWeekdayFormat } from "@/utils/dateUtils";
+import { getBackOneWeekStr, getDayComponent, getForwardOneWeekStr, getFullWeekStrs, getMonthComponent, getYearComponent, isValidDateString, toMonthDayFormat, toWeekdayFormat } from "@/utils/dateUtils";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 const PlanView = () => {
     const today = useCurrentDate();
     const [isDayView, setIsDayView] = useState<boolean>(true);
-    const [displayDate, setDisplayDate] = useState<DateString>(today);
+
+    const navigate = useNavigate();
+
+    const params = useParams();
+    const tempDate = params.date;
+    const displayDate = (tempDate && isValidDateString(tempDate)) ? (tempDate as DateString) : today;
 
     const fullWeekDates = useMemo(() => 
         getFullWeekStrs(displayDate)
@@ -23,7 +29,7 @@ const PlanView = () => {
 
     const handleDisplayDateChange = (date: DateString) => {
         if(date < today) return;
-        setDisplayDate(date);
+        navigate(`/plan/${date}`);
     };
 
     return (

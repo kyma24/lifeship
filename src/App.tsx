@@ -28,11 +28,17 @@ function App() {
             <Route element={<AppShell />}>
               <Route path="/" element={ <Navigate to="/plan" replace /> } />
               <Route path="/todo" element={ <TodoView /> } />
-              <Route path="/plan" element={ <PlanView /> } />
+
+              <Route path="/plan" element={ <PlanView /> }>
+                <Route path=":date" element={ <PlanView /> } />
+              </Route>
+
               <Route path="/settings" element={ <SettingsPage /> } />
+
               <Route path="/task" element={ <TaskView /> }>
                 <Route path=":id" element={ <TaskView /> } />
               </Route>
+              
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Route>

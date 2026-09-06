@@ -223,9 +223,15 @@ export const isValidDateComp = (year: number, month: number, day: number): boole
     );
 };
 
+export const isValidDateString = (str: string): boolean => {
+    const args = str.split('-').map(Number);
+    if(args.length !== 3) return false;
+    return isValidDateComp(args[0]??-1, args[1]??-1, args[2]??-1);
+};
+
 const isValidTimeOfDay = (str: string): boolean => {
     return (str==="morning") || (str==="afternoon") || (str==="evening");
-}
+};
 
 export const parseTimeString = (tstr: string): TimePeriod | null => {
     if(tstr==="") return null;
