@@ -130,6 +130,7 @@ export const toRemoteExceptionShape = (ex: RecurrenceException): RemoteException
         id: ex.id,
         item_id: ex.itemId,
         effect_date: ex.effectDate,
+        occurrence_date: ex.occurrenceDate,
         occurrence_index: ex.occurrenceIndex,
         variant: ex.variant,
         overrides: serializeOverrides(ex.overrides),
@@ -148,6 +149,7 @@ export const toLocalExceptionShape = (remoteEx: RemoteException): RecurrenceExce
         itemId: remoteEx.item_id,
         // CHECK VALIDITY?
         effectDate: remoteEx.effect_date as DateString,
+        occurrenceDate: remoteEx.occurrence_date as DateString,
         occurrenceIndex: remoteEx.occurrence_index ?? 0,
         variant: (remoteEx.variant === "deleted") ? "deleted" : "modified",
         overrides: deserializeOverrides(remoteEx.overrides),

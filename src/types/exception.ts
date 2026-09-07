@@ -34,6 +34,7 @@ export interface RecurrenceException {
     id: string;
     itemId: string;
     effectDate: DateString;
+    occurrenceDate: DateString;
     occurrenceIndex: number;
     variant: "modified" | "deleted";
     // add recurrence/multiple dates sometime

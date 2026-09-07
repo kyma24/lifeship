@@ -26,7 +26,7 @@ class AppDatabase extends Dexie {
         super("AppDatabase");
         this.version(1).stores ({
             items: "id, parentId, doInfo.date, variant, [variant+checked], [parentId+deletedAt], [doInfo.date+deletedAt]",
-            exceptions: "id, itemId, effectDate, [itemId+effectDate]",
+            exceptions: "id, itemId, effectDate, occurrenceDate, [itemId+effectDate], [itemId+occurrenceDate]",
             syncState: "key"
         });
     }
@@ -146,6 +146,7 @@ const createExceptionAPI = async (date: DateString, taskId: string, variant: "mo
         id,
         itemId: taskId,
         effectDate: date,
+        occurrenceDate: overrides?.doInfo?.date ?? date,
         overrides: overrides ?? {},
 
         occurrenceIndex: 0,
@@ -163,12 +164,21 @@ const createExceptionAPI = async (date: DateString, taskId: string, variant: "mo
 };
 
 const updateExceptionAPI = async (id: string, variant: "modified" | "deleted", overrides?: ItemOverrides) => {
-    if(variant === "modified")
-        await db.exceptions.update(id, { 
+    if(variant === "modified") {
+        const exc = await db.exceptions.get(id);
+        if(!exc) return;
+
+        const addExc = {
             overrides: overrides,
             updatedAt: nowISO(),
             dirty: true
-        });
+        };
+
+        await db.exceptions.update(id, (overrides?.doInfo?.date)
+            ? ({...addExc, occurrenceDate: overrides?.doInfo?.date})
+            : addExc
+        );
+    }
     if(variant === "deleted") {
         await db.exceptions.update(id, {
             variant: "deleted",

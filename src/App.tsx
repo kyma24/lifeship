@@ -36,9 +36,12 @@ function App() {
               <Route path="/settings" element={ <SettingsPage /> } />
 
               <Route path="/task" element={ <TaskView /> }>
-                <Route path=":id" element={ <TaskView /> } />
+                <Route path=":id" element={ <TaskView /> }>
+                  <Route index element={ <TaskView /> } />
+                  <Route path=":date" element={ <TaskView /> } />
+                </Route>
               </Route>
-              
+
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Route>

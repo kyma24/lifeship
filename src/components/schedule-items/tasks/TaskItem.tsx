@@ -23,7 +23,11 @@ const TaskItem = ({ task, onComplete, withDate, isSubtask }: {
     const navigate = useNavigate();
 
     const handleTaskClick = () => {
-        navigate(`/task/${task.id}`);
+        navigate(`/task/${task.id}` + (
+            (task.doInfo?.date && task.doInfo?.recurrence?.rrule) 
+            ? `/${task.doInfo.date}` 
+            : ""
+        ));
     }
 
     const handleSubtasksExpand = () => {
