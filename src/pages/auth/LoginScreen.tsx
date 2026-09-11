@@ -37,7 +37,7 @@ export const LoginScreen = () => {
         setError(error);
     }
 
-    const bg = "w-full h-full flex justify-center items-center";
+    const bg = "w-full h-full flex flex-col justify-center items-center";
 
     switch (status) {
         case "idle":
@@ -74,6 +74,7 @@ export const LoginScreen = () => {
                             Enter as Guest
                         </button>
                     </div>
+                    <p className="text-sm pt-3">best viewed as a mobile PWA</p>
                 </div>
             );
         case "processing":

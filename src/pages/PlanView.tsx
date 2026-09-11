@@ -32,6 +32,8 @@ const PlanView = () => {
         navigate(`/plan/${date}`);
     };
 
+    const bg = "w-full h-full flex justify-center items-center"
+
     return (
       <div className="flex flex-col justify-center items-center">
         {/* header */}
@@ -101,7 +103,7 @@ const DayView = ({ today, displayDate, fullWeekDates, fullDaySchedule, onChangeD
     }
 
     return (
-        <>
+        <div className="w-full max-w-3xl">
             {/* week nav */}
             <WeekSelector
                 today={today}
@@ -190,7 +192,7 @@ const DayView = ({ today, displayDate, fullWeekDates, fullDaySchedule, onChangeD
                     </Bucket>
                 }
             </div>
-        </>
+        </div>
     );
 };
 
