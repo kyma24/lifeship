@@ -13,7 +13,7 @@ export const getBaseDoInfo = (): DoInfo => ({
 });
 
 // recurrence
-export const willOccurOn = (item: ScheduleItem, date: DateString): boolean => {
+export const itemWillOccurOn = (item: ScheduleItem, date: DateString): boolean => {
     if(!item.doInfo) return false;
     if(!item.doInfo.recurrence?.rrule) return item.doInfo.date === date;
 
@@ -28,37 +28,16 @@ export const willOccurOn = (item: ScheduleItem, date: DateString): boolean => {
     return matches.length > 0;
 }
 
-export const getNextOccurrence = (task: Task): DateString | null => {
-    if(!task.doInfo?.recurrence?.rrule) return null;
+export const getRRuleDtStart = (date: DateString, rruleStr: string): DateString | null => {
+    const nativeDate = toNativeDate(date);
 
-    const ruleString = RRule.parseString(task.doInfo.recurrence.rrule);
-    const date = toNativeDate(task.doInfo.date);
-    ruleString.dtstart = date;
-    
-    const rule = new RRule(ruleString);
+    const rrule = rrulestr(rruleStr, {
+        dtstart: nativeDate
+    });
 
-    // account for overdue
-    const today = getTodayString();
-    const next = rule.after((task.doInfo.date < today)
-        ? getToday()
-        : date
-    );
-
-    return (next) ? toDateStr(next) : null;
-};
-
-export const getPrevOccurrence = (task: Task): DateString | null => {
-    if(!task.doInfo?.recurrence) return null;
-
-    const ruleString = RRule.parseString(task.doInfo.recurrence.rrule);
-    const date = toNativeDate(task.doInfo.date);
-    ruleString.dtstart = date;
-
-    const rule = new RRule(ruleString);
-    const prev = rule.before(date);
-
-    return (prev) ? toDateStr(prev) : null;
-};
+    const validDtStart = rrule.after(nativeDate, true);
+    return (validDtStart) ? toDateStr(validDtStart) : null;
+}
 
 export const createWeeklyRRule = (byDayArr: boolean[], everyXWeeks: number) => {
     if(everyXWeeks<0) return null;
@@ -288,7 +267,9 @@ export const parseRRuleString = (rstr: string | null) => {
     const type = rrule.options.freq;
 
     if(type === RRule.WEEKLY) {
-        const rawInds: number[] = rrule.options.byweekday;
+        const rawInds: number[] = rrule.options.byweekday
+            .map((cnt) => (cnt+1)%7);
+
         let byDayArr = noDayArr;
         for(const dayNo of rawInds) {
             byDayArr[dayNo]=true;

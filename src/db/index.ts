@@ -1,6 +1,6 @@
 import Dexie, { Table } from "dexie";
 import { Block, DateString, ItemOverrides, PartialBlock, PartialScheduleItem, PartialTask, RecurrenceException, ScheduleItem, Task } from "@/types";
-import { getNextOccurrence, getPrevOccurrence, ISOToDateStr, nowISO } from "@/utils/dateUtils";
+import { getBaseDoInfo, getRRuleDtStart, ISOToDateStr, nowISO } from "@/utils/dateUtils";
 import { useLiveQuery } from "dexie-react-hooks";
 import { compareItemsByDate } from "@/utils/taskUtils";
 import { supabase } from "@/lib/supabase";
@@ -34,12 +34,18 @@ class AppDatabase extends Dexie {
 
 export const db = new AppDatabase();
 
-const idNotInExceptions = async (id: string) => {
-    const { count, error } = await supabase
-        .from("exceptions")
-        .select("id", { count: "exact", head: true })
-        .eq("id", id);
-    return error || count==0;
+const notInExceptions = async (id: string, itemId: string, date: DateString) => {
+    const countById = await db.exceptions
+        .where("id")
+        .equals(id)
+        .count();
+
+    const countByItemOccDate = await db.exceptions
+        .where("[itemId+occurrenceDate]")
+        .equals([itemId,date])
+        .count();
+    
+    return (countById==0) && (countByItemOccDate==0);
 };
 
 // local
@@ -71,11 +77,12 @@ export const updateTaskAPI = async (
     exceptionId?: string,
     effectDate?: DateString
 ) => {
+    const item = await db.items.get(id);
+
     // handle exception
     if(exceptionId) {
         if(!effectDate) return;
 
-        const item = await db.items.get(id);
         const overrides: Record<string, unknown> = {};
         if(item) {
             // get changed properties
@@ -89,12 +96,32 @@ export const updateTaskAPI = async (
             }
         }
 
+        const occDate = modItem.doInfo?.date ?? effectDate;
+
         // create or update exception
-        const isNewException = await idNotInExceptions(exceptionId);
+        const isNewException = await notInExceptions(exceptionId, id, occDate);
         if(isNewException) createExceptionAPI(effectDate,id,"modified",overrides);
         else updateExceptionAPI(exceptionId, "modified", overrides);
+    } 
+    // handle task updates
+    else {
+        const draftItem = {...item, ...modItem} as ScheduleItem;
+        const date = draftItem.doInfo?.date;
+        const rruleStr = draftItem.doInfo?.recurrence?.rrule;
+        // check if rrule modification & dtstart is VALID
+        if(date && rruleStr) {
+            const validDtStart = getRRuleDtStart(date, rruleStr);
+            if(validDtStart) {
+                updateItemAPI(id, {...modItem,
+                    doInfo: { ...(modItem.doInfo ?? getBaseDoInfo()),
+                        date: validDtStart
+                    }
+                });
+            }
+        } else {
+            updateItemAPI(id, modItem);
+        }
     }
-    else updateItemAPI(id, modItem);
 }
 
 const getDescendantIds = async (rootId: string) => {

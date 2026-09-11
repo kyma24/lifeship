@@ -1,8 +1,24 @@
 import { DateString, ISOString, ItemOverrides, RecurrenceException, RemoteException, ScheduleItem, Task } from "@/types";
 import { Json } from "@/types/database.types";
 import { RRule, rrulestr } from "rrule";
-import { getEndOfDay, getStartOfDay, toDateStr, toNativeDate } from "./dateUtils";
+import { getBaseDoInfo, getEndOfDay, getRRuleDtStart, getStartOfDay, toDateStr, toNativeDate } from "./dateUtils";
 import { nanoid } from "nanoid";
+
+export const mergeItemWithException = (
+    item: ScheduleItem,
+    exception: RecurrenceException
+): ScheduleItem => {
+    if(item.variant === "block") return item;
+
+    return {
+        ...item, 
+        ...exception.overrides, 
+        doInfo: (item.doInfo)
+            ? {...item.doInfo, date: exception.occurrenceDate }
+            : {...getBaseDoInfo(), date: exception.occurrenceDate },
+        exceptionId: exception.id,
+    };
+};
 
 export const mergeItemsWithExceptions = (
     items: ScheduleItem[], 
@@ -92,10 +108,20 @@ export const mergeItemsWithExceptions = (
             }
         }
         
+        // guard against invalid date with recurrence
+        const validDtStart = getRRuleDtStart(item.doInfo.date, item.doInfo.recurrence.rrule);
+        const nativeDtStart = (validDtStart) ? toNativeDate(validDtStart) : null;
+        const rruleObj = rrulestr(item.doInfo.recurrence.rrule, {
+            dtstart: nativeDtStart,
+        }) as RRule;
+        
         // occDates -> all occurrences of item in range
-        const rruleObj = rrulestr(item.doInfo.recurrence.rrule) as RRule;
         const occDates: DateString[] = rruleObj
-            .between(getStartOfDay(toNativeDate(startDate)), getEndOfDay(toNativeDate(endDate)))
+            .between(
+                getStartOfDay(toNativeDate(startDate)), 
+                getEndOfDay(toNativeDate(endDate)),
+                true
+            )
             .map((date) => toDateStr(date));
 
         // for each non-"visited" in occDates: add base task to return, no exceptions found

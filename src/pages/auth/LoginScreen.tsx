@@ -1,4 +1,4 @@
-import { signIn } from "@/utils/backend/auth";
+import { signIn, signInAnon } from "@/utils/backend/auth";
 import { AuthError } from "@supabase/supabase-js";
 import { useState } from "react"
 
@@ -8,9 +8,16 @@ export const LoginScreen = () => {
     const [status, setStatus] = useState<"idle"|"processing"|"success"|"error">("idle");
     const [error, setError] = useState<AuthError | null>(null);
 
-    const handleSubmit = async () => {
+    const handleLogin = async () => {
         setStatus("processing");
         const { data, error } = await signIn(email, password);
+        setStatus(error ? "error" : "success");
+        setError(error);
+    }
+
+    const handleAnonLogin = async () => {
+        setStatus("processing");
+        const { data, error } = await signInAnon();
         setStatus(error ? "error" : "success");
         setError(error);
     }
@@ -31,8 +38,12 @@ export const LoginScreen = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="pswd123"
                     />
-                    <button onClick={handleSubmit}>
+                    <button onClick={handleLogin}>
                         Sign in
+                    </button>
+
+                    <button onClick={handleAnonLogin}>
+                        Enter as Guest
                     </button>
                 </div>
             );

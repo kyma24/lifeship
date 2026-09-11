@@ -1,6 +1,6 @@
 import { useScheduleItems } from "@/context/ScheduleItemContext";
 import { DateString, DayItemBuckets, Task } from "@/types";
-import { getEndOfWeekStr, getFullWeekStrs, getStartOfWeekStr, getTodayString, willOccurOn } from "@/utils/dateUtils";
+import { getEndOfWeekStr, getFullWeekStrs, getStartOfWeekStr, getTodayString, itemWillOccurOn } from "@/utils/dateUtils";
 import { mergeItemsWithExceptions } from "@/utils/exceptionUtils";
 import { sortToDayItemBuckets } from "@/utils/itemUtils";
 import { useMemo } from "react";
@@ -32,7 +32,7 @@ const useWeekTasks = (date: DateString) => {
                         // overdue
                         ((date === today) && (item.doInfo.date < date))
                         /* recurring
-                        || willOccurOn(item, date)*/
+                        || itemWillOccurOn(item, date)*/
                         || (item.doInfo.date === date)
                     );
                 }

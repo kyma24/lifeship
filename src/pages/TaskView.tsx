@@ -5,7 +5,7 @@ import DatePicker from '@/components/doInfo/DatePicker';
 
 import { Trash2, UndoDot, Ellipsis, X } from 'lucide-react';
 import CheckTaskButton from '@/components/buttons/CheckTaskButton';
-import { DateString, DoInfo, PartialTask } from '@/types';
+import { DateString, DoInfo, PartialTask, Task } from '@/types';
 import { isPartialTaskDifferent } from '@/utils/taskUtils';
 import { defaultTask } from '@/utils/constants';
 import ItemList from '@/components/schedule-items/ItemList';
@@ -13,7 +13,8 @@ import useSubtasks from '@/hooks/useSubtasks';
 import CreateTaskBlock from '@/components/schedule-items/tasks/CreateTaskBlock';
 import { useLiveQuery } from 'dexie-react-hooks';
 import SaveButton from '@/components/buttons/SaveButton';
-import { nowISO } from '@/utils/dateUtils';
+import { getBaseDoInfo, isValidDateString, nowISO, itemWillOccurOn } from '@/utils/dateUtils';
+import { mergeItemWithException } from '@/utils/exceptionUtils';
 
 const TaskView = () => {
     const [modTask, setModTask] = useState<PartialTask>(null!);
@@ -22,12 +23,27 @@ const TaskView = () => {
 
     const params = useParams();
     const id = params.id;
+    // if single, undefined; else, datestring occurrenceDate
+    const date = params.date;
 
-    const task = useLiveQuery(() => getItemById(id!), [id]);
+    const { rootItems, rootExceptions } = useScheduleItems();
+
+    const baseTask = rootItems.find((item) => item.id === id); //useLiveQuery(() => getItemById(id!), [id]);
+    const isRecurring = baseTask?.doInfo?.recurrence?.rrule ?? false;
+    const exception = (isRecurring)
+        ? rootExceptions.find((exc) => (exc.itemId === id) && (exc.occurrenceDate === date))
+        : null;
+    
+    const task = (baseTask && exception)
+        ? mergeItemWithException(baseTask, exception)
+        : {...baseTask, doInfo: (baseTask?.doInfo)
+            ? {...baseTask.doInfo, date }
+            : {...getBaseDoInfo(), date }
+        } as Task;
     
     const navigate = useNavigate();
 
-    const { createTask, editTaskAll, deleteItem, toggleChecked, getItemById } = useScheduleItems();
+    const { createTask, editTaskAll, deleteItem, toggleChecked } = useScheduleItems();
 
     const { subtasks } = useSubtasks(id!);
 
@@ -89,9 +105,16 @@ const TaskView = () => {
         }
     }
 
-    if(!task) return (<div>not found task</div>);
+    if(!task || !baseTask) return (<div>not found task</div>);
+    if(date && !isValidDateString(date)) return (<div>invalid occurrence date</div>);
     if(task.variant !== "task") return (<div>not a task</div>);
     if(loading) return (<div>loading...</div>);
+
+    if(isRecurring && date && !exception) {
+        // check if valid date in recurrence
+        if(!itemWillOccurOn(baseTask, date as DateString))
+            return (<div>task on date does not exist</div>);
+    }
 
     const hasChanged = isPartialTaskDifferent(task, modTask);
     
