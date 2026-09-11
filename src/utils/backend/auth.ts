@@ -8,15 +8,18 @@ import { supabase } from "../../lib/supabase"
     return { error };
 };*/
 
-export const signInAnon = async () => {
-    const { data, error } = await supabase.auth.signInAnonymously();
+export const signInAnon = async (captchaToken: string) => {
+    const { data, error } = await supabase.auth.signInAnonymously({
+        options: { captchaToken }
+    });
     return { data, error };
 }
 
-export const signIn = async (email: string, password: string) => {
+export const signIn = async (email: string, password: string, captchaToken: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
+        options: { captchaToken }
     });
 
     return { data, error };

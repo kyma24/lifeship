@@ -106,7 +106,8 @@ export const updateTaskAPI = async (
     // handle task updates
     else {
         const draftItem = {...item, ...modItem} as ScheduleItem;
-        const date = draftItem.doInfo?.date;
+        // FIX HERE: is modItem's doDate bc of EXCEPTION or bc of ACTUAL CHANGE?
+        const date = item?.doInfo?.date;
         const rruleStr = draftItem.doInfo?.recurrence?.rrule;
         // check if rrule modification & dtstart is VALID
         if(date && rruleStr) {
