@@ -37,48 +37,62 @@ export const LoginScreen = () => {
         setError(error);
     }
 
+    const bg = "w-full h-full flex justify-center items-center";
+
     switch (status) {
         case "idle":
             return (
-                <div className="flex flex-col gap-2">
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="you@lifeship.com"
-                    />
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="pswd123"
-                    />
+                <div className={bg}>
+                    <div className="w-fit h-fit p-8 flex flex-col gap-4 bg-gray-800 rounded-xl">
+                        <h2 className="w-full text-center">
+                            Sign In
+                        </h2>
 
-                    <Captcha
-                        captchaRef={captchaRef}
-                        onSetCaptchaToken={handleSetCaptchaToken}
-                    />
-                    
-                    <button onClick={handleLogin}>
-                        Sign in
-                    </button>
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="you@lifeship.com"
+                        />
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="pswd123"
+                        />
 
-                    <button onClick={handleAnonLogin}>
-                        Enter as Guest
-                    </button>
+                        <Captcha
+                            captchaRef={captchaRef}
+                            onSetCaptchaToken={handleSetCaptchaToken}
+                        />
+
+                        <button onClick={handleLogin}>
+                            Sign in
+                        </button>
+
+                        <button onClick={handleAnonLogin}>
+                            Enter as Guest
+                        </button>
+                    </div>
                 </div>
             );
         case "processing":
             return (
-                <p>Processing...</p>
+                <div className={bg}>
+                    <p>Processing...</p>
+                </div>
             );
         case "success":
             return (
-                <p>Logged in successfully</p>
+                <div className={bg}>
+                    <p>Logged in successfully</p>
+                </div>
             );
         case "error":
             return (
-                <p>Error: {error?.message}, reload to reset</p>
+                <div className={bg}>
+                    <p>Error: {error?.message}, reload to reset</p>
+                </div>
             );
         default:
             return <></>;

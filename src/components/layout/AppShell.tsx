@@ -6,8 +6,8 @@ const AppShell = () => {
     const isDesktop = useMediaQuery('(min-width: 1024px)');
 
     return (
-        <div className="flex flex-col w-screen h-dvh overflow-hidden">
-            <main className={`flex-1 overflow-y-auto w-screen h-screen overscroll-none
+        <div className="w-dvw h-dvh flex flex-col overflow-hidden">
+            <main className={`w-dvw h-dvh flex-1 overflow-y-auto overscroll-none
                 ${!isDesktop && "pb-30"}`
             }>
                 <Outlet />
