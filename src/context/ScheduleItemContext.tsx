@@ -1,10 +1,7 @@
-import { createContext, useContext, useMemo, useState } from "react";
-import { createItemAPI, deleteItemAPI, getItemByIdAPI, getItemsToDisplayAPI, getTasksByDateRangeAPI, getTasksByDayAPI, toggleCheckedAPI, updateItemAPI, updateTaskAPI, useExceptionsQueryAll } from "@/db";
-import { Block, DateString, PartialBlock, PartialTask, RecurrenceException, ScheduleItem, Task } from "@/types";
-import { nanoid } from "nanoid";
-import { createTaskFromDraft } from "@/utils/taskUtils";
+import { createContext, useContext, useState } from "react";
+import { createBlockAPI, createTaskAPI, deleteItemAPI, getItemByIdAPI, getItemsToDisplayAPI, getTasksByDateRangeAPI, getTasksByDayAPI, toggleCheckedAPI, updateItem, updateTask, useExceptionsQueryAll } from "@/db";
+import { DateString, PartialBlock, PartialTask, RecurrenceException, ScheduleItem } from "@/types";
 import { useLiveQuery } from "dexie-react-hooks";
-import { createBlockFromDraft } from "@/utils/blockUtils";
 import { useAuth } from "./AuthContext";
 import { todoComparator } from "@/utils/sorting";
 
@@ -16,7 +13,7 @@ interface ItemContextProps {
     createTask: (task: PartialTask) => void,
     createBlock: (block: PartialBlock) => void,
     editTaskAll: (id: string, modTask: PartialTask) => void,
-    editTaskOne: (id: string, exceptionId: string, effectDate: DateString, modTask: PartialTask) => void,
+    editTaskOne: (id: string, modTask: PartialTask, effectDate: DateString) => void,
     editBlock: (id: string, modBlock: PartialBlock) => void,
     deleteItem: (id: string) => void,
     toggleChecked: (id: string, date?: DateString) => void,
@@ -55,10 +52,7 @@ export const ScheduleItemProvider = ({ children }: React.PropsWithChildren) => {
         createTask: (task: PartialTask): void => {
             try {
                 if(!userId) throw new Error("User not found");
-
-                const id: string = nanoid();
-                const validTask: Task = createTaskFromDraft(id,{...task, userId});
-                createItemAPI(validTask);
+                createTaskAPI(task, userId);
             } catch (err) {
                 if(err instanceof Error) setError(err.message);
                 else setError(err as string);
@@ -67,22 +61,16 @@ export const ScheduleItemProvider = ({ children }: React.PropsWithChildren) => {
 
         editTaskAll: (id: string, modTask: PartialTask): void => {
             try {
-                updateTaskAPI(id, modTask);
+                updateTask(id, modTask);
             } catch (err) {
                 if(err instanceof Error) setError(err.message);
                 else setError(err as string);
             }
         },
 
-        editTaskOne: (id: string, exceptionId: string, effectDate: DateString, modTask: PartialTask): void => {
+        editTaskOne: (id: string, taskUpdates: PartialTask, effectDate: DateString): void => {
             try {
-                // no exception on display task?
-                if(!exceptionId) {
-                    const newExId: string = nanoid();
-                    updateTaskAPI(id, modTask, newExId, effectDate);
-                } else {
-                    updateTaskAPI(id, modTask, exceptionId, effectDate);
-                }
+                updateTask(id, taskUpdates, effectDate);
             } catch (err) {
                 if(err instanceof Error) setError(err.message);
                 else setError(err as string);
@@ -107,10 +95,7 @@ export const ScheduleItemProvider = ({ children }: React.PropsWithChildren) => {
         createBlock: (block: PartialBlock): void => {
             try {
                 if(!userId) throw new Error("User not found");
-
-                const id: string = nanoid();
-                const validBlock: Block = createBlockFromDraft(id,{...block, userId});
-                createItemAPI(validBlock);
+                createBlockAPI(block, userId);
             } catch (err) {
                 if(err instanceof Error) setError(err.message);
                 else setError(err as string);
@@ -119,7 +104,7 @@ export const ScheduleItemProvider = ({ children }: React.PropsWithChildren) => {
 
         editBlock: (id: string, modBlock: PartialBlock): void => {
             try {
-                updateItemAPI(id, modBlock);
+                updateItem(id, modBlock);
             } catch (err) {
                 if(err instanceof Error) setError(err.message);
                 else setError(err as string);

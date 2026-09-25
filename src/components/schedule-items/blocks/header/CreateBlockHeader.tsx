@@ -32,7 +32,7 @@ const CreateBlockHeader = ({ id, startBlock, onChangeBlock, onClose }: {
                         value={draftBlock.description}
                         onChange={e => setDraftBlock({...draftBlock, description: e.target.value})}
                         placeholder="description"
-                        className={`outline-none field-sizing-content text-lg ${(draftBlock.name !== "") ? "text-[#f3f4f6]" : ""}`}
+                        className={`resize-none outline-none field-sizing-content text-lg ${(draftBlock.name !== "") ? "text-[#f3f4f6]" : ""}`}
                     />
                 </div>
 

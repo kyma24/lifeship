@@ -1,4 +1,4 @@
-import { DateString, DoInfo, TimePeriod } from "@/types";
+import { DateString, DoInfo, RecurrenceRule, TimePeriod } from "@/types";
 import { useState } from "react";
 import TaskDoDateDisplay from "../schedule-items/tasks/TaskDoDateDisplay";
 import { autoUpdate, flip, FloatingNode, FloatingPortal, FloatingTree, offset, shift, useClick, useDismiss, useFloating, useFloatingNodeId, useInteractions, useRole } from "@floating-ui/react";
@@ -6,13 +6,15 @@ import Divider from "../Divider";
 import TimeSelector from "./TimeSelector";
 import RecurrenceSelector from "./RecurrenceSelector";
 import ScheduleSuggestList from "./ScheduleSuggestList";
-import { getBaseDoInfo, getTodayString, getTomorrowString } from "@/utils/dateUtils";
+import { getTodayString, getTomorrowString } from "@/utils/dateUtils";
 import { useBottomSheet } from "@/context/BottomSheetContext";
 import CustomDateSheet from "./CustomDateSheet";
 
-const DatePicker = ({doInfo, onChange}: {
+const DatePicker = ({doInfo, onDateChange, onTimeChange, onRecurrenceChange}: {
     doInfo: DoInfo | null,
-    onChange: (doInfo: DoInfo | null) => void
+    onDateChange: (newDate: DateString | null) => void,
+    onTimeChange: (newTime: Partial<DoInfo> | null) => void,
+    onRecurrenceChange: (newTime: RecurrenceRule | null) => void
 }) => {
     const [popupOpen, setPopupOpen] = useState<boolean>(false);
 
@@ -22,10 +24,7 @@ const DatePicker = ({doInfo, onChange}: {
 
     // date change
     const handleUpdateDate = (dateStr: DateString) => {
-        const oldDoInfo: DoInfo = doInfo ?? getBaseDoInfo();
-        const newDoInfo: DoInfo = {...oldDoInfo, date: dateStr };
-
-        onChange(newDoInfo);
+        onDateChange(dateStr);
         setPopupOpen(false);
     }
 
@@ -39,7 +38,7 @@ const DatePicker = ({doInfo, onChange}: {
     };
 
     const handleToNoDate = () => {
-        onChange(null);
+        onDateChange(null);
         setPopupOpen(false);
     };
 
@@ -59,31 +58,22 @@ const DatePicker = ({doInfo, onChange}: {
 
     // time
     const handleRemoveTime = () => {
-        const oldDoInfo: DoInfo = doInfo ?? getBaseDoInfo();
-        const newDoInfo: DoInfo = {...oldDoInfo, timePeriod: null};
-
-        onChange(newDoInfo);
+        onTimeChange(null);
     }
 
     const handleUpdateTime = (timePeriod: TimePeriod, duration: number, timezone: string | null) => {
-        const oldDoInfo: DoInfo = doInfo ?? getBaseDoInfo();
-        const newDoInfo: DoInfo = {...oldDoInfo,
+        const newTime: Partial<DoInfo> = {
             timePeriod, duration, timezone
         };
-
-        onChange(newDoInfo);
+        onTimeChange(newTime);
     }
 
     // recurrence
     const handleUpdateRecurrence = (rrule: string | null) => {
-        if(!rrule) return;
-        const oldDoInfo: DoInfo = doInfo ?? getBaseDoInfo();
-        const newDoInfo: DoInfo = {...oldDoInfo, recurrence: {
-            ...oldDoInfo.recurrence,
-            rrule
-        }};
-
-        onChange(newDoInfo);
+        const newRecurrence: RecurrenceRule | null = (rrule)
+            ? { rrule }
+            : null;
+        onRecurrenceChange(newRecurrence);
     }
 
     // floating ui

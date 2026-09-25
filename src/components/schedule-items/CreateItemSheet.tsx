@@ -96,7 +96,7 @@ const CreateBlockDisplay = ({ onCreate }: {
               value={draftBlock.description}
               onChange={e => setDraftBlock({...draftBlock, description: e.target.value})}
               placeholder="description"
-              className={`outline-none text-xl ${(draftBlock.name !== "") ? "text-[#f3f4f6]" : ""}`}
+              className={`resize-none outline-none text-xl ${(draftBlock.name !== "") ? "text-[#f3f4f6]" : ""}`}
             />
       </div>
 
@@ -168,7 +168,7 @@ const CreateTaskDisplay = ({ onCreate }: {
               value={draftTask.description}
               onChange={e => setDraftTask({...draftTask, description: e.target.value})}
               placeholder="description"
-              className={`outline-none text-xl ${(draftTask.name !== "") ? "text-[#f3f4f6]" : ""}`}
+              className={`resize-none outline-none text-xl ${(draftTask.name !== "") ? "text-[#f3f4f6]" : ""}`}
             />
         </div>
         

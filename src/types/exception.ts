@@ -49,6 +49,8 @@ export interface RecurrenceException {
     dirty: boolean;
 }
 
+export type PartialException = Partial<Omit<RecurrenceException, "id">>;
+
 /*
 // NON-DEPENDENT ON REMOTE SCHEMA
 

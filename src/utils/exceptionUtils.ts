@@ -1,14 +1,49 @@
-import { DateString, ISOString, ItemOverrides, RecurrenceException, RemoteException, ScheduleItem, Task } from "@/types";
+import { DateString, ISOString, ItemOverrides, PartialException, PartialTask, RecurrenceException, RemoteException, ScheduleItem, Task } from "@/types";
 import { Json } from "@/types/database.types";
 import { RRule, rrulestr } from "rrule";
-import { getBaseDoInfo, getEndOfDay, getRRuleDtStart, getStartOfDay, toDateStr, toNativeDate } from "./dateUtils";
+import { getBaseDoInfo, getEndOfDay, getRRuleDtStart, getStartOfDay, isDoInfoEqual, toDateStr, toNativeDate } from "./dateUtils";
 import { nanoid } from "nanoid";
+
+export const diffItemsToException = (
+    item: ScheduleItem,
+    modItem: PartialTask,
+    variant: "modified" | "deleted" = "modified",
+): PartialException => {
+    if(item.variant !== "task") return {};
+    if(!item.doInfo || !item.doInfo.recurrence) return {};
+
+    // construct overrides
+    let overrides: ItemOverrides = {};
+
+    if(item.description !== modItem.description) overrides = {...overrides, description: modItem.description};
+    if(JSON.stringify(item.tags) !== JSON.stringify(modItem.tags)) overrides = {...overrides, tags: modItem.tags};
+    if(!isDoInfoEqual(item.doInfo ?? null, modItem.doInfo ?? null)) overrides = {...overrides, doInfo: modItem.doInfo};
+    if(item.color !== modItem.color) overrides = {...overrides, color: modItem.color};
+    if(item.icon !== modItem.icon) overrides = {...overrides, icon: modItem.icon};
+    if(item.checked !== modItem.checked) overrides = {...overrides,
+        checked: modItem.checked,
+        checkedAt: modItem.checkedAt
+    };
+
+    // add known properties into partial
+    const newException: PartialException = {
+        itemId: item.id,
+        effectDate: item.doInfo.date,
+        // what happens when user selects no date?
+        occurrenceDate: modItem.doInfo?.date!,
+        // CHANGE LATER WHEN DEALING WITH DELETED
+        variant: "modified",
+        overrides: overrides
+    };
+
+    return newException;
+}
 
 export const mergeItemWithException = (
     item: ScheduleItem,
     exception: RecurrenceException
 ): ScheduleItem => {
-    if(item.variant === "block") return item;
+    if(item.variant !== "task") return item;
 
     return {
         ...item, 

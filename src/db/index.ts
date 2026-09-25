@@ -1,16 +1,17 @@
 import Dexie, { Table } from "dexie";
-import { Block, DateString, ItemOverrides, PartialBlock, PartialScheduleItem, PartialTask, RecurrenceException, ScheduleItem, Task } from "@/types";
+import { Block, DateString, ItemOverrides, PartialBlock, PartialException, PartialScheduleItem, PartialTask, RecurrenceException, ScheduleItem, Task } from "@/types";
 import { getBaseDoInfo, getRRuleDtStart, ISOToDateStr, nowISO } from "@/utils/dateUtils";
 import { useLiveQuery } from "dexie-react-hooks";
-import { compareItemsByDate } from "@/utils/taskUtils";
+import { compareItemsByDate, createTaskFromDraft } from "@/utils/taskUtils";
 import { supabase } from "@/lib/supabase";
 import { toLocalItemShape, toRemoteItemShape } from "@/utils/itemUtils";
 import { debouncedSync, setLastSyncedAt } from "@/utils/backend/sync";
 import { getCurrentUserId } from "@/utils/backend/auth";
-import { toLocalExceptionShape, toRemoteExceptionShape } from "@/utils/exceptionUtils";
+import { diffItemsToException, toLocalExceptionShape, toRemoteExceptionShape } from "@/utils/exceptionUtils";
 import { nanoid } from "nanoid";
 import { getDeviceId } from "@/utils/backend/device";
 import { isEqual } from "lodash";
+import { createBlockFromDraft } from "@/utils/blockUtils";
 
 interface SyncStateRec {
     key: string;
@@ -50,8 +51,10 @@ const notInExceptions = async (id: string, itemId: string, date: DateString) => 
 
 // local
 
-export const createItemAPI = async (item: ScheduleItem) => {
-    await db.items.add({...item,
+export const createTaskAPI = async (task: PartialTask, userId: string) => {
+    const id: string = nanoid();
+    const validTask: Task = createTaskFromDraft(id, {...task, userId});
+    await db.items.add({...validTask,
         createdAt: nowISO(),
         updatedAt: nowISO(),
         dirty: true
@@ -59,7 +62,18 @@ export const createItemAPI = async (item: ScheduleItem) => {
     debouncedSync();
 }
 
-export const updateItemAPI = async (
+export const createBlockAPI = async (block: PartialBlock, userId: string) => {
+    const id: string = nanoid();
+    const validBlock: Block = createBlockFromDraft(id, {...block, userId});
+    await db.items.add({...validBlock,
+        createdAt: nowISO(),
+        updatedAt: nowISO(),
+        dirty: true
+    });
+    debouncedSync();
+}
+
+export const updateItem = async (
     id: string, 
     modItem: PartialScheduleItem
 ) => {
@@ -71,56 +85,64 @@ export const updateItemAPI = async (
     debouncedSync();
 }
 
-export const updateTaskAPI = async (
-    id: string, 
-    modItem: PartialScheduleItem, 
-    exceptionId?: string,
+export const updateTask = async (
+    taskId: string, 
+    taskUpdates: PartialTask, 
     effectDate?: DateString
 ) => {
-    const item = await db.items.get(id);
+    const task = await db.items.get(taskId);
+    if(!task) return;
+
+    const exception = await db.exceptions
+        .where("[itemId+effectDate]")
+        .equals([taskId, effectDate ?? ""])
+        .first();
+    //const excUpdates: PartialException = diffItemsToException(task, taskUpdates);
+
+    console.log(taskUpdates, effectDate, exception);
 
     // handle exception
-    if(exceptionId) {
+    if(exception) {
         if(!effectDate) return;
 
         const overrides: Record<string, unknown> = {};
-        if(item) {
+        if(task) {
             // get changed properties
-            for(const prop in Object.keys(modItem)) {
+            for(const prop in Object.keys(taskUpdates)) {
                 if(isEqual(
-                    modItem[prop as keyof PartialScheduleItem],
-                    item[prop as keyof ScheduleItem]
+                    taskUpdates[prop as keyof PartialScheduleItem],
+                    task[prop as keyof ScheduleItem]
                 )) continue;
 
-                overrides[prop as keyof ItemOverrides]=(modItem as Record<string, unknown>)[prop];
+                overrides[prop as keyof ItemOverrides]=(taskUpdates as Record<string, unknown>)[prop];
             }
         }
 
-        const occDate = modItem.doInfo?.date ?? effectDate;
+        const occDate = taskUpdates.doInfo?.date ?? effectDate;
 
         // create or update exception
-        const isNewException = await notInExceptions(exceptionId, id, occDate);
-        if(isNewException) createExceptionAPI(effectDate,id,"modified",overrides);
-        else updateExceptionAPI(exceptionId, "modified", overrides);
+        const isNewException = await notInExceptions(exception.id, taskId, occDate);
+        if(isNewException) createExceptionAPI(effectDate,taskId,"modified",overrides);
+        else updateExceptionAPI(exception.id, "modified", overrides);
     } 
     // handle task updates
     else {
-        const draftItem = {...item, ...modItem} as ScheduleItem;
-        // FIX HERE: is modItem's doDate bc of EXCEPTION or bc of ACTUAL CHANGE?
-        const date = item?.doInfo?.date;
+        const draftItem = {...task, ...taskUpdates} as ScheduleItem;
+        // FIX HERE: is taskUpdates's doDate bc of EXCEPTION or bc of ACTUAL CHANGE?
+        const date = task?.doInfo?.date;
         const rruleStr = draftItem.doInfo?.recurrence?.rrule;
         // check if rrule modification & dtstart is VALID
         if(date && rruleStr) {
             const validDtStart = getRRuleDtStart(date, rruleStr);
             if(validDtStart) {
-                updateItemAPI(id, {...modItem,
-                    doInfo: { ...(modItem.doInfo ?? getBaseDoInfo()),
+                updateItem(taskId, {...taskUpdates,
+                    doInfo: { ...(taskUpdates.doInfo ?? getBaseDoInfo()),
                         date: validDtStart
                     }
                 });
             }
         } else {
-            updateItemAPI(id, modItem);
+            updateItem(taskId, taskUpdates);
         }
     }
 }
@@ -237,7 +259,7 @@ const deleteAllExceptionsOfItemAPI = async (itemId: string) => {
     }
 }
 
-const toggleCheckedEXAPI = async (taskId: string, date: DateString) => {
+const toggleCheckedEx = async (taskId: string, date: DateString) => {
     const curExceptions = await db.exceptions
         .where("[itemId+effectDate]")
         .equals([taskId,date])
@@ -274,7 +296,7 @@ export const toggleCheckedAPI = async (id: string, date?: DateString) => {
 
     const isRecurring = task.doInfo?.recurrence?.rrule || false;
 
-    if(isRecurring && date) toggleCheckedEXAPI(task.id, date);
+    if(isRecurring && date) toggleCheckedEx(task.id, date);
     else {
         await db.items.update(id, {
             checked: !task.checked,

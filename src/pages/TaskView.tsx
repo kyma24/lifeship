@@ -5,16 +5,15 @@ import DatePicker from '@/components/doInfo/DatePicker';
 
 import { Trash2, UndoDot, Ellipsis, X } from 'lucide-react';
 import CheckTaskButton from '@/components/buttons/CheckTaskButton';
-import { DateString, DoInfo, PartialTask, Task } from '@/types';
+import { DateString, DoInfo, PartialException, PartialTask, RecurrenceRule, Task, TimePeriod } from '@/types';
 import { isPartialTaskDifferent } from '@/utils/taskUtils';
 import { defaultTask } from '@/utils/constants';
 import ItemList from '@/components/schedule-items/ItemList';
 import useSubtasks from '@/hooks/useSubtasks';
 import CreateTaskBlock from '@/components/schedule-items/tasks/CreateTaskBlock';
-import { useLiveQuery } from 'dexie-react-hooks';
 import SaveButton from '@/components/buttons/SaveButton';
 import { getBaseDoInfo, isValidDateString, nowISO, itemWillOccurOn } from '@/utils/dateUtils';
-import { mergeItemWithException } from '@/utils/exceptionUtils';
+import { diffItemsToException, mergeItemWithException } from '@/utils/exceptionUtils';
 
 const TaskView = () => {
     const [modTask, setModTask] = useState<PartialTask>(null!);
@@ -43,7 +42,7 @@ const TaskView = () => {
     
     const navigate = useNavigate();
 
-    const { createTask, editTaskAll, deleteItem, toggleChecked } = useScheduleItems();
+    const { createTask, editTaskAll, editTaskOne, deleteItem, toggleChecked } = useScheduleItems();
 
     const { subtasks } = useSubtasks(id!);
 
@@ -63,34 +62,85 @@ const TaskView = () => {
     }
     
     // plan: open dropdown to change single/all
-    const handleSubmit = () => {
-        if(modTask.name?.trim() === "") return;
-        editTaskAll(id!,modTask);
+    const handleSubmitAll = (taskUpdates: PartialTask = modTask) => {
+        if(taskUpdates.name?.trim() === "") 
+            taskUpdates.name = task.name;
+        editTaskAll(id!,taskUpdates);
+    }
+
+    const handleSubmitSingle = (taskUpdates: PartialTask = modTask) => {
+        if(taskUpdates.name?.trim() === "")
+            taskUpdates.name = task.name;
+        if(!task.doInfo?.date) return;
+        editTaskOne(id!,taskUpdates,task.doInfo.date);
     }
 
     const handleNameChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         e.stopPropagation();
-        const newTask: PartialTask = {...modTask, name: e.target.value};
-        setModTask(newTask);
+        const taskUpdates: PartialTask = { name: e.target.value };
+        setModTask({...modTask, ...taskUpdates});
+        // for auto-registering changes
+        handleSubmitAll(taskUpdates);
     }
 
     const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         e.stopPropagation();
-        const newTask: PartialTask = {...modTask, description: e.target.value};
-        setModTask(newTask);
+        const taskUpdates: PartialTask = { description: e.target.value };
+        setModTask({...modTask, ...taskUpdates});
+        // for auto-registering changes
+        handleSubmitAll(taskUpdates);
     }
 
     const handleCheckedChange = () => {
-        const newTask: PartialTask = {...modTask,
+        const taskUpdates: PartialTask = {
             checked: !modTask.checked, 
             checkedAt: (modTask.checked) ? null : nowISO()
         };
-        setModTask(newTask);
+        setModTask({...modTask, ...taskUpdates});
+        // for auto-registering changes
+        toggleChecked(id!,date! as DateString);
     }
 
-    const handleDoInfoChange = (doInfo: DoInfo | null) => {
-        const newTask: PartialTask = {...modTask, doInfo};
-        setModTask(newTask);
+    const handleDateChange = (newDate: DateString | null) => {
+        const taskUpdates: PartialTask = { doInfo: 
+            (!newDate)
+                ? null
+                : { ...task!.doInfo ?? getBaseDoInfo(), date: newDate }
+        };
+        console.log(taskUpdates);
+        setModTask({...modTask, ...taskUpdates});
+        // for auto-registering changes
+        handleSubmitSingle(taskUpdates);
+    }
+
+    const handleTimeChange = (newTime: Partial<DoInfo> | null) => {
+        // feat: add date if none
+        if(!task.doInfo) return;
+
+        const taskUpdates: PartialTask = 
+        { doInfo:
+            (newTime)
+                ? { ...task.doInfo, ...newTime }
+                : { ...task.doInfo, 
+                    timePeriod: null, 
+                    duration: null, 
+                    timezone: null }
+        };
+        setModTask({...modTask, ...taskUpdates});
+        // for auto-registering changes
+        handleSubmitAll(taskUpdates);
+    }
+
+    const handleRecurrenceChange = (newRecurrence: RecurrenceRule | null) => {
+        // feat: add date if none
+        if(!task.doInfo) return;
+
+        const taskUpdates: PartialTask = { doInfo:
+            { ...task.doInfo, recurrence: newRecurrence }
+        };
+        setModTask({...modTask, ...taskUpdates});
+        // for auto-registering changes
+        handleSubmitAll(taskUpdates);
     }
 
     const handleCreateSubtask = (draftTask: PartialTask) => {
@@ -157,7 +207,7 @@ const TaskView = () => {
                                 value={modTask.name}
                                 onChange={handleNameChange}
                                 placeholder="task name"
-                                className={`max-w-full p-3 resize-y box-border outline-none field-sizing-content
+                                className={`max-w-full p-3 box-border resize-none outline-none field-sizing-content
                                     transition-color duration-300
                                     ${modTask.checked
                                         ? "text-[#9ca3af] line-through" 
@@ -178,19 +228,21 @@ const TaskView = () => {
                     /> 
                 </div>
 
-                <div className="flex flex-row">
-                    <DatePicker
-                        doInfo={modTask.doInfo ?? null}
-                        onChange={handleDoInfoChange}
-                    />
-                </div>
-
                 <div className="w-full flex flex-col items-center gap-3">
                     <textarea
                         value={modTask.description}
                         onChange={handleDescriptionChange}
                         placeholder="description"
-                        className={`w-full min-h-25 p-3 border border-gray-700 rounded-2xl outline-none field-sizing-content ${(modTask.name !== "") ? "text-[#f3f4f6]" : ""}`}
+                        className={`w-full h-fit p-3 border border-gray-700 rounded-2xl resize-none outline-none field-sizing-content ${(modTask.name !== "") ? "text-[#f3f4f6]" : ""}`}
+                    />
+                </div>
+
+                <div className="flex flex-row">
+                    <DatePicker
+                        doInfo={modTask.doInfo ?? null}
+                        onDateChange={handleDateChange}
+                        onTimeChange={handleTimeChange}
+                        onRecurrenceChange={handleRecurrenceChange}
                     />
                 </div>
             </div>     
@@ -212,7 +264,7 @@ const TaskView = () => {
                 </button>
                 {/* save */}
                 <SaveButton
-                    onSubmit={handleSubmit}
+                    onSubmit={handleSubmitAll}
                     isActive={hasChanged}
                 />
             </div>
