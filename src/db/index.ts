@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { toLocalItemShape, toRemoteItemShape } from "@/utils/itemUtils";
 import { debouncedSync, setLastSyncedAt } from "@/utils/backend/sync";
 import { getCurrentUserId } from "@/utils/backend/auth";
-import { diffItemsToException, toLocalExceptionShape, toRemoteExceptionShape } from "@/utils/exceptionUtils";
+import { toLocalExceptionShape, toRemoteExceptionShape } from "@/utils/exceptionUtils";
 import { nanoid } from "nanoid";
 import { getDeviceId } from "@/utils/backend/device";
 import { isEqual } from "lodash";
@@ -93,22 +93,20 @@ export const updateTask = async (
     const task = await db.items.get(taskId);
     if(!task) return;
 
-    const exception = await db.exceptions
-        .where("[itemId+effectDate]")
-        .equals([taskId, effectDate ?? ""])
-        .first();
-    //const excUpdates: PartialException = diffItemsToException(task, taskUpdates);
-
-    console.log(taskUpdates, effectDate, exception);
-
     // handle exception
-    if(exception) {
-        if(!effectDate) return;
+    if(effectDate) {
+        const exception = await db.exceptions
+            .where("[itemId+effectDate]")
+            .equals([taskId, effectDate])
+            .first();
 
         const overrides: Record<string, unknown> = {};
         if(task) {
             // get changed properties
-            for(const prop in Object.keys(taskUpdates)) {
+            for(const prop of Object.keys(taskUpdates)) {
+                console.log(prop);
+                console.log("update:", taskUpdates[prop as keyof PartialScheduleItem]);
+                console.log("og:", task[prop as keyof ScheduleItem]);
                 if(isEqual(
                     taskUpdates[prop as keyof PartialScheduleItem],
                     task[prop as keyof ScheduleItem]
@@ -121,9 +119,9 @@ export const updateTask = async (
         const occDate = taskUpdates.doInfo?.date ?? effectDate;
 
         // create or update exception
-        const isNewException = await notInExceptions(exception.id, taskId, occDate);
-        if(isNewException) createExceptionAPI(effectDate,taskId,"modified",overrides);
-        else updateExceptionAPI(exception.id, "modified", overrides);
+        const isNewException = !exception || await notInExceptions(exception.id, taskId, occDate);
+        if(isNewException) createException(effectDate, taskId, "modified", overrides);
+        else updateException(exception.id, "modified", overrides);
     } 
     // handle task updates
     else {
@@ -187,7 +185,7 @@ export const deleteItemAPI = async (id: string) => {
     debouncedSync();
 }
 
-const createExceptionAPI = async (date: DateString, taskId: string, variant: "modified" | "deleted", overrides?: ItemOverrides) => {
+const createException = async (date: DateString, taskId: string, variant: "modified" | "deleted", overrides?: ItemOverrides) => {
     const userId = await getCurrentUserId();
     if(!userId) return;
 
@@ -213,7 +211,7 @@ const createExceptionAPI = async (date: DateString, taskId: string, variant: "mo
     debouncedSync();
 };
 
-const updateExceptionAPI = async (id: string, variant: "modified" | "deleted", overrides?: ItemOverrides) => {
+const updateException = async (id: string, variant: "modified" | "deleted", overrides?: ItemOverrides) => {
     if(variant === "modified") {
         const exc = await db.exceptions.get(id);
         if(!exc) return;
@@ -274,14 +272,14 @@ const toggleCheckedEx = async (taskId: string, date: DateString) => {
 
     if(!taskException) {
         // create if no exception exists yet
-        await createExceptionAPI(date, taskId, "modified", {
+        await createException(date, taskId, "modified", {
             checked: !task.checked,
             checkedAt: (task.checked) ? null : nowISO(),
         });
     } else {
         // modify existing exception
         const ogOverrides = taskException.overrides;
-        await updateExceptionAPI(taskException.id, "modified", {
+        await updateException(taskException.id, "modified", {
             ...ogOverrides,
             checked: !ogOverrides.checked,
             checkedAt: (ogOverrides.checked) ? null : nowISO(),

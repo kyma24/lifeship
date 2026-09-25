@@ -4,6 +4,7 @@ import { RRule, rrulestr } from "rrule";
 import { getBaseDoInfo, getEndOfDay, getRRuleDtStart, getStartOfDay, isDoInfoEqual, toDateStr, toNativeDate } from "./dateUtils";
 import { nanoid } from "nanoid";
 
+// UNUSED
 export const diffItemsToException = (
     item: ScheduleItem,
     modItem: PartialTask,

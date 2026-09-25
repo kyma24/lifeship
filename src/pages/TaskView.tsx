@@ -5,7 +5,7 @@ import DatePicker from '@/components/doInfo/DatePicker';
 
 import { Trash2, UndoDot, Ellipsis, X } from 'lucide-react';
 import CheckTaskButton from '@/components/buttons/CheckTaskButton';
-import { DateString, DoInfo, PartialException, PartialTask, RecurrenceRule, Task, TimePeriod } from '@/types';
+import { DateString, DoInfo, PartialTask, RecurrenceRule, Task } from '@/types';
 import { isPartialTaskDifferent } from '@/utils/taskUtils';
 import { defaultTask } from '@/utils/constants';
 import ItemList from '@/components/schedule-items/ItemList';
@@ -13,7 +13,7 @@ import useSubtasks from '@/hooks/useSubtasks';
 import CreateTaskBlock from '@/components/schedule-items/tasks/CreateTaskBlock';
 import SaveButton from '@/components/buttons/SaveButton';
 import { getBaseDoInfo, isValidDateString, nowISO, itemWillOccurOn } from '@/utils/dateUtils';
-import { diffItemsToException, mergeItemWithException } from '@/utils/exceptionUtils';
+import { mergeItemWithException } from '@/utils/exceptionUtils';
 
 const TaskView = () => {
     const [modTask, setModTask] = useState<PartialTask>(null!);
