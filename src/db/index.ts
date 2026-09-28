@@ -1,5 +1,5 @@
 import Dexie, { Table } from "dexie";
-import { Block, DateString, ItemOverrides, PartialBlock, PartialException, PartialScheduleItem, PartialTask, RecurrenceException, ScheduleItem, Task } from "@/types";
+import { Block, DateString, ItemOverrides, PartialBlock, PartialScheduleItem, PartialTask, RecurrenceException, ScheduleItem, Task } from "@/types";
 import { getBaseDoInfo, getRRuleDtStart, ISOToDateStr, nowISO } from "@/utils/dateUtils";
 import { useLiveQuery } from "dexie-react-hooks";
 import { compareItemsByDate, createTaskFromDraft } from "@/utils/taskUtils";
@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { toLocalItemShape, toRemoteItemShape } from "@/utils/itemUtils";
 import { debouncedSync, setLastSyncedAt } from "@/utils/backend/sync";
 import { getCurrentUserId } from "@/utils/backend/auth";
-import { toLocalExceptionShape, toRemoteExceptionShape } from "@/utils/exceptionUtils";
+import { getOverrides, toLocalExceptionShape, toRemoteExceptionShape } from "@/utils/exceptionUtils";
 import { nanoid } from "nanoid";
 import { getDeviceId } from "@/utils/backend/device";
 import { isEqual } from "lodash";
@@ -91,46 +91,47 @@ export const updateTask = async (
     effectDate?: DateString
 ) => {
     const task = await db.items.get(taskId);
-    if(!task) return;
+    if(!task || (task.variant !== "task")) return;
 
     // handle exception
     if(effectDate) {
-        const exception = await db.exceptions
+        const effException = await db.exceptions
             .where("[itemId+effectDate]")
             .equals([taskId, effectDate])
             .first();
 
-        const overrides: Record<string, unknown> = {};
-        if(task) {
-            // get changed properties
-            for(const prop of Object.keys(taskUpdates)) {
-                console.log(prop);
-                console.log("update:", taskUpdates[prop as keyof PartialScheduleItem]);
-                console.log("og:", task[prop as keyof ScheduleItem]);
-                if(isEqual(
-                    taskUpdates[prop as keyof PartialScheduleItem],
-                    task[prop as keyof ScheduleItem]
-                )) continue;
+        // get overrides
+        const overrides: Record<string, unknown> = getOverrides(task, taskUpdates);
 
-                overrides[prop as keyof ItemOverrides]=(taskUpdates as Record<string, unknown>)[prop];
-            }
-        }
-
+        // get occurrence date
         const occDate = taskUpdates.doInfo?.date ?? effectDate;
 
+        // get exception with occurrence date
+        const occException = await db.exceptions
+            .where("[itemId+occurrenceDate]")
+            .equals([taskId, occDate])
+            .first();
+        
+        // exception to update
+        const exceptionId = effException?.id ?? occException?.id ?? null;
+
         // create or update exception
-        const isNewException = !exception || await notInExceptions(exception.id, taskId, occDate);
+        const isNewException = !exceptionId;
         if(isNewException) createException(effectDate, taskId, "modified", overrides);
-        else updateException(exception.id, "modified", overrides);
+        else updateException(exceptionId, "modified", overrides, effectDate);
     } 
-    // handle task updates
+
+    // handle base task updates
     else {
         const draftItem = {...task, ...taskUpdates} as ScheduleItem;
-        // FIX HERE: is taskUpdates's doDate bc of EXCEPTION or bc of ACTUAL CHANGE?
+        
+        // get base date, recurrence rule
         const date = task?.doInfo?.date;
         const rruleStr = draftItem.doInfo?.recurrence?.rrule;
-        // check if rrule modification & dtstart is VALID
+
+        // with date and recurrence
         if(date && rruleStr) {
+            // check if rrule modification & dtstart is VALID
             const validDtStart = getRRuleDtStart(date, rruleStr);
             if(validDtStart) {
                 updateItem(taskId, {...taskUpdates,
@@ -139,7 +140,10 @@ export const updateTask = async (
                     }
                 });
             }
-        } else {
+            // feat: add case when invalid; move date to next valid date?
+        } 
+        // normal update otherwise
+        else {
             updateItem(taskId, taskUpdates);
         }
     }
@@ -211,21 +215,25 @@ const createException = async (date: DateString, taskId: string, variant: "modif
     debouncedSync();
 };
 
-const updateException = async (id: string, variant: "modified" | "deleted", overrides?: ItemOverrides) => {
+const updateException = async (
+    id: string, 
+    variant: "modified" | "deleted", 
+    overrides?: ItemOverrides,
+    effectDate?: DateString
+) => {
     if(variant === "modified") {
         const exc = await db.exceptions.get(id);
         if(!exc) return;
 
         const addExc = {
+            effectDate: effectDate ?? exc.effectDate,
+            occurrenceDate: overrides?.doInfo?.date ?? exc.occurrenceDate,
             overrides: overrides,
             updatedAt: nowISO(),
             dirty: true
         };
 
-        await db.exceptions.update(id, (overrides?.doInfo?.date)
-            ? ({...addExc, occurrenceDate: overrides?.doInfo?.date})
-            : addExc
-        );
+        await db.exceptions.update(id, addExc);
     }
     if(variant === "deleted") {
         await db.exceptions.update(id, {

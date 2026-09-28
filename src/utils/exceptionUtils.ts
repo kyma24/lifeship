@@ -1,43 +1,31 @@
-import { DateString, ISOString, ItemOverrides, PartialException, PartialTask, RecurrenceException, RemoteException, ScheduleItem, Task } from "@/types";
+import { DateString, ISOString, ItemOverrides, PartialScheduleItem, PartialTask, RecurrenceException, RemoteException, ScheduleItem, Task } from "@/types";
 import { Json } from "@/types/database.types";
 import { RRule, rrulestr } from "rrule";
 import { getBaseDoInfo, getEndOfDay, getRRuleDtStart, getStartOfDay, isDoInfoEqual, toDateStr, toNativeDate } from "./dateUtils";
 import { nanoid } from "nanoid";
+import { isEqual } from "lodash";
 
-// UNUSED
-export const diffItemsToException = (
-    item: ScheduleItem,
-    modItem: PartialTask,
-    variant: "modified" | "deleted" = "modified",
-): PartialException => {
-    if(item.variant !== "task") return {};
-    if(!item.doInfo || !item.doInfo.recurrence) return {};
+export const getOverrides = (
+    task: Task,
+    taskUpdates: PartialTask
+): Record<string, unknown> => {
+    const overrides: Record<string, unknown> = {};
 
-    // construct overrides
-    let overrides: ItemOverrides = {};
+    // get changed properties
+    for(const prop of Object.keys(taskUpdates)) {
+        console.log(prop);
+        console.log("update:", taskUpdates[prop as keyof PartialScheduleItem]);
+        console.log("og:", task[prop as keyof ScheduleItem]);
+        // adjust later? diff equality depending on individual props
+        if(isEqual(
+            taskUpdates[prop as keyof PartialScheduleItem],
+            task[prop as keyof ScheduleItem]
+        )) continue;
 
-    if(item.description !== modItem.description) overrides = {...overrides, description: modItem.description};
-    if(JSON.stringify(item.tags) !== JSON.stringify(modItem.tags)) overrides = {...overrides, tags: modItem.tags};
-    if(!isDoInfoEqual(item.doInfo ?? null, modItem.doInfo ?? null)) overrides = {...overrides, doInfo: modItem.doInfo};
-    if(item.color !== modItem.color) overrides = {...overrides, color: modItem.color};
-    if(item.icon !== modItem.icon) overrides = {...overrides, icon: modItem.icon};
-    if(item.checked !== modItem.checked) overrides = {...overrides,
-        checked: modItem.checked,
-        checkedAt: modItem.checkedAt
-    };
+        overrides[prop as keyof ItemOverrides]=(taskUpdates as Record<string, unknown>)[prop];
+    }
 
-    // add known properties into partial
-    const newException: PartialException = {
-        itemId: item.id,
-        effectDate: item.doInfo.date,
-        // what happens when user selects no date?
-        occurrenceDate: modItem.doInfo?.date!,
-        // CHANGE LATER WHEN DEALING WITH DELETED
-        variant: "modified",
-        overrides: overrides
-    };
-
-    return newException;
+    return overrides;
 }
 
 export const mergeItemWithException = (
@@ -174,6 +162,7 @@ export const mergeItemsWithExceptions = (
     return displayTasks;
 }
 
+// dealing w/ remote exceptions
 const serializeOverrides = (overrides: ItemOverrides | null): Json => {
     return overrides as Json;
 }
@@ -225,3 +214,40 @@ export const toLocalExceptionShape = (remoteEx: RemoteException): RecurrenceExce
         dirty: false
     };
 }
+
+
+/*// UNUSED
+export const diffItemsToException = (
+    item: ScheduleItem,
+    modItem: PartialTask,
+    variant: "modified" | "deleted" = "modified",
+): PartialException => {
+    if(item.variant !== "task") return {};
+    if(!item.doInfo || !item.doInfo.recurrence) return {};
+
+    // construct overrides
+    let overrides: ItemOverrides = {};
+
+    if(item.description !== modItem.description) overrides = {...overrides, description: modItem.description};
+    if(JSON.stringify(item.tags) !== JSON.stringify(modItem.tags)) overrides = {...overrides, tags: modItem.tags};
+    if(!isDoInfoEqual(item.doInfo ?? null, modItem.doInfo ?? null)) overrides = {...overrides, doInfo: modItem.doInfo};
+    if(item.color !== modItem.color) overrides = {...overrides, color: modItem.color};
+    if(item.icon !== modItem.icon) overrides = {...overrides, icon: modItem.icon};
+    if(item.checked !== modItem.checked) overrides = {...overrides,
+        checked: modItem.checked,
+        checkedAt: modItem.checkedAt
+    };
+
+    // add known properties into partial
+    const newException: PartialException = {
+        itemId: item.id,
+        effectDate: item.doInfo.date,
+        // what happens when user selects no date?
+        occurrenceDate: modItem.doInfo?.date!,
+        // CHANGE LATER WHEN DEALING WITH DELETED
+        variant: "modified",
+        overrides: overrides
+    };
+
+    return newException;
+}*/
