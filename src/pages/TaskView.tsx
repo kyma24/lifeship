@@ -27,18 +27,29 @@ const TaskView = () => {
 
     const { rootItems, rootExceptions } = useScheduleItems();
 
+    // get base task
     const baseTask = rootItems.find((item) => item.id === id); //useLiveQuery(() => getItemById(id!), [id]);
     const isRecurring = baseTask?.doInfo?.recurrence?.rrule ?? false;
+
+    // get corresponding exception
     const exception = (isRecurring)
-        ? rootExceptions.find((exc) => (exc.itemId === id) && (exc.occurrenceDate === date))
+        ? rootExceptions.find((exc) => (
+            (exc.itemId === id) 
+            && (exc.occurrenceDate === date)
+            && (exc.variant === "modified")
+        ))
         : null;
     
+    // merge into display task
     const task = (baseTask && exception)
         ? mergeItemWithException(baseTask, exception)
         : {...baseTask, doInfo: (baseTask?.doInfo)
             ? {...baseTask.doInfo, date }
             : {...getBaseDoInfo(), date }
         } as Task;
+
+    // query unsuccessful, or removed by exception
+    if(!task || !baseTask) return (<div>not found task</div>);
     
     const navigate = useNavigate();
 
@@ -155,16 +166,20 @@ const TaskView = () => {
         }
     }
 
-    if(!task || !baseTask) return (<div>not found task</div>);
+    // invalid date param
     if(date && !isValidDateString(date)) return (<div>invalid occurrence date</div>);
-    if(task.variant !== "task") return (<div>not a task</div>);
-    if(loading) return (<div>loading...</div>);
 
+    // valid date in recurrence?
     if(isRecurring && date && !exception) {
-        // check if valid date in recurrence
         if(!itemWillOccurOn(baseTask, date as DateString))
             return (<div>task on date does not exist</div>);
     }
+
+    // non-task item
+    if(task.variant !== "task") return (<div>not a task</div>);
+
+    // loading buffer
+    if(loading) return (<div>loading...</div>);
 
     const hasChanged = isPartialTaskDifferent(task, modTask);
     

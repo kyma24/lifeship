@@ -13,9 +13,6 @@ export const getOverrides = (
 
     // get changed properties
     for(const prop of Object.keys(taskUpdates)) {
-        console.log(prop);
-        console.log("update:", taskUpdates[prop as keyof PartialScheduleItem]);
-        console.log("og:", task[prop as keyof ScheduleItem]);
         // adjust later? diff equality depending on individual props
         if(isEqual(
             taskUpdates[prop as keyof PartialScheduleItem],
@@ -31,17 +28,21 @@ export const getOverrides = (
 export const mergeItemWithException = (
     item: ScheduleItem,
     exception: RecurrenceException
-): ScheduleItem => {
+): ScheduleItem | null => {
     if(item.variant !== "task") return item;
 
-    return {
-        ...item, 
-        ...exception.overrides, 
-        doInfo: (item.doInfo)
-            ? {...item.doInfo, date: exception.occurrenceDate }
-            : {...getBaseDoInfo(), date: exception.occurrenceDate },
-        exceptionId: exception.id,
-    };
+    if(exception.variant === "modified")
+        return {
+            ...item, 
+            ...exception.overrides, 
+            doInfo: (item.doInfo)
+                ? {...item.doInfo, date: exception.occurrenceDate }
+                : {...getBaseDoInfo(), date: exception.occurrenceDate },
+            exceptionId: exception.id,
+        };
+    
+    // handle variant === "deleted"
+    return null;
 };
 
 export const mergeItemsWithExceptions = (
@@ -51,23 +52,24 @@ export const mergeItemsWithExceptions = (
     endDate: DateString,
     today: DateString
 ) => {
-    // tasks w/o new date but effect date within range OR new date within range
     const exceptionsToApply = exceptions
         .filter((exc) => {
             const ret = !exc.deletedAt;
             const newDate = exc.overrides?.doInfo?.date ?? null;
+            // tasks w/ new date within range
             if(newDate) return ret && (newDate>=startDate) && (newDate<=endDate);
+            // OR w/o new date, but effect date within range
             return ret && (exc.effectDate>=startDate) && (exc.effectDate<=endDate);
         });
 
-    // key: base taskId
+    // map exceptions; key: base taskId
     const exceptionsByTaskId: Record<string,RecurrenceException[]> = {};
     for(const exc of exceptionsToApply) {
         const excId=exc.itemId;
         if(exceptionsByTaskId[excId]) exceptionsByTaskId[excId].push(exc);
         else exceptionsByTaskId[excId]=[exc];
     }
-
+    
     const displayTasks: Task[] = [];
     const countTaskOnDate = new Map<DateString,number>();
 
@@ -78,7 +80,7 @@ export const mergeItemsWithExceptions = (
 
         // deal with no recurrence
         if(!item.doInfo?.recurrence?.rrule) {
-            // has exception in range?
+            // (theoretically don't need this) has exception in range?
             const exc = exceptionsByTaskId[item.id] ?? [];
             if(exc.length>0) {
                 const overrides = exc[0]?.overrides ?? {};
@@ -95,11 +97,18 @@ export const mergeItemsWithExceptions = (
             continue;
         }
 
+        // with recurrence
         if(exceptionsByTaskId[item.id]) {
             countTaskOnDate.clear();
 
-            // go thru all exceptions with taskId=item.id:
+            // go thru all exceptions with taskId=item.id (should only be one):
             for(const exc of exceptionsByTaskId[item.id] ?? []) {
+                // don't consider if exc is a deletion
+                if(exc.variant === "deleted") {
+                    countTaskOnDate.set(exc.effectDate, -1);
+                    continue;
+                }
+
                 const newDate = exc.overrides?.doInfo?.date;
 
                 // if modifying without date

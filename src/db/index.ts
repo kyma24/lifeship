@@ -35,20 +35,6 @@ class AppDatabase extends Dexie {
 
 export const db = new AppDatabase();
 
-const notInExceptions = async (id: string, itemId: string, date: DateString) => {
-    const countById = await db.exceptions
-        .where("id")
-        .equals(id)
-        .count();
-
-    const countByItemOccDate = await db.exceptions
-        .where("[itemId+occurrenceDate]")
-        .equals([itemId,date])
-        .count();
-    
-    return (countById==0) && (countByItemOccDate==0);
-};
-
 // local
 
 export const createTaskAPI = async (task: PartialTask, userId: string) => {
@@ -102,23 +88,26 @@ export const updateTask = async (
 
         // get overrides
         const overrides: Record<string, unknown> = getOverrides(task, taskUpdates);
+    
+        // create or update effException
+        const isNewException = !effException;
+        if(isNewException) createException(effectDate, taskId, "modified", overrides);
+        else updateException(effException.id, "modified", overrides);
 
         // get occurrence date
         const occDate = taskUpdates.doInfo?.date ?? effectDate;
 
-        // get exception with occurrence date
-        const occException = await db.exceptions
+        // get exceptions with same occurrence date
+        const occExceptions = await db.exceptions
             .where("[itemId+occurrenceDate]")
             .equals([taskId, occDate])
-            .first();
-        
-        // exception to update
-        const exceptionId = effException?.id ?? occException?.id ?? null;
+            .toArray();
 
-        // create or update exception
-        const isNewException = !exceptionId;
-        if(isNewException) createException(effectDate, taskId, "modified", overrides);
-        else updateException(exceptionId, "modified", overrides, effectDate);
+        // update (remove) occExceptions
+        for(const occEx of occExceptions) {
+            if(occEx.effectDate === effectDate) continue;
+            updateException(occEx.id, "deleted");
+        }
     } 
 
     // handle base task updates
@@ -218,15 +207,13 @@ const createException = async (date: DateString, taskId: string, variant: "modif
 const updateException = async (
     id: string, 
     variant: "modified" | "deleted", 
-    overrides?: ItemOverrides,
-    effectDate?: DateString
+    overrides?: ItemOverrides
 ) => {
     if(variant === "modified") {
         const exc = await db.exceptions.get(id);
         if(!exc) return;
 
         const addExc = {
-            effectDate: effectDate ?? exc.effectDate,
             occurrenceDate: overrides?.doInfo?.date ?? exc.occurrenceDate,
             overrides: overrides,
             updatedAt: nowISO(),
