@@ -54,12 +54,16 @@ export const mergeItemsWithExceptions = (
 ) => {
     const exceptionsToApply = exceptions
         .filter((exc) => {
-            const ret = !exc.deletedAt;
+            // don't include deleted
+            if(exc.deletedAt) return false;
             const newDate = exc.overrides?.doInfo?.date ?? null;
             // tasks w/ new date within range
-            if(newDate) return ret && (newDate>=startDate) && (newDate<=endDate);
-            // OR w/o new date, but effect date within range
-            return ret && (exc.effectDate>=startDate) && (exc.effectDate<=endDate);
+            const newDateInRange = newDate && (newDate>=startDate) && (newDate<=endDate);
+            // OR w/o new date, but effect/occ date within range
+            const effDateInRange = (exc.effectDate>=startDate) && (exc.effectDate<=endDate);
+            const occDateInRange = (exc.occurrenceDate>=startDate) && (exc.occurrenceDate<=endDate);
+
+            return newDateInRange || effDateInRange || occDateInRange;
         });
 
     // map exceptions; key: base taskId
@@ -103,7 +107,7 @@ export const mergeItemsWithExceptions = (
 
             // go thru all exceptions with taskId=item.id (should only be one):
             for(const exc of exceptionsByTaskId[item.id] ?? []) {
-                // don't consider if exc is a deletion
+                // omit if exc is a deletion
                 if(exc.variant === "deleted") {
                     countTaskOnDate.set(exc.effectDate, -1);
                     continue;
@@ -127,7 +131,10 @@ export const mergeItemsWithExceptions = (
                 }
 
                 // if newDate not in range or alrdy taken: don't include
-                if(((countTaskOnDate.get(newDate) ?? 0) > 0) || (newDate<startDate) || (newDate>endDate)) continue;
+                if(((countTaskOnDate.get(newDate) ?? 0) > 0) || (newDate<startDate) || (newDate>endDate)) {
+                    // omit og date
+                    countTaskOnDate.set(exc.effectDate, -1);
+                }
                 // if in range: merge overrides with taskId, exceptionId=exception.id
                 else {
                     const newTask: Task = {...item, ...exc.overrides, exceptionId: exc.id};

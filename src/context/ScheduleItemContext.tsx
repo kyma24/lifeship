@@ -13,7 +13,7 @@ interface ItemContextProps {
     createTask: (task: PartialTask) => void,
     createBlock: (block: PartialBlock) => void,
     editTaskAll: (id: string, modTask: PartialTask) => void,
-    editTaskOne: (id: string, modTask: PartialTask, effectDate: DateString) => void,
+    editTaskOne: (id: string, modTask: PartialTask, effectDate: DateString, occurrenceDate: DateString) => void,
     editBlock: (id: string, modBlock: PartialBlock) => void,
     deleteItem: (id: string) => void,
     toggleChecked: (id: string, date?: DateString) => void,
@@ -68,9 +68,9 @@ export const ScheduleItemProvider = ({ children }: React.PropsWithChildren) => {
             }
         },
 
-        editTaskOne: (id: string, taskUpdates: PartialTask, effectDate: DateString): void => {
+        editTaskOne: (id: string, taskUpdates: PartialTask, effectDate: DateString, occurrenceDate: DateString): void => {
             try {
-                updateTask(id, taskUpdates, effectDate);
+                updateTask(id, taskUpdates, effectDate, occurrenceDate);
             } catch (err) {
                 if(err instanceof Error) setError(err.message);
                 else setError(err as string);

@@ -83,7 +83,13 @@ const TaskView = () => {
         if(taskUpdates.name?.trim() === "")
             taskUpdates.name = task.name;
         if(!task.doInfo?.date) return;
-        editTaskOne(id!,taskUpdates,task.doInfo.date);
+        // if has exception, do not make separate one on top of it
+        editTaskOne(
+            id!,
+            taskUpdates,
+            exception?.effectDate ?? task.doInfo.date,
+            exception?.occurrenceDate ?? task.doInfo.date
+        );
     }
 
     const handleNameChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

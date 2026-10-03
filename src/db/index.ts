@@ -1,6 +1,6 @@
 import Dexie, { Table } from "dexie";
 import { Block, DateString, ItemOverrides, PartialBlock, PartialScheduleItem, PartialTask, RecurrenceException, ScheduleItem, Task } from "@/types";
-import { getBaseDoInfo, getRRuleDtStart, ISOToDateStr, nowISO } from "@/utils/dateUtils";
+import { getBaseDoInfo, getRRuleDtStart, ISOToDateStr, itemWillOccurOn, nowISO } from "@/utils/dateUtils";
 import { useLiveQuery } from "dexie-react-hooks";
 import { compareItemsByDate, createTaskFromDraft } from "@/utils/taskUtils";
 import { supabase } from "@/lib/supabase";
@@ -74,7 +74,8 @@ export const updateItem = async (
 export const updateTask = async (
     taskId: string, 
     taskUpdates: PartialTask, 
-    effectDate?: DateString
+    effectDate?: DateString,
+    occurrenceDate?: DateString
 ) => {
     const task = await db.items.get(taskId);
     if(!task || (task.variant !== "task")) return;
@@ -90,22 +91,35 @@ export const updateTask = async (
         const overrides: Record<string, unknown> = getOverrides(task, taskUpdates);
     
         // create or update effException
-        const isNewException = !effException;
-        if(isNewException) createException(effectDate, taskId, "modified", overrides);
+        if(!effException) createException(effectDate, taskId, "modified", overrides);
         else updateException(effException.id, "modified", overrides);
 
-        // get occurrence date
-        const occDate = taskUpdates.doInfo?.date ?? effectDate;
+        // [revisit edge case] if in recurrence, remove og occurrence date's task
+        if(occurrenceDate && (effectDate !== occurrenceDate) && itemWillOccurOn(task, occurrenceDate)) {
+            console.log(effectDate, occurrenceDate);
+            const ogOccException = await db.exceptions
+                .where("[itemId+effectDate]")
+                .equals([taskId, occurrenceDate])
+                .first();
+            
+            if(!ogOccException) createException(occurrenceDate, taskId, "deleted");
+            else updateException(ogOccException.id, "deleted");
+        }
+
+        // get new occurrence date
+        const targetOccDate = taskUpdates.doInfo?.date ?? effectDate;
 
         // get exceptions with same occurrence date
         const occExceptions = await db.exceptions
             .where("[itemId+occurrenceDate]")
-            .equals([taskId, occDate])
+            .equals([taskId, targetOccDate])
             .toArray();
 
-        // update (remove) occExceptions
+        // update (remove) duplicate occExceptions
         for(const occEx of occExceptions) {
+            // don't remove target
             if(occEx.effectDate === effectDate) continue;
+            // if part of recurrence, remove task on og date [revisit]
             updateException(occEx.id, "deleted");
         }
     } 
