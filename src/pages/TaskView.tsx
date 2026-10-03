@@ -3,15 +3,13 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom'
 import DatePicker from '@/components/doInfo/DatePicker';
 
-import { Trash2, UndoDot, Ellipsis, X } from 'lucide-react';
+import { Ellipsis, X } from 'lucide-react';
 import CheckTaskButton from '@/components/buttons/CheckTaskButton';
 import { DateString, DoInfo, PartialTask, RecurrenceRule, Task } from '@/types';
-import { isPartialTaskDifferent } from '@/utils/taskUtils';
 import { defaultTask } from '@/utils/constants';
 import ItemList from '@/components/schedule-items/ItemList';
 import useSubtasks from '@/hooks/useSubtasks';
 import CreateTaskBlock from '@/components/schedule-items/tasks/CreateTaskBlock';
-import SaveButton from '@/components/buttons/SaveButton';
 import { getBaseDoInfo, isValidDateString, nowISO, itemWillOccurOn } from '@/utils/dateUtils';
 import { mergeItemWithException } from '@/utils/exceptionUtils';
 
@@ -48,9 +46,6 @@ const TaskView = () => {
             : {...getBaseDoInfo(), date }
         } as Task;
 
-    // query unsuccessful, or removed by exception
-    if(!task || !baseTask) return (<div>not found task</div>);
-    
     const navigate = useNavigate();
 
     const { createTask, editTaskAll, editTaskOne, deleteItem, toggleChecked } = useScheduleItems();
@@ -66,11 +61,8 @@ const TaskView = () => {
         }
     }, [task]);
 
-    const handleRevert = () => {
-        if((!task) || (task.variant !== "task")) return;
-        const {id, ...partialTask} = task;
-        setModTask(partialTask);
-    }
+    // query unsuccessful, or removed by exception
+    if(!task || !baseTask) return (<div>not found task</div>);
     
     // plan: open dropdown to change single/all
     const handleSubmitAll = (taskUpdates: PartialTask = modTask) => {
@@ -186,8 +178,6 @@ const TaskView = () => {
 
     // loading buffer
     if(loading) return (<div>loading...</div>);
-
-    const hasChanged = isPartialTaskDifferent(task, modTask);
     
     return (
         <div className="w-full flex flex-col items-center p-3 gap-3 overflow-x-hidden overflow-y-scroll">
@@ -266,28 +256,6 @@ const TaskView = () => {
                         onRecurrenceChange={handleRecurrenceChange}
                     />
                 </div>
-            </div>     
-            
-            <div className="w-full flex flex-row p-3 gap-3">
-                {/* delete */}
-                <button
-                    className={`p-2 border-2 border-red-700 bg-red-900 rounded-full`}
-                    onClick={handleTaskDelete}
-                >
-                    <Trash2 strokeWidth={2} />
-                </button>
-                {/* revert */}
-                <button
-                    className={`ml-auto px-3 py-1.5 border-2 rounded-full transition-colors duration-200 ease-in-out ${hasChanged ? "bg-amber-700 text-[#f3f4f6] border-amber-600" : "bg-gray-700 border-gray-600"}`}
-                    onClick={hasChanged ? handleRevert : undefined}
-                >
-                    <UndoDot strokeWidth={2} />
-                </button>
-                {/* save */}
-                <SaveButton
-                    onSubmit={handleSubmitAll}
-                    isActive={hasChanged}
-                />
             </div>
 
             {/* subtasks */}
