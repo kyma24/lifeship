@@ -12,6 +12,7 @@ import useSubtasks from '@/hooks/useSubtasks';
 import CreateTaskBlock from '@/components/schedule-items/tasks/CreateTaskBlock';
 import { getBaseDoInfo, isValidDateString, nowISO, itemWillOccurOn } from '@/utils/dateUtils';
 import { mergeItemWithException } from '@/utils/exceptionUtils';
+import MenuButton from '@/components/buttons/MenuButton';
 
 const TaskView = () => {
     const [modTask, setModTask] = useState<PartialTask>(null!);
@@ -110,6 +111,16 @@ const TaskView = () => {
         toggleChecked(id!,date! as DateString);
     }
 
+    const handleCheckAll = () => {
+        const taskUpdates: PartialTask = {
+            checked: !modTask.checked, 
+            checkedAt: (modTask.checked) ? null : nowISO()
+        };
+        setModTask({...modTask, ...taskUpdates});
+        // for auto-registering changes
+        handleSubmitAll(taskUpdates);
+    }
+
     const handleDateChange = (newDate: DateString | null) => {
         const taskUpdates: PartialTask = { doInfo: 
             (!newDate)
@@ -188,11 +199,12 @@ const TaskView = () => {
 
                 <div className="flex flex-row gap-3">
                     {/* menu */}
-                    <button 
-                        className="w-fit h-fit"
-                    >
-                        <Ellipsis strokeWidth={2} />
-                    </button>
+                    <MenuButton
+                        onCheck={handleCheckedChange}
+                        onCheckAll={handleCheckAll}
+                        onDelete={handleTaskDelete}
+                    />
+
                     {/* close */}
                     <button
                         className="w-fit h-fit"
