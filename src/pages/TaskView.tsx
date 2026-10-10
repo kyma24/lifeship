@@ -118,7 +118,7 @@ const TaskView = () => {
         };
         setModTask({...modTask, ...taskUpdates});
         // for auto-registering changes
-        handleSubmitAll(taskUpdates);
+        toggleChecked(id!);
     }
 
     const handleDateChange = (newDate: DateString | null) => {
