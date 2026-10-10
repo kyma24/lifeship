@@ -1,7 +1,8 @@
-import { DoInfo, PartialScheduleItem } from "@/types";
+import { DateString, DoInfo, PartialScheduleItem, RecurrenceRule } from "@/types";
 import { useState } from "react";
 import Divider from "../Divider";
 import DatePicker from "../doInfo/DatePicker";
+import { getBaseDoInfo } from "@/utils/dateUtils";
 
 const ExpandedCreateItemBlock = ({ variant, defaultItem, onCreateItem, onClose }: {
     variant: "task" | "block",
@@ -23,8 +24,38 @@ const ExpandedCreateItemBlock = ({ variant, defaultItem, onCreateItem, onClose }
         onClose();
     }
 
-    const handleDoDateChange = (doInfo: DoInfo | null) => {
-        setDraftItem({...draftItem, doInfo});
+    const handleDateChange = (newDate: DateString | null) => {
+        const updates: PartialScheduleItem = { doInfo:
+            (!newDate)
+                ? null
+                : { ...draftItem.doInfo ?? getBaseDoInfo(), date: newDate}
+        }
+        setDraftItem({...draftItem, ...updates});
+    }
+
+    const handleTimeChange = (newTime: Partial<DoInfo> | null) => {
+        // feat: add date if none
+        if(!draftItem.doInfo) return;
+
+        const updates: PartialScheduleItem = { doInfo:
+            (newTime)
+                ? { ...draftItem.doInfo, ...newTime }
+                : { ...draftItem.doInfo,
+                    timePeriod: null,
+                    duration: null,
+                    timezone: null }
+        };
+        setDraftItem({...draftItem, ...updates});
+    }
+
+    const handleRecurrenceChange = (newRecurrence: RecurrenceRule | null) => {
+        // feat: add date if none
+        if(!draftItem.doInfo) return;
+
+        const updates: PartialScheduleItem = { doInfo:
+            { ...draftItem.doInfo, recurrence: newRecurrence }
+        };
+        setDraftItem({...draftItem, ...updates});
     }
 
     return (
@@ -51,7 +82,9 @@ const ExpandedCreateItemBlock = ({ variant, defaultItem, onCreateItem, onClose }
                 <div className="flex flex-row gap-2">
                     <DatePicker 
                         doInfo={draftItem.doInfo!}
-                        onChange={handleDoDateChange}
+                        onDateChange={handleDateChange}
+                        onTimeChange={handleTimeChange}
+                        onRecurrenceChange={handleRecurrenceChange}
                     />
                 </div>
             </div>

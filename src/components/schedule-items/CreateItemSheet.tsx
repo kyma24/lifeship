@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import DatePicker from '@/components/doInfo/DatePicker';
 import { ArrowUp, Repeat, RepeatOff, Tags } from 'lucide-react';
-import { DoInfo, PartialBlock, PartialScheduleItem, PartialTask, RecurrenceRule } from '@/types';
+import { DateString, DoInfo, PartialBlock, PartialScheduleItem, PartialTask, RecurrenceRule } from '@/types';
 import Divider from '@/components/Divider';
 import { defaultTask, defaultBlock } from '@/utils/constants';
+import { getBaseDoInfo } from '@/utils/dateUtils';
 
 const CreateItemSheet = ({ onCreate }: {
     onCreate: (draft: PartialScheduleItem) => void,
@@ -129,10 +130,40 @@ const CreateTaskDisplay = ({ onCreate }: {
     onCreate({...draftTask, name: trimmedName});
     setDraftTask(defaultTask);
   }
+  
+    const handleDateChange = (newDate: DateString | null) => {
+        const updates: PartialTask = { doInfo:
+            (!newDate)
+                ? null
+                : { ...draftTask.doInfo ?? getBaseDoInfo(), date: newDate}
+        }
+        setDraftTask({...draftTask, ...updates});
+    }
 
-  const handleDoDateChange = (doInfo: DoInfo | null) => {
-    setDraftTask({...draftTask, doInfo});
-  }
+    const handleTimeChange = (newTime: Partial<DoInfo> | null) => {
+        // feat: add date if none
+        if(!draftTask.doInfo) return;
+
+        const updates: PartialTask = { doInfo:
+            (newTime)
+                ? { ...draftTask.doInfo, ...newTime }
+                : { ...draftTask.doInfo,
+                    timePeriod: null,
+                    duration: null,
+                    timezone: null }
+        };
+        setDraftTask({...draftTask, ...updates});
+    }
+
+    const handleRecurrenceChange = (newRecurrence: RecurrenceRule | null) => {
+        // feat: add date if none
+        if(!draftTask.doInfo) return;
+
+        const updates: PartialTask = { doInfo:
+            { ...draftTask.doInfo, recurrence: newRecurrence }
+        };
+        setDraftTask({...draftTask, ...updates});
+    }
 
   const handleDurationChange = (duration: number) => {
     setDraftTask({...draftTask, doInfo: {...draftTask.doInfo!, duration}});
@@ -177,7 +208,9 @@ const CreateTaskDisplay = ({ onCreate }: {
           <div className="flex flex-row gap-2 items-center">
             <DatePicker
               doInfo={draftTask.doInfo!}
-              onChange={handleDoDateChange}
+              onDateChange={handleDateChange}
+              onTimeChange={handleTimeChange}
+              onRecurrenceChange={handleRecurrenceChange}
             />
 
             <p>→</p>

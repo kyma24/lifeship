@@ -19,7 +19,14 @@ const PlanView = () => {
 
     const params = useParams();
     const tempDate = params.date;
-    const displayDate = (tempDate && isValidDateString(tempDate)) ? (tempDate as DateString) : today;
+    
+    const isValidDisplayDate = (tempDate && isValidDateString(tempDate) && (tempDate >= today));
+    const displayDate = isValidDisplayDate
+        ? (tempDate as DateString) 
+        : today;
+    
+    if(!isValidDisplayDate)
+        navigate(`/plan/${today}`);
 
     const fullWeekDates = useMemo(() => 
         getFullWeekStrs(displayDate)
