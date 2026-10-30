@@ -6,7 +6,7 @@ import Divider from "../Divider";
 import TimeSelector from "./TimeSelector";
 import RecurrenceSelector from "./RecurrenceSelector";
 import ScheduleSuggestList from "./ScheduleSuggestList";
-import { getTodayString, getTomorrowString } from "@/utils/dateUtils";
+import { getNextOccurrence, getTodayString, getTomorrowString } from "@/utils/dateUtils";
 import { useBottomSheet } from "@/context/BottomSheetContext";
 import CustomDateSheet from "./CustomDateSheet";
 
@@ -41,6 +41,15 @@ const DatePicker = ({doInfo, onDateChange, onTimeChange, onRecurrenceChange}: {
         onDateChange(null);
         setPopupOpen(false);
     };
+    
+    const handleToNext = () => {
+        if(!doInfo) return;
+        const next = getNextOccurrence(doInfo, doInfo.date);
+        // no valid next occurrence?
+        if(!next) return;
+        // change date to next occurrence
+        handleUpdateDate(next);
+    }
 
     // custom date sheet
     const { openSheet, closeSheet } = useBottomSheet();
@@ -158,6 +167,7 @@ const DatePicker = ({doInfo, onDateChange, onTimeChange, onRecurrenceChange}: {
                                 onToday={handleToToday}
                                 onTomorrow={handleToTomorrow}
                                 onNoDate={handleToNoDate}
+                                onPostpone={(doInfo?.recurrence) ? handleToNext : null}
                                 onCustomDate={handleCustomDate}
                             />
 

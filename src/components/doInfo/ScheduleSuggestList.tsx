@@ -2,10 +2,11 @@ import { DateString } from "@/types"
 import { formatDateString, getTodayString, getTomorrowString, toWeekdayAbbrFormat } from "@/utils/dateUtils";
 import { Calendar, CircleSlash, Forward, SkipForward } from "lucide-react"
 
-const ScheduleSuggestList = ({ date, onToday, onTomorrow, onNoDate, onCustomDate }: {
+const ScheduleSuggestList = ({ date, onToday, onTomorrow, onPostpone, onNoDate, onCustomDate }: {
     date: DateString | null,
     onToday: () => void,
     onTomorrow: () => void,
+    onPostpone: (() => void) | null,
     onNoDate: () => void,
     onCustomDate: () => void,
 }) => {
@@ -56,6 +57,25 @@ const ScheduleSuggestList = ({ date, onToday, onTomorrow, onNoDate, onCustomDate
                         </div>
 
                         <p>{toWeekdayAbbrFormat(getTomorrowString())}</p>
+                    </button>
+                </li>
+            )}
+            
+            { (onPostpone) && (
+                <li>
+                    <button
+                        onClick={onPostpone}
+                        className="flex flex-row w-full items-center justify-between p-1"
+                    >
+                        <div className="flex flex-row items-center justify-center gap-2">
+                            <SkipForward
+                                strokeWidth={2}
+                                className="size-4"
+                            />
+                            <p>Postpone</p>
+                        </div>
+
+                        <p>{"[DAY]"}</p>
                     </button>
                 </li>
             )}

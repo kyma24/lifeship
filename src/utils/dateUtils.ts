@@ -1,5 +1,5 @@
 import { RRule, rrulestr } from "rrule";
-import { AllTimesOfDay, DateComponents, DateString, DoInfo, ISOString, RecurrenceRule, RemoteException, RemoteItem, ScheduleItem, Task, TimeOfDay, TimePeriod } from "../types"
+import { AllTimesOfDay, DateComponents, DateString, DoInfo, ISOString, RecurrenceRule, RemoteException, RemoteItem, RRuleProps, ScheduleItem, Task, TimeOfDay, TimePeriod } from "../types"
 import { toZonedTime } from "date-fns-tz";
 import { rruleWeekdays } from "./constants";
 
@@ -13,6 +13,21 @@ export const getBaseDoInfo = (): DoInfo => ({
 });
 
 // recurrence
+export const getNextOccurrence = (doInfo: DoInfo, date: DateString): DateString | null => {
+    if(!doInfo.recurrence?.rrule) return null;
+
+    // TO REVISE: next valid date after date, regardless of dtstart
+    // (set dtstart to next valid date after date...?)
+    const rrule = rrulestr(doInfo.recurrence.rrule, {
+        dtstart: toNativeDate(doInfo.date)
+    });
+
+    const nativeDate = toNativeDate(date);
+    const next = rrule.after(nativeDate, false);
+
+    return (next) ? toDateStr(next) : null;
+}
+
 export const itemWillOccurOn = (item: ScheduleItem, date: DateString): boolean => {
     if(!item.doInfo) return false;
     if(!item.doInfo.recurrence?.rrule) return item.doInfo.date === date;
@@ -29,12 +44,10 @@ export const itemWillOccurOn = (item: ScheduleItem, date: DateString): boolean =
 }
 
 export const getRRuleDtStart = (date: DateString, rruleStr: string): DateString | null => {
+    const rrule = parseRawRRule(rruleStr,date);
+    if(!rrule) return null;
+
     const nativeDate = toNativeDate(date);
-
-    const rrule = rrulestr(rruleStr, {
-        dtstart: nativeDate
-    });
-
     const validDtStart = rrule.after(nativeDate, true);
     return (validDtStart) ? toDateStr(validDtStart) : null;
 }
@@ -43,6 +56,44 @@ export const createWeeklyRRule = (byDayArr: boolean[], everyXWeeks: number) => {
     if(everyXWeeks<0) return null;
     const byDayList = byDayArr.map((isOn,ind) => (isOn) ? rruleWeekdays[ind] : "").filter((val,_) => (val !== ""));
     return `FREQ=WEEKLY;INTERVAL=${everyXWeeks};${(byDayList.length > 0) ? `BYDAY=${byDayList.join(',')}` : ""}`;
+}
+
+// returns rrule with specified string & dtstart (adjusted)
+const parseRawRRule = (rruleStr: string, dtStart: DateString): RRule | null => {
+    if(rruleStr == '') return null;
+
+    const date = toNativeDate(dtStart);
+    const props:RRuleProps = {};
+
+    const clauses = rruleStr.split(';');
+    for(const clause of clauses) {
+        const parts = clause.split('=');
+        if(parts.length <= 1) continue;
+
+        const core=parts[0];
+        switch (core) {
+            case "FREQ":
+                props.freq = parts[1];
+                break;
+            case "INTERVAL":
+                props.interval = parts[1];
+                break;
+            case "BYDAY":
+                props.byday = parts[1];
+                break;
+        }
+    }
+
+    // reconstruct string: remove start-date-dependent attributes
+    if(!props.freq) return null;
+    const adjStr = `FREQ=${props.freq}${(props.byday) ? `;BYDAY=${props.byday}` : ""}`;
+
+    // construct rrule
+    const rrule = rrulestr(adjStr, {
+        dtstart: date
+    });
+
+    return rrule;
 }
 
 // basic conversions

@@ -43,7 +43,7 @@ const TaskView = () => {
     const task = (baseTask && exception)
         ? mergeItemWithException(baseTask, exception)
         : {...baseTask, doInfo: (baseTask?.doInfo)
-            ? {...baseTask.doInfo, date }
+            ? ((isRecurring) ? {...baseTask.doInfo, date } : baseTask.doInfo)
             : {...getBaseDoInfo(), date }
         } as Task;
 
@@ -127,7 +127,6 @@ const TaskView = () => {
                 ? null
                 : { ...task!.doInfo ?? getBaseDoInfo(), date: newDate }
         };
-        console.log(taskUpdates);
         setModTask({...modTask, ...taskUpdates});
         // for auto-registering changes
         handleSubmitSingle(taskUpdates);

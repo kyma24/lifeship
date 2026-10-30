@@ -11,6 +11,12 @@ export interface RecurrenceRule {
     endDate?: string;
 }
 
+export interface RRuleProps {
+    freq?: string;
+    interval?: string;
+    byday?: string;
+}
+
 export type TimePeriod = null
     | { type: "exact"; minutesDayStart: number }
     | { type: "tod"; timeOfDay: TimeOfDay };
