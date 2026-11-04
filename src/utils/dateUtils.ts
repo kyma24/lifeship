@@ -13,19 +13,24 @@ export const getBaseDoInfo = (): DoInfo => ({
 });
 
 // recurrence
+export const getRRuleDtStart = (date: DateString, rruleStr: string): DateString | null => {
+    const rrule = parseRawRRule(rruleStr,date);
+    if(!rrule) return null;
+
+    const floatingDate = toFloatingDate(date);
+    const validDtStart = rrule.after(floatingDate, true);
+    return (validDtStart) ? toDateStr(fromFloatingDate(validDtStart)) : null;
+}
+
 export const getNextOccurrence = (doInfo: DoInfo, date: DateString): DateString | null => {
     if(!doInfo.recurrence?.rrule) return null;
 
-    // TO REVISE: next valid date after date, regardless of dtstart
-    // (set dtstart to next valid date after date...?)
-    const rrule = rrulestr(doInfo.recurrence.rrule, {
-        dtstart: toNativeDate(doInfo.date)
-    });
+    const rrule = parseRawRRule(doInfo.recurrence.rrule,date);
+    if(!rrule) return null;
 
-    const nativeDate = toNativeDate(date);
-    const next = rrule.after(nativeDate, false);
-
-    return (next) ? toDateStr(next) : null;
+    const floatingDate = toFloatingDate(date);
+    const next = rrule.after(floatingDate, false);
+    return (next) ? toDateStr(fromFloatingDate(next)) : null;
 }
 
 export const itemWillOccurOn = (item: ScheduleItem, date: DateString): boolean => {
@@ -33,23 +38,14 @@ export const itemWillOccurOn = (item: ScheduleItem, date: DateString): boolean =
     if(!item.doInfo.recurrence?.rrule) return item.doInfo.date === date;
 
     const rrule = rrulestr(item.doInfo.recurrence.rrule, {
-        dtstart: toNativeDate(item.doInfo.date)
+        dtstart: toFloatingDate(item.doInfo.date)
     });
 
-    const targetStart = getStartOfDay(toNativeDate(date));
+    const targetStart = getStartOfDay(toFloatingDate(date));
     const targetEnd = getEndOfDay(targetStart);
 
     const matches = rrule.between(targetStart, targetEnd, true);
     return matches.length > 0;
-}
-
-export const getRRuleDtStart = (date: DateString, rruleStr: string): DateString | null => {
-    const rrule = parseRawRRule(rruleStr,date);
-    if(!rrule) return null;
-
-    const nativeDate = toNativeDate(date);
-    const validDtStart = rrule.after(nativeDate, true);
-    return (validDtStart) ? toDateStr(validDtStart) : null;
 }
 
 export const createWeeklyRRule = (byDayArr: boolean[], everyXWeeks: number) => {
@@ -62,7 +58,6 @@ export const createWeeklyRRule = (byDayArr: boolean[], everyXWeeks: number) => {
 const parseRawRRule = (rruleStr: string, dtStart: DateString): RRule | null => {
     if(rruleStr == '') return null;
 
-    const date = toNativeDate(dtStart);
     const props:RRuleProps = {};
 
     const clauses = rruleStr.split(';');
@@ -90,7 +85,7 @@ const parseRawRRule = (rruleStr: string, dtStart: DateString): RRule | null => {
 
     // construct rrule
     const rrule = rrulestr(adjStr, {
-        dtstart: date
+        dtstart: toFloatingDate(dtStart)
     });
 
     return rrule;
@@ -206,7 +201,40 @@ export const toNativeDate = (dateString: DateString, minutesDayStart?: number): 
     return ret;
 };
 
+export const toFloatingDate = (dateString: DateString, minutesDayStart?: number): Date => {
+    const {year, month, day} = toDateComponents(dateString);
+    const ret = new Date(Date.UTC(year, month-1, day));
+    if(minutesDayStart) {
+        const {hrs, mins} = toTimeComponents(minutesDayStart);
+        ret.setUTCHours(hrs, mins);
+    }
+    return ret;
+};
+
+export const fromFloatingDate = (date: Date) => 
+    new Date(
+        date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(),
+        date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()
+    );
+
 // checks
+/*const isValidDoInfo = (doInfo: DoInfo | null): boolean => {
+    if(doInfo == null) return true;
+    return (
+        isValidDateString(doInfo.date) &&
+        ((!doInfo.timePeriod) || (
+            (doInfo.timePeriod.type === "exact")
+                ? ((0 <= doInfo.timePeriod.minutesDayStart) && (doInfo.timePeriod.minutesDayStart < 1440))
+                : isValidTimeOfDay(doInfo.timePeriod.timeOfDay)
+        )) &&
+        ((!doInfo.duration) || (0 < doInfo.duration)) &&
+        // [timezone check?]
+        ((!doInfo.recurrence) || (
+            (doInfo.date) && ()
+        ))
+    );
+}*/
+
 const isTimePeriodEqual = (timep1: TimePeriod | null, timep2: TimePeriod | null) => {
     if(!timep1 && !timep2) return true;
 

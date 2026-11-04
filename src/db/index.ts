@@ -134,7 +134,7 @@ export const updateTask = async (
 
         // with date and recurrence
         if(date && rruleStr) {
-            // check if rrule modification & dtstart is VALID
+            // set recurrence dtStart to valid date
             const validDtStart = getRRuleDtStart(date, rruleStr);
             if(validDtStart) {
                 updateItem(taskId, {...taskUpdates,
@@ -143,7 +143,7 @@ export const updateTask = async (
                     }
                 });
             }
-            // feat: add case when invalid; move date to next valid date?
+            // if valid date doesn't exist, no rrule
         } 
         // normal update otherwise
         else {

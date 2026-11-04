@@ -105,7 +105,7 @@ export const mergeItemsWithExceptions = (
         if(exceptionsByTaskId[item.id]) {
             countTaskOnDate.clear();
 
-            // go thru all exceptions with taskId=item.id (should only be one):
+            // go thru all exceptions with taskId=item.id (should only be one modified, others are deleted):
             for(const exc of exceptionsByTaskId[item.id] ?? []) {
                 // omit if exc is a deletion
                 if(exc.variant === "deleted") {
