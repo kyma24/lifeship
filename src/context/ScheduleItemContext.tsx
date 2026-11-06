@@ -12,7 +12,7 @@ interface ItemContextProps {
     rootExceptions: RecurrenceException[],
     createTask: (task: PartialTask) => void,
     createBlock: (block: PartialBlock) => void,
-    editTaskAll: (id: string, modTask: PartialTask) => void,
+    editTaskAll: (id: string, modTask: PartialTask) => Promise<DateString | null>,
     editTaskOne: (id: string, modTask: PartialTask, effectDate: DateString, occurrenceDate: DateString) => void,
     editBlock: (id: string, modBlock: PartialBlock) => void,
     deleteItem: (id: string) => void,
@@ -59,13 +59,16 @@ export const ScheduleItemProvider = ({ children }: React.PropsWithChildren) => {
             }
         },
 
-        editTaskAll: (id: string, modTask: PartialTask): void => {
+        // BASIN
+        editTaskAll: async (id: string, modTask: PartialTask): Promise<DateString | null> => {
             try {
-                updateTask(id, modTask);
+                const newDate = await updateTask(id, modTask);
+                return newDate;
             } catch (err) {
                 if(err instanceof Error) setError(err.message);
                 else setError(err as string);
             }
+            return null;
         },
 
         editTaskOne: (id: string, taskUpdates: PartialTask, effectDate: DateString, occurrenceDate: DateString): void => {

@@ -22,7 +22,7 @@ const TaskView = () => {
     const params = useParams();
     const id = params.id;
     // if single, undefined; else, datestring occurrenceDate
-    const date = params.date;
+    const date = params.date ?? null;
 
     const { rootItems, rootExceptions } = useScheduleItems();
 
@@ -53,6 +53,7 @@ const TaskView = () => {
 
     const { subtasks } = useSubtasks(id!);
 
+    // initialize
     useEffect(() => {
         if((task?.variant === "task") && (initFor.current !== task.id)) {
             const {id, ...partialTask} = task;
@@ -64,12 +65,20 @@ const TaskView = () => {
 
     // query unsuccessful, or removed by exception
     if(!task || !baseTask) return (<div>not found task</div>);
+
+    // redirect on date change
+    const validDateRedirect = (newDate: DateString | null) => {
+        if(newDate && isValidDateString(newDate)) navigate(`/task/${task.id}/${newDate}`);
+        else navigate(`/task/${task.id}`)
+    }
     
     // plan: open dropdown to change single/all
-    const handleSubmitAll = (taskUpdates: PartialTask = modTask) => {
+    const handleSubmitAll = async (taskUpdates: PartialTask = modTask) => {
         if(taskUpdates.name?.trim() === "") 
             taskUpdates.name = task.name;
-        editTaskAll(id!,taskUpdates);
+        // BASIN
+        const ret = await editTaskAll(id!,taskUpdates);
+        return ret;
     }
 
     const handleSubmitSingle = (taskUpdates: PartialTask = modTask) => {
@@ -130,6 +139,8 @@ const TaskView = () => {
         setModTask({...modTask, ...taskUpdates});
         // for auto-registering changes
         handleSubmitSingle(taskUpdates);
+        // redirect in case current date gets invalidated
+        validDateRedirect(newDate);
     }
 
     const handleTimeChange = (newTime: Partial<DoInfo> | null) => {
@@ -150,7 +161,7 @@ const TaskView = () => {
         handleSubmitAll(taskUpdates);
     }
 
-    const handleRecurrenceChange = (newRecurrence: RecurrenceRule | null) => {
+    const handleRecurrenceChange = async (newRecurrence: RecurrenceRule | null) => {
         // feat: add date if none
         if(!task.doInfo) return;
 
@@ -159,7 +170,10 @@ const TaskView = () => {
         };
         setModTask({...modTask, ...taskUpdates});
         // for auto-registering changes
-        handleSubmitAll(taskUpdates);
+        // BASIN
+        const newDate = await handleSubmitAll(taskUpdates);
+        // redirect in case current date gets invalidated
+        validDateRedirect(newDate);
     }
 
     const handleCreateSubtask = (draftTask: PartialTask) => {
@@ -261,7 +275,7 @@ const TaskView = () => {
 
                 <div className="flex flex-row">
                     <DatePicker
-                        doInfo={modTask.doInfo ?? null}
+                        doInfo={task.doInfo ?? null} // BASIN
                         onDateChange={handleDateChange}
                         onTimeChange={handleTimeChange}
                         onRecurrenceChange={handleRecurrenceChange}
