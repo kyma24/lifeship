@@ -1,5 +1,5 @@
 import { useScheduleItems } from '@/context/ScheduleItemContext';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom'
 import DatePicker from '@/components/doInfo/DatePicker';
 
@@ -27,25 +27,44 @@ const TaskView = () => {
     const { rootItems, rootExceptions } = useScheduleItems();
 
     // get base task
-    const baseTask = rootItems.find((item) => item.id === id); //useLiveQuery(() => getItemById(id!), [id]);
+    const baseTask = useMemo(() =>
+        rootItems.find((item) => item.id === id)
+    , [rootItems, id]);
+
     const isRecurring = baseTask?.doInfo?.recurrence?.rrule ?? false;
 
     // get corresponding exception
-    const exception = (isRecurring)
-        ? rootExceptions.find((exc) => (
-            (exc.itemId === id) 
-            && (exc.occurrenceDate === date)
-            && (exc.variant === "modified")
-        ))
-        : null;
+    const exception = useMemo(() =>
+        (isRecurring)
+            ? rootExceptions.find((exc) => (
+                (exc.itemId === id) 
+                && (exc.occurrenceDate === date)
+                && (exc.variant === "modified")
+               ))
+            : null
+        , [isRecurring, rootExceptions, id, date]);
+
+    // get if affected
+    const hasDiffEffect = useMemo(() => {
+        const effectEx = (isRecurring)
+            ? rootExceptions.find((exc) => (
+                (exc.itemId === id)
+                && (exc.effectDate === date)
+            ))
+            : null;
+        if(effectEx?.occurrenceDate !== date) return true;
+        return false;
+    }, [isRecurring, rootExceptions, id, date]);
     
     // merge into display task
-    const task = (baseTask && exception)
-        ? mergeItemWithException(baseTask, exception)
-        : {...baseTask, doInfo: (baseTask?.doInfo)
-            ? ((isRecurring) ? {...baseTask.doInfo, date } : baseTask.doInfo)
-            : {...getBaseDoInfo(), date }
-        } as Task;
+    const task = useMemo(() =>
+        (baseTask && exception)
+            ? mergeItemWithException(baseTask, exception)
+            : {...baseTask, doInfo: (baseTask?.doInfo)
+                ? ((isRecurring) ? {...baseTask.doInfo, date } : baseTask.doInfo)
+                : {...getBaseDoInfo(), date }
+            } as Task
+        , [baseTask, exception]);
 
     const navigate = useNavigate();
 
@@ -192,8 +211,8 @@ const TaskView = () => {
     if(date && !isValidDateString(date)) return (<div>invalid occurrence date</div>);
 
     // valid date in recurrence?
-    if(isRecurring && date && !exception) {
-        if(!itemWillOccurOn(baseTask, date as DateString))
+    if(isRecurring && date && (!exception) 
+        && (!itemWillOccurOn(baseTask, date as DateString) || hasDiffEffect)) {
             return (<div>task on date does not exist</div>);
     }
 
