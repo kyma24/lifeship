@@ -167,7 +167,7 @@ const DatePicker = ({doInfo, onDateChange, onTimeChange, onRecurrenceChange}: {
                                 onToday={handleToToday}
                                 onTomorrow={handleToTomorrow}
                                 onNoDate={handleToNoDate}
-                                onPostpone={(doInfo?.recurrence) ? handleToNext : null}
+                                onPostpone={(doInfo?.recurrence?.rrule) ? handleToNext : null}
                                 onCustomDate={handleCustomDate}
                             />
 

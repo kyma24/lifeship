@@ -1,6 +1,6 @@
 import { DateString } from "@/types"
 import { formatDateString, getTodayString, getTomorrowString, toWeekdayAbbrFormat } from "@/utils/dateUtils";
-import { Calendar, CircleSlash, Forward, SkipForward } from "lucide-react"
+import { Calendar, CircleSlash, Forward, SkipForward, Sun } from "lucide-react"
 
 const ScheduleSuggestList = ({ date, onToday, onTomorrow, onPostpone, onNoDate, onCustomDate }: {
     date: DateString | null,
@@ -49,7 +49,7 @@ const ScheduleSuggestList = ({ date, onToday, onTomorrow, onPostpone, onNoDate, 
                         className="flex flex-row w-full items-center justify-between p-1"
                     >
                         <div className="flex flex-row items-center justify-center gap-2">
-                            <SkipForward
+                            <Sun
                                 strokeWidth={2}
                                 className="size-4"
                             />
