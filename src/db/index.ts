@@ -77,9 +77,9 @@ export const updateTask = async (
     taskUpdates: PartialTask, 
     effectDate?: DateString,
     occurrenceDate?: DateString
-): Promise<DateString | null> => {
+) => {
     const task = await db.items.get(taskId);
-    if(!task || (task.variant !== "task")) return null;
+    if(!task || (task.variant !== "task")) return;
 
     // handle exception
     if(effectDate) {
@@ -123,8 +123,6 @@ export const updateTask = async (
             // if part of recurrence, remove task on og date [revisit]
             updateException(occEx.id, "deleted");
         }
-
-        return targetOccDate;
     } 
 
     // handle base task updates
@@ -147,17 +145,12 @@ export const updateTask = async (
                 });
             }
             // if valid date doesn't exist, no rrule
-
-            // BASIN
-            return validDtStart;
         } 
         // normal update otherwise
         else {
             updateItem(taskId, taskUpdates);
         }
     }
-
-    return null;
 }
 
 const getDescendantIds = async (rootId: string) => {

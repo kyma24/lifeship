@@ -155,7 +155,7 @@ const CreateTaskDisplay = ({ onCreate }: {
         setDraftTask({...draftTask, ...updates});
     }
 
-    const handleRecurrenceChange = (newRecurrence: RecurrenceRule | null) => {
+    const handleRecurrenceChange = (newRecurrence: RecurrenceRule | null, newDate: DateString | null) => {
         // feat: add date if none
         if(!draftTask.doInfo) return;
 
@@ -163,6 +163,7 @@ const CreateTaskDisplay = ({ onCreate }: {
             { ...draftTask.doInfo, recurrence: newRecurrence }
         };
         setDraftTask({...draftTask, ...updates});
+        handleDateChange(newDate);
     }
 
   const handleDurationChange = (duration: number) => {

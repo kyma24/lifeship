@@ -52,7 +52,8 @@ const TaskView = () => {
                 && (exc.effectDate === date)
             ))
             : null;
-        if(effectEx?.occurrenceDate !== date) return true;
+        if(!effectEx) return false;
+        if(effectEx.occurrenceDate !== date) return true;
         return false;
     }, [isRecurring, rootExceptions, id, date]);
     
@@ -92,12 +93,10 @@ const TaskView = () => {
     }
     
     // plan: open dropdown to change single/all
-    const handleSubmitAll = async (taskUpdates: PartialTask = modTask) => {
+    const handleSubmitAll = (taskUpdates: PartialTask = modTask) => {
         if(taskUpdates.name?.trim() === "") 
             taskUpdates.name = task.name;
-        // BASIN
-        const ret = await editTaskAll(id!,taskUpdates);
-        return ret;
+        editTaskAll(id!,taskUpdates);
     }
 
     const handleSubmitSingle = (taskUpdates: PartialTask = modTask) => {
@@ -180,17 +179,20 @@ const TaskView = () => {
         handleSubmitAll(taskUpdates);
     }
 
-    const handleRecurrenceChange = async (newRecurrence: RecurrenceRule | null) => {
+    const handleRecurrenceChange = async (newRecurrence: RecurrenceRule | null, newDate: DateString | null) => {
         // feat: add date if none
         if(!task.doInfo) return;
 
         const taskUpdates: PartialTask = { doInfo:
-            { ...task.doInfo, recurrence: newRecurrence }
+            (newDate)
+                ? { ...task.doInfo, 
+                    date: newDate,
+                    recurrence: newRecurrence }
+                : null
         };
         setModTask({...modTask, ...taskUpdates});
         // for auto-registering changes
-        // BASIN
-        const newDate = await handleSubmitAll(taskUpdates);
+        handleSubmitAll(taskUpdates);
         // redirect in case current date gets invalidated
         validDateRedirect(newDate);
     }
@@ -213,7 +215,7 @@ const TaskView = () => {
     // valid date in recurrence?
     if(isRecurring && date && (!exception) 
         && (!itemWillOccurOn(baseTask, date as DateString) || hasDiffEffect)) {
-            return (<div>task on date does not exist</div>);
+        return (<div>task on date does not exist</div>);
     }
 
     // non-task item

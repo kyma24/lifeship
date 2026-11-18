@@ -48,7 +48,7 @@ const ExpandedCreateItemBlock = ({ variant, defaultItem, onCreateItem, onClose }
         setDraftItem({...draftItem, ...updates});
     }
 
-    const handleRecurrenceChange = (newRecurrence: RecurrenceRule | null) => {
+    const handleRecurrenceChange = (newRecurrence: RecurrenceRule | null, newDate: DateString | null) => {
         // feat: add date if none
         if(!draftItem.doInfo) return;
 
@@ -56,6 +56,7 @@ const ExpandedCreateItemBlock = ({ variant, defaultItem, onCreateItem, onClose }
             { ...draftItem.doInfo, recurrence: newRecurrence }
         };
         setDraftItem({...draftItem, ...updates});
+        handleDateChange(newDate);
     }
 
     return (

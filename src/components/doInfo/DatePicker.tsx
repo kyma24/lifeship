@@ -6,7 +6,7 @@ import Divider from "../Divider";
 import TimeSelector from "./TimeSelector";
 import RecurrenceSelector from "./RecurrenceSelector";
 import ScheduleSuggestList from "./ScheduleSuggestList";
-import { getNextOccurrence, getTodayString, getTomorrowString } from "@/utils/dateUtils";
+import { getNextOccurrence, getRRuleDtStart, getTodayString, getTomorrowString } from "@/utils/dateUtils";
 import { useBottomSheet } from "@/context/BottomSheetContext";
 import CustomDateSheet from "./CustomDateSheet";
 
@@ -14,7 +14,7 @@ const DatePicker = ({doInfo, onDateChange, onTimeChange, onRecurrenceChange}: {
     doInfo: DoInfo | null,
     onDateChange: (newDate: DateString | null) => void,
     onTimeChange: (newTime: Partial<DoInfo> | null) => void,
-    onRecurrenceChange: (newTime: RecurrenceRule | null) => void
+    onRecurrenceChange: (newRRule: RecurrenceRule | null, newDate: DateString | null) => void
 }) => {
     const [popupOpen, setPopupOpen] = useState<boolean>(false);
 
@@ -82,7 +82,10 @@ const DatePicker = ({doInfo, onDateChange, onTimeChange, onRecurrenceChange}: {
         const newRecurrence: RecurrenceRule | null = (rrule)
             ? { rrule }
             : null;
-        onRecurrenceChange(newRecurrence);
+        const newDate: DateString | null = (rrule)
+            ? getRRuleDtStart(getTodayString(), rrule)
+            : null;
+        onRecurrenceChange(newRecurrence, newDate);
     }
 
     // floating ui
