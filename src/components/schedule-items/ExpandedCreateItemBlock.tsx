@@ -3,6 +3,7 @@ import { useState } from "react";
 import Divider from "../Divider";
 import DatePicker from "../doInfo/DatePicker";
 import { getBaseDoInfo } from "@/utils/dateUtils";
+import { useNavigate } from "react-router-dom";
 
 const ExpandedCreateItemBlock = ({ variant, defaultItem, onCreateItem, onClose }: {
     variant: "task" | "block",
@@ -11,6 +12,8 @@ const ExpandedCreateItemBlock = ({ variant, defaultItem, onCreateItem, onClose }
     onClose: () => void,
 }) => {
     const [draftItem, setDraftItem] = useState<PartialScheduleItem>(defaultItem);
+
+    const navigate = useNavigate();
 
     const handleCancel = () => {
         setDraftItem(defaultItem);
@@ -53,10 +56,14 @@ const ExpandedCreateItemBlock = ({ variant, defaultItem, onCreateItem, onClose }
         if(!draftItem.doInfo) return;
 
         const updates: PartialScheduleItem = { doInfo:
-            { ...draftItem.doInfo, recurrence: newRecurrence }
+            (newDate)
+                ? { ...draftItem.doInfo, 
+                    date: newDate,
+                    recurrence: newRecurrence }
+                : null
         };
         setDraftItem({...draftItem, ...updates});
-        handleDateChange(newDate);
+        if(newDate) navigate(`/plan/${newDate}`);
     }
 
     return (

@@ -10,7 +10,6 @@ import { getCurrentUserId } from "@/utils/backend/auth";
 import { getOverrides, toLocalExceptionShape, toRemoteExceptionShape } from "@/utils/exceptionUtils";
 import { nanoid } from "nanoid";
 import { getDeviceId } from "@/utils/backend/device";
-import { isEqual } from "lodash";
 import { createBlockFromDraft } from "@/utils/blockUtils";
 
 interface SyncStateRec {
@@ -71,7 +70,6 @@ export const updateItem = async (
     debouncedSync();
 }
 
-// BASIN: return more than new date for coherence?
 export const updateTask = async (
     taskId: string, 
     taskUpdates: PartialTask, 
@@ -83,21 +81,35 @@ export const updateTask = async (
 
     // handle exception
     if(effectDate) {
+        // current exception for effectDate
         const effException = await db.exceptions
             .where("[itemId+effectDate]")
             .equals([taskId, effectDate])
             .first();
 
         // get overrides
-        const overrides: Record<string, unknown> = getOverrides(task, taskUpdates);
-    
-        // create or update effException
-        if(!effException) createException(effectDate, taskId, "modified", overrides);
-        else updateException(effException.id, "modified", overrides);
+        let overrides: ItemOverrides = getOverrides(task, {...effException?.overrides, ...taskUpdates});
+
+        // edge case: same date as og task
+        if(task.doInfo && taskUpdates.doInfo && (task.doInfo.date === taskUpdates.doInfo.date)) {
+            overrides = {
+                ...overrides,
+                doInfo: {...(overrides.doInfo ?? task.doInfo), date: taskUpdates.doInfo.date}
+            };
+        }
+
+        // is different from original task?
+        if(Object.keys(overrides).length > 0) {
+            // create effException if doesn't exist
+            if(!effException) createException(effectDate, taskId, "modified", overrides);
+            // update effException if exists
+            else updateException(effException.id, "modified", overrides);
+        }
+        // is same as original task? then delete exception
+        else if(effException) deleteException(effException.id);
 
         // [revisit edge case] if in recurrence, remove og occurrence date's task
         if(occurrenceDate && (effectDate !== occurrenceDate) && itemWillOccurOn(task, occurrenceDate)) {
-            console.log(effectDate, occurrenceDate);
             const ogOccException = await db.exceptions
                 .where("[itemId+effectDate]")
                 .equals([taskId, occurrenceDate])
@@ -230,7 +242,7 @@ const updateException = async (
 
         const addExc = {
             occurrenceDate: overrides?.doInfo?.date ?? exc.occurrenceDate,
-            overrides: overrides,
+            overrides: {...exc.overrides, ...overrides},
             updatedAt: nowISO(),
             dirty: true
         };
@@ -247,7 +259,7 @@ const updateException = async (
     debouncedSync();
 };
 
-const deleteExceptionAPI = async (id: string) => {
+const deleteException = async (id: string) => {
     await db.exceptions.update(id, {
         updatedAt: nowISO(),
         deletedAt: nowISO(),
@@ -263,18 +275,17 @@ const deleteAllExceptionsOfItemAPI = async (itemId: string) => {
         .map((exc) => exc.id);
 
     for(const id of toDeleteIds) {
-        await deleteExceptionAPI(id);
+        await deleteException(id);
     }
 }
 
 const toggleCheckedEx = async (taskId: string, date: DateString) => {
-    const curExceptions = await db.exceptions
-        .where("[itemId+effectDate]")
+    const occExceptions = await db.exceptions
+        .where("[itemId+occurrenceDate]")
         .equals([taskId,date])
         .toArray();
         
-    // TO BE IMPROVED: assumes only one exception
-    const taskException = (curExceptions.length > 0) ? curExceptions[0] : null;
+    const taskException = occExceptions.find((ex) => ex.variant === "modified");
 
     const task = await db.items.get(taskId);
     if(!task) throw new Error(`Item ${taskId} not found`);
@@ -457,7 +468,7 @@ export const processCheckedAPI = async (today: DateString) => {
         }
 
         // tombstone exception
-        await deleteExceptionAPI(exc.id);
+        await deleteException(exc.id);
     }
 }
 

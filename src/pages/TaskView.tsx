@@ -43,7 +43,7 @@ const TaskView = () => {
                ))
             : null
         , [isRecurring, rootExceptions, id, date]);
-
+    
     // get if affected
     const hasDiffEffect = useMemo(() => {
         const effectEx = (isRecurring)
