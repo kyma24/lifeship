@@ -44,8 +44,8 @@ const TaskView = () => {
             : null
         , [isRecurring, rootExceptions, id, date]);
     
-    // get if affected
-    const hasDiffEffect = useMemo(() => {
+    // get if date moved OR deleted
+    const hasEffectChangedDate = useMemo(() => {
         const effectEx = (isRecurring)
             ? rootExceptions.find((exc) => (
                 (exc.itemId === id)
@@ -54,6 +54,7 @@ const TaskView = () => {
             : null;
         if(!effectEx) return false;
         if(effectEx.occurrenceDate !== date) return true;
+        if(effectEx.variant === "deleted") return true;
         return false;
     }, [isRecurring, rootExceptions, id, date]);
     
@@ -212,9 +213,9 @@ const TaskView = () => {
     // invalid date param
     if(date && !isValidDateString(date)) return (<div>invalid occurrence date</div>);
 
-    // valid date in recurrence?
+    // valid date in recurrence? (no occurrence exception)
     if(isRecurring && date && (!exception) 
-        && (!itemWillOccurOn(baseTask, date as DateString) || hasDiffEffect)) {
+        && (!itemWillOccurOn(baseTask, date as DateString) || hasEffectChangedDate)) {
         return (<div>task on date does not exist</div>);
     }
 
